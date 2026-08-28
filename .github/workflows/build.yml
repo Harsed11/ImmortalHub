@@ -28,6 +28,16 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
+      - name: Static Lint (ruff)
+        run: |
+          pip install ruff
+          ruff check .
+
+      - name: Run Test Suite
+        run: |
+          pip install pytest
+          pytest tests -v
+
       - name: Build Standalone Executable
         run: |
           python build_exe.py
