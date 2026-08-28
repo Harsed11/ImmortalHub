@@ -5,7 +5,6 @@ import QtQuick.Layouts 1.15
 import "theme"
 import "components"
 import "views"
-import "overlay"
 
 ApplicationWindow {
     id: root
@@ -433,13 +432,7 @@ ApplicationWindow {
         }
     }
 
-    // F2 Shortcut
-    Shortcut {
-        sequence: "F2"
-        onActivated: app.toggleOverlay()
-    }
-
-    // Ctrl+K — Global Search
+    // Ctrl+K Shortcut
     Shortcut {
         sequence: "Ctrl+K"
         onActivated: searchModal.openWith()
@@ -449,11 +442,6 @@ ApplicationWindow {
     GlobalSearchModal {
         id: searchModal
         onModPicked: function(m) { root.selectedDetailMod = m }
-    }
-
-    // Overlay
-    DraftOverlayWindow {
-        id: inGameOverlay
     }
 
     // Presets Modal

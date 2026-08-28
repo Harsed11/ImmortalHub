@@ -47,7 +47,6 @@ class SkinChangerApp(QObject):
     progressChanged = Signal(int, str, str)  # percent, status, item_name
     batchFinished = Signal(bool, str)
     liveMatchChanged = Signal()
-    overlayToggled = Signal(bool)
     gsiStatusChanged = Signal()
     updateAvailable = Signal(str, str, str)  # version, notes, download_url
     remoteDataReady = Signal(object, object)  # (constants, mods) fetched off-GUI; (None, None) on failure
@@ -75,8 +74,6 @@ class SkinChangerApp(QObject):
         self._gsi_server = GSIServer()
         self._log_watcher = None
         self._live_match_data = None
-        self._overlay_visible = False
-        self._overlay_enabled = True
         self._launch_options = ""
 
         # Media Player for Audio Previews
@@ -284,10 +281,6 @@ class SkinChangerApp(QObject):
     @Property(bool, notify=liveMatchChanged)
     def isLiveMatchActive(self):
         return self._live_match_data is not None
-
-    @Property(bool, notify=overlayToggled)
-    def overlayVisible(self):
-        return self._overlay_visible
 
     @Property(bool, notify=gsiStatusChanged)
     def gsiInstalled(self):
@@ -1022,7 +1015,7 @@ class SkinChangerApp(QObject):
         except Exception as e:
             logger.error(f"Failed to save settings: {e}")
 
-    # --- Live Match & Overplus Overlay Slots ---
+    # --- Live Match Slots ---
 
     def _on_real_players_detected(self, player_ids: list):
         if not player_ids:
@@ -1034,9 +1027,6 @@ class SkinChangerApp(QObject):
                 data = self._stats_service.build_match_from_ids(player_ids)
                 self._live_match_data = data
                 self.liveMatchChanged.emit()
-                if self._overlay_enabled:
-                    self._overlay_visible = True
-                    self.overlayToggled.emit(True)
                 self.successOccurred.emit(f"Detected {len(player_ids)} real players in active Dota 2 match!")
             except Exception as e:
                 logger.error(f"Error fetching real player stats: {e}")
@@ -1065,10 +1055,6 @@ class SkinChangerApp(QObject):
                     if acc_id > 0:
                         self._on_real_players_detected([acc_id])
                         return
-
-                if self._overlay_enabled:
-                    self._overlay_visible = True
-                    self.overlayToggled.emit(True)
 
     @Slot(result=str)
     def getLiveMatchJson(self) -> str:
@@ -1110,29 +1096,15 @@ class SkinChangerApp(QObject):
 
     @Slot()
     def triggerDemoMatch(self):
-        logger.info("Triggering Overplus-style Demo Match preview...")
+        logger.info("Triggering Demo Match preview...")
         self._live_match_data = self._stats_service.get_mock_match()
         self.liveMatchChanged.emit()
-        self._overlay_visible = True
-        self.overlayToggled.emit(True)
         self.successOccurred.emit("Loaded Live Match Drafting Analytics demo!")
 
     @Slot()
     def clearLiveMatch(self):
         self._live_match_data = None
-        self._overlay_visible = False
         self.liveMatchChanged.emit()
-        self.overlayToggled.emit(False)
-
-    @Slot()
-    def toggleOverlay(self):
-        self._overlay_visible = not self._overlay_visible
-        self.overlayToggled.emit(self._overlay_visible)
-
-    @Slot(bool)
-    def setOverlayVisible(self, visible: bool):
-        self._overlay_visible = visible
-        self.overlayToggled.emit(self._overlay_visible)
 
     @Slot(result=bool)
     def installGsiConfig(self) -> bool:

@@ -1030,17 +1030,17 @@ Item {
                 }
             }
 
-            // 4. Overplus Live Match & In-Game Overlay Integration Card
+            // 4. Live Match & Game State Integration (GSI) Card
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: overlaySectionCol.implicitHeight + 40
+                implicitHeight: gsiSectionCol.implicitHeight + 40
                 radius: SkinTheme.radiusXLarge
                 color: SkinTheme.bgCard
                 border.color: SkinTheme.borderMuted
                 border.width: 1
 
                 ColumnLayout {
-                    id: overlaySectionCol
+                    id: gsiSectionCol
                     anchors.fill: parent
                     anchors.margins: 20
                     spacing: 16
@@ -1055,7 +1055,7 @@ Item {
                         }
 
                         Text {
-                            text: "Overplus In-Game Match & Draft Overlay"
+                            text: "Live Match & Game State Integration (GSI)"
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
                             font.pixelSize: SkinTheme.fontSizeTitle
@@ -1096,7 +1096,7 @@ Item {
 
                     Text {
                         text: "Dota 2 Game State Integration (GSI) automatically alerts ImmortalHub when you find a match and enter hero drafting. " +
-                              "The transparent overlay displays player winrates, streaks, signature heroes, and enemy spammer ban warnings directly in game (Press F2 to toggle)."
+                              "Live Match analytics display player winrates, streaks, signature heroes, and enemy spammer ban warnings right inside the app."
                         color: SkinTheme.textMuted
                         font.family: SkinTheme.fontFamily
                         font.pixelSize: SkinTheme.fontSizeSmall
@@ -1135,38 +1135,6 @@ Item {
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: app.installGsiConfig()
-                            }
-                        }
-
-                        // Toggle Overlay Button
-                        Rectangle {
-                            Layout.preferredHeight: 38
-                            implicitWidth: togOvlText.implicitWidth + 28
-                            radius: SkinTheme.radiusMedium
-                            color: app.overlayVisible ? "#16283d" : (togOvlMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgDark)
-                            border.color: app.overlayVisible ? SkinTheme.accentCyan : SkinTheme.borderMuted
-                            border.width: 1
-
-                            RowLayout {
-                                id: togOvlText
-                                anchors.centerIn: parent
-                                spacing: 8
-                                Text { text: "◫"; font.pixelSize: 12 }
-                                Text {
-                                    text: app.overlayVisible ? "Hide Overlay (F2)" : "Show Overlay Window"
-                                    color: app.overlayVisible ? SkinTheme.accentCyan : SkinTheme.textPrimary
-                                    font.family: SkinTheme.fontFamily
-                                    font.pixelSize: 12
-                                    font.bold: true
-                                }
-                            }
-
-                            MouseArea {
-                                id: togOvlMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: app.toggleOverlay()
                             }
                         }
 

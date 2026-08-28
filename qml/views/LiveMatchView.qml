@@ -223,38 +223,6 @@ Item {
                         }
                     }
 
-                    // Overlay HUD Toggle
-                    Rectangle {
-                        height: 36
-                        radius: SkinTheme.radiusMedium
-                        implicitWidth: ovlBtnText.implicitWidth + 22
-                        color: app.overlayVisible ? "#122a3e" : (ovlBtnMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard)
-                        border.color: app.overlayVisible ? SkinTheme.accentCyan : SkinTheme.borderMuted
-                        border.width: 1
-
-                        RowLayout {
-                            id: ovlBtnText
-                            anchors.centerIn: parent
-                            spacing: 6
-                            Text { text: "◫"; font.pixelSize: 11 }
-                            Text {
-                                text: app.overlayVisible ? "Hide HUD (F2)" : "Show HUD (F2)"
-                                color: app.overlayVisible ? SkinTheme.accentCyan : SkinTheme.textPrimary
-                                font.family: SkinTheme.fontFamily
-                                font.pixelSize: 11
-                                font.bold: true
-                            }
-                        }
-
-                        MouseArea {
-                            id: ovlBtnMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: app.toggleOverlay()
-                        }
-                    }
-
                     // Demo Match Button
                     Rectangle {
                         height: 36
