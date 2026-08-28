@@ -109,7 +109,7 @@ function App() {
   // Terminal state
   const [isInjecting, setIsInjecting] = useState(false);
   const [injectionLogs, setInjectionLogs] = useState([
-    { text: '[SYSTEM] ImmortalHub Core VPK v2.4.1 initialized.', type: 'info' },
+    { text: '[SYSTEM] ImmortalHub Core VPK v1.0.0 initialized.', type: 'info' },
     { text: '[GSI] Listening for Dota 2 Game State Integration...', type: 'dim' },
     { text: '[STATUS] Engine ready. Click "Simulate VPK Injection" below to test hook.', type: 'accent' },
   ]);
@@ -890,7 +890,7 @@ function App() {
             </button>
 
             <div className="modal-header">
-              <span className="modal-badge">OFFICIAL RELEASE v2.4.1</span>
+              <span className="modal-badge">OFFICIAL RELEASE v1.0.0</span>
               <h2 className="modal-title">Get ImmortalHub for Windows</h2>
               <p className="modal-subtitle">
                 Native Source 2 VPK redirector with real-time Game State Integration. Zero configuration needed.
@@ -908,7 +908,7 @@ function App() {
                 <span className="btn-icon">⚡</span>
                 <div className="btn-download-text">
                   <span className="btn-download-main">DOWNLOAD IMMORTALHUB (.EXE)</span>
-                  <span className="btn-download-sub">v2.4.1 for Windows 10/11 64-bit (Portable)</span>
+                  <span className="btn-download-sub">v1.0.0 for Windows 10/11 64-bit (Portable)</span>
                 </div>
               </a>
 

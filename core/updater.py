@@ -3,7 +3,7 @@ import aiohttp
 from typing import Optional, Dict, Any
 from core.logger import logger
 
-CURRENT_VERSION = "2.4.1"
+CURRENT_VERSION = "1.0.0"
 GITHUB_REPO = "Harsed11/ImmortalHub"
 API_RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 

@@ -1263,7 +1263,7 @@ class SkinChangerApp(QObject):
                     )
                     self.successOccurred.emit(f"New update available: v{result.get('latest_version')}")
                 else:
-                    self.successOccurred.emit("ImmortalHub is up to date! (v2.4.1)")
+                    self.successOccurred.emit("ImmortalHub is up to date! (v1.0.0)")
             except Exception as e:
                 logger.debug(f"Update check error: {e}")
 
