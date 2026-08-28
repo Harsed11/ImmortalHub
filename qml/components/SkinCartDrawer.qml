@@ -123,10 +123,10 @@ Rectangle {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "✕"
+                            text: "\uE8BB"
                             color: closeBtnMouse.containsMouse ? SkinTheme.accentCrimson : SkinTheme.textMuted
-                            font.pixelSize: 12
-                            font.bold: true
+                            font.family: "Segoe MDL2 Assets"
+                            font.pixelSize: 11
                         }
 
                         MouseArea {
@@ -313,10 +313,10 @@ Rectangle {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: "✕"
+                                text: "\uE8BB"
                                 color: delMouse.containsMouse ? "#ffffff" : SkinTheme.textMuted
+                                font.family: "Segoe MDL2 Assets"
                                 font.pixelSize: 10
-                                font.bold: true
                             }
 
                             MouseArea {
@@ -414,14 +414,27 @@ Rectangle {
                             Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
                         }
 
-                        Text {
+                        Row {
                             anchors.centerIn: parent
-                            text: isInstalling ? "⚡ INSTALLING..." : "⚡ INSTALL ALL (" + cartList.length + ")"
-                            color: (cartList.length > 0 && !isInstalling) ? "#060810" : SkinTheme.textMuted
-                            font.family: SkinTheme.fontMono
-                            font.pixelSize: 12
-                            font.bold: true
-                            font.letterSpacing: 1.0
+                            spacing: 6
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "\uE945"
+                                color: (cartList.length > 0 && !isInstalling) ? "#060810" : SkinTheme.textMuted
+                                font.family: "Segoe MDL2 Assets"
+                                font.pixelSize: 12
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: isInstalling ? "INSTALLING..." : "INSTALL ALL (" + cartList.length + ")"
+                                color: (cartList.length > 0 && !isInstalling) ? "#060810" : SkinTheme.textMuted
+                                font.family: SkinTheme.fontMono
+                                font.pixelSize: 12
+                                font.bold: true
+                                font.letterSpacing: 1.0
+                            }
                         }
 
                         MouseArea {

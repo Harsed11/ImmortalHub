@@ -143,12 +143,12 @@ Rectangle {
 
             Repeater {
                 model: [
-                    { id: "heroes",    label: app.uiLanguage.length && app.t("nav.heroes"),    icon: "⚔" },
-                    { id: "favorites", label: app.uiLanguage.length && app.t("nav.favorites"), icon: "★" },
-                    { id: "effects",   label: app.uiLanguage.length && app.t("nav.effects"),   icon: "✦" },
-                    { id: "map",       label: app.uiLanguage.length && app.t("nav.map"),       icon: "◈" },
-                    { id: "audio",     label: app.uiLanguage.length && app.t("nav.audio"),     icon: "♪" },
-                    { id: "misc",      label: app.uiLanguage.length && app.t("nav.misc"),      icon: "◆" }
+                    { id: "heroes",    label: app.uiLanguage.length && app.t("nav.heroes"),    icon: "\uE716" },
+                    { id: "favorites", label: app.uiLanguage.length && app.t("nav.favorites"), icon: "\uE734" },
+                    { id: "effects",   label: app.uiLanguage.length && app.t("nav.effects"),   icon: "\uE790" },
+                    { id: "map",       label: app.uiLanguage.length && app.t("nav.map"),       icon: "\uE774" },
+                    { id: "audio",     label: app.uiLanguage.length && app.t("nav.audio"),     icon: "\uE8D6" },
+                    { id: "misc",      label: app.uiLanguage.length && app.t("nav.misc"),      icon: "\uE71D" }
                 ]
 
                 delegate: Rectangle {
@@ -201,7 +201,8 @@ Rectangle {
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.icon
-                                font.pixelSize: 16
+                                font.family: "Segoe MDL2 Assets"
+                                font.pixelSize: 14
                                 color: SkinTheme.accentCyan
                                 opacity: sidebar.currentTab === modelData.id ? 0.45 : 0
                                 visible: opacity > 0
@@ -212,7 +213,8 @@ Rectangle {
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.icon
-                                font.pixelSize: 16
+                                font.family: "Segoe MDL2 Assets"
+                                font.pixelSize: 14
                                 color: sidebar.currentTab === modelData.id
                                        ? SkinTheme.accentCyan
                                        : (navMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
@@ -333,9 +335,9 @@ Rectangle {
 
             Repeater {
                 model: [
-                    { id: "fpsboost",  label: app.uiLanguage.length && app.t("nav.fpsboost"),  icon: "⚡", color: SkinTheme.accentViolet },
-                    { id: "installed", label: app.uiLanguage.length && app.t("nav.installed"), icon: "☰", color: SkinTheme.accentEmerald },
-                    { id: "settings",  label: app.uiLanguage.length && app.t("nav.settings"),  icon: "⚙", color: "" }
+                    { id: "fpsboost",  label: app.uiLanguage.length && app.t("nav.fpsboost"),  icon: "\uE945", color: SkinTheme.accentViolet },
+                    { id: "installed", label: app.uiLanguage.length && app.t("nav.installed"), icon: "\uE8F1", color: SkinTheme.accentEmerald },
+                    { id: "settings",  label: app.uiLanguage.length && app.t("nav.settings"),  icon: "\uE713", color: "" }
                 ]
 
                 delegate: Rectangle {
@@ -384,7 +386,8 @@ Rectangle {
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.icon
-                                font.pixelSize: 16
+                                font.family: "Segoe MDL2 Assets"
+                                font.pixelSize: 14
                                 color: sidebar.currentTab === modelData.id
                                        ? (modelData.color || SkinTheme.accentViolet)
                                        : (toolNavMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)

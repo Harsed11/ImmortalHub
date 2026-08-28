@@ -281,7 +281,7 @@ Rectangle {
             Layout.rightMargin: 10
             height: 24
             radius: SkinTheme.radiusSmall
-            implicitWidth: titleQueueLabel.implicitWidth + 20
+            implicitWidth: titleQueueRow.implicitWidth + 20
             color: queueCount > 0
                    ? (queueBtnMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan)
                    : (queueBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent")
@@ -304,13 +304,23 @@ Rectangle {
                 Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
             }
 
-            RowLayout {
+            Row {
+                id: titleQueueRow
                 anchors.centerIn: parent
                 spacing: 5
 
                 Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "\uE945"
+                    color: queueCount > 0 ? "#060810" : (queueBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.textSecondary)
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 11
+                }
+
+                Text {
                     id: titleQueueLabel
-                    text: queueCount > 0 ? "⚡ QUEUE  " + queueCount : "⚡ QUEUE"
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: queueCount > 0 ? "QUEUE  " + queueCount : "QUEUE"
                     color: queueCount > 0 ? "#060810" : (queueBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.textSecondary)
                     font.family: SkinTheme.fontMono
                     font.pixelSize: 10
@@ -334,9 +344,9 @@ Rectangle {
 
             Repeater {
                 model: [
-                    { sym: "\u2013", action: "min", label: "Minimize" },
-                    { sym: "\u25A1", action: "max", label: "Maximize" },
-                    { sym: "\u00D7", action: "close", label: "Close" }
+                    { sym: "\uE921", action: "min", label: "Minimize" },
+                    { sym: "\uE922", action: "max", label: "Maximize" },
+                    { sym: "\uE8BB", action: "close", label: "Close" }
                 ]
 
                 delegate: Rectangle {
@@ -365,14 +375,13 @@ Rectangle {
 
                     Text {
                         anchors.centerIn: parent
-                        text: modelData.action === "max" && rootWindow && rootWindow.visibility === Window.Maximized ? "\u25A0" : modelData.sym
+                        text: modelData.action === "max" && rootWindow && rootWindow.visibility === Window.Maximized ? "\uE923" : modelData.sym
                         color: {
                             if (wcMouse.containsMouse) return "#ffffff"
                             return SkinTheme.textMuted
                         }
-                        font.family: SkinTheme.fontFamily
-                        font.pixelSize: modelData.action === "close" ? 15 : 12
-                        font.bold: modelData.action === "close"
+                        font.family: "Segoe MDL2 Assets"
+                        font.pixelSize: 10
                     }
 
                     MouseArea {
