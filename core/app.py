@@ -18,6 +18,7 @@ from api import (
     safe_url, BASE_URL
 )
 from core.logger import logger
+from core.version import APP_VERSION
 from core.dota_path import detect_steam_dota_path
 from core.workers import InstallWorker
 from core.stats_service import StatsService
@@ -126,7 +127,7 @@ class SkinChangerApp(QObject):
 
     @Property(str, constant=True)
     def appVersion(self) -> str:
-        return "v1.0.0-ALPHA"
+        return f"v{APP_VERSION}"
 
     @Property(list, notify=categoriesLoaded)
     def categories(self):
@@ -323,18 +324,6 @@ class SkinChangerApp(QObject):
         
         # If no audio URL is available, notify the user instead of playing a 404 URL
         self.successOccurred.emit(f"Audio preview for {name} is not available in the database yet.")
-
-    # --- Quick Launch Dota 2 ---
-
-    @Slot()
-    def launchDota(self):
-        self.successOccurred.emit("Launching Dota 2 via Steam...")
-        uri = "steam://run/570"
-        if self._launch_options:
-            opts = self._launch_options.strip()
-            # In Steam URIs, arguments are appended after //
-            uri = f"steam://run/570//{opts}"
-        QDesktopServices.openUrl(QUrl(uri))
 
     # --- Gameinfo.gi Patcher ---
 
@@ -1159,7 +1148,7 @@ class SkinChangerApp(QObject):
 
     @Slot(result=bool)
     def launchDota(self) -> bool:
-        ok, msg = launch_dota_game(self._dota_path)
+        ok, msg = launch_dota_game(self._dota_path, custom_args=self._launch_options)
         if ok:
             self.successOccurred.emit("Launching Dota 2 via Steam...")
         else:
@@ -1263,7 +1252,7 @@ class SkinChangerApp(QObject):
                     )
                     self.successOccurred.emit(f"New update available: v{result.get('latest_version')}")
                 else:
-                    self.successOccurred.emit("ImmortalHub is up to date! (v1.0.0)")
+                    self.successOccurred.emit(f"ImmortalHub is up to date! (v{APP_VERSION})")
             except Exception as e:
                 logger.debug(f"Update check error: {e}")
 

@@ -21,15 +21,18 @@ def get_gameinfo_paths(dota_path: str) -> list[str]:
         return []
     
     paths = []
-    # Primary dota dir
-    p1 = os.path.join(dota_path, "game", "dota", "gameinfo.gi")
-    if os.path.exists(p1):
-        paths.append(p1)
+    # dota_path normally points at the 'game' folder, but may also be the game root
+    candidates = [os.path.join(dota_path, "dota", "gameinfo.gi"),
+                  os.path.join(dota_path, "game", "dota", "gameinfo.gi")]
+    for candidate in candidates:
+        if os.path.exists(candidate) and candidate not in paths:
+            paths.append(candidate)
     
-    # Russian localization dir
-    p2 = os.path.join(dota_path, "game", "dota_russian", "gameinfo.gi")
-    if os.path.exists(p2):
-        paths.append(p2)
+    candidates = [os.path.join(dota_path, "dota_russian", "gameinfo.gi"),
+                  os.path.join(dota_path, "game", "dota_russian", "gameinfo.gi")]
+    for candidate in candidates:
+        if os.path.exists(candidate) and candidate not in paths:
+            paths.append(candidate)
         
     return paths
 
@@ -52,12 +55,11 @@ def check_gameinfo_health(dota_path: str) -> Dict[str, Any]:
             with open(gi_path, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
             
-            # Check for mod injection search path
-            has_mod_hook = bool(
-                re.search(r'Game_LowViolence\s+dota_lv', content) or
-                re.search(r'Mod\s+dota', content, re.IGNORECASE) or
-                "dota_russian" in content
-            )
+            # ImmortalHub's canonical hook is 'Game dota/pak' (injected by
+            # app.patchGameinfo and repair_gameinfo). Stock gameinfo.gi already
+            # contains 'Mod dota' / 'dota_russian' entries, so those must NOT
+            # be treated as active hooks.
+            has_mod_hook = "dota/pak" in content
             details.append({
                 "path": gi_path,
                 "hasHook": has_mod_hook
@@ -77,7 +79,11 @@ def check_gameinfo_health(dota_path: str) -> Dict[str, Any]:
 
 
 def repair_gameinfo(dota_path: str) -> Tuple[bool, str]:
-    """Safely restore and inject mod search paths into gameinfo.gi with backup."""
+    """Safely restore and inject mod search paths into gameinfo.gi with backup.
+
+    Injects the same hooks as SkinChangerApp.patchGameinfo ('Game dota/pak'), so
+    repair, patching and the gameinfoPatched status stay consistent.
+    """
     paths = get_gameinfo_paths(dota_path)
     if not paths:
         return False, "Dota 2 directory not found."
@@ -100,8 +106,8 @@ def repair_gameinfo(dota_path: str) -> Tuple[bool, str]:
                 inner_paths = search_paths_match.group(2)
                 
                 # Check if Mod line already present
-                if "Mod\tdota" not in inner_paths and "Mod dota" not in inner_paths:
-                    injected_entry = "\n\t\t\tGame_LowViolence\tdota_lv\n\t\t\tMod\tdota_russian\n\t\t\tMod\tdota"
+                if "dota/pak" not in inner_paths:
+                    injected_entry = "\n\t\t\tGame\t\t\t\tdota/pak\n\t\t\tGame\t\t\t\tdota_russian/pak"
                     new_inner = injected_entry + inner_paths
                     new_content = content[:search_paths_match.start(2)] + new_inner + content[search_paths_match.end(2):]
                     
@@ -131,10 +137,14 @@ def launch_dota_game(dota_path: str, custom_args: str = "") -> Tuple[bool, str]:
     except Exception as e:
         logger.warning(f"Steam protocol launch failed: {e}. Trying direct dota2.exe...")
 
-    # 2. Fallback: Direct dota2.exe
+    # 2. Fallback: Direct dota2.exe (dota_path may be the game root or the 'game' folder)
     if dota_path and os.path.exists(dota_path):
-        exe_path = os.path.join(dota_path, "game", "bin", "win64", "dota2.exe")
-        if os.path.exists(exe_path):
+        exe_candidates = [
+            os.path.join(dota_path, "game", "bin", "win64", "dota2.exe"),
+            os.path.join(dota_path, "bin", "win64", "dota2.exe"),
+        ]
+        exe_path = next((p for p in exe_candidates if os.path.exists(p)), "")
+        if exe_path:
             try:
                 cmd = [exe_path] + args.split()
                 subprocess.Popen(cmd, cwd=os.path.dirname(exe_path))
