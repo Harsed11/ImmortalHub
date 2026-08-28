@@ -11,6 +11,12 @@ from core.logger import logger
 from core.app import SkinChangerApp
 
 
+def resource_path(relative_path: str) -> str:
+    """Absolute path to a bundled resource. Works from source and frozen (PyInstaller)."""
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, relative_path)
+
+
 def main():
     logger.info("Starting ImmortalHub application...")
     
@@ -21,7 +27,7 @@ def main():
     app.setQuitOnLastWindowClosed(False)
 
     # Load and register custom gaming & cyberpunk fonts
-    fonts_dir = os.path.join(os.path.dirname(__file__), "assets", "fonts")
+    fonts_dir = resource_path(os.path.join("assets", "fonts"))
     if os.path.exists(fonts_dir):
         for f in os.listdir(fonts_dir):
             if f.endswith((".ttf", ".otf")):
@@ -36,7 +42,7 @@ def main():
 
     engine = QQmlApplicationEngine()
 
-    qml_dir = os.path.join(os.path.dirname(__file__), "qml")
+    qml_dir = resource_path("qml")
     engine.addImportPath(qml_dir)
 
     engine.rootContext().setContextProperty("app", skin_app)
@@ -51,7 +57,7 @@ def main():
     main_window = engine.rootObjects()[0]
 
     # Setup System Tray
-    tray_icon = QSystemTrayIcon(QIcon("assets/app_icon.jpg"), app)
+    tray_icon = QSystemTrayIcon(QIcon(resource_path(os.path.join("assets", "app_icon.jpg"))), app)
     tray_icon.setToolTip("ImmortalHub - Dota 2 Skin Changer")
 
     tray_menu = QMenu()

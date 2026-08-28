@@ -23,12 +23,14 @@ def build():
     project_dir = os.path.dirname(os.path.abspath(__file__))
     main_py = os.path.join(project_dir, "main.py")
     qml_dir = os.path.join(project_dir, "qml")
+    assets_dir = os.path.join(project_dir, "assets")
 
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--noconsole",
         "--name=ImmortalHub",
         f"--add-data={qml_dir};qml",
+        f"--add-data={assets_dir};assets",
         "--hidden-import=PySide6.QtMultimedia",
         "--hidden-import=PySide6.QtQuickControls2",
         "--hidden-import=PySide6.QtQml",
