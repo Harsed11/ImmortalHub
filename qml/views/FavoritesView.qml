@@ -173,15 +173,7 @@ Item {
             Layout.fillHeight: true
             clip: true
 
-            ScrollBar.vertical: ScrollBar {
-                width: 8
-                policy: ScrollBar.AsNeeded
-                contentItem: Rectangle {
-                    radius: 4
-                    color: SkinTheme.accentCyan
-                    opacity: 0.3
-                }
-            }
+            ScrollBar.vertical: NeonScrollBar {}
 
             GridView {
                 id: favGrid
@@ -193,8 +185,23 @@ Item {
                 displayMarginEnd: 20
 
                 delegate: Item {
+                    id: favCardDelegate
                     width: favGrid.cellWidth
                     height: favGrid.cellHeight
+
+                    // Staggered cascade entrance
+                    opacity: 0
+                    scale: 0.95
+                    SequentialAnimation on opacity {
+                        running: favCardDelegate.visible
+                        PauseAnimation { duration: (index % 18) * 30 }
+                        NumberAnimation { to: 1; duration: 300; easing.type: Easing.OutCubic }
+                    }
+                    SequentialAnimation on scale {
+                        running: favCardDelegate.visible
+                        PauseAnimation { duration: (index % 18) * 30 }
+                        NumberAnimation { to: 1; duration: 320; easing.type: Easing.OutBack }
+                    }
 
                     SkinModCard {
                         anchors.centerIn: parent

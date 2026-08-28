@@ -33,7 +33,7 @@ Item {
         border.color: "transparent"
         border.width: 0
 
-        scale: cardRoot.isHovered ? 1.02 : 1.0
+        scale: cardMouse.pressed ? 0.97 : (cardRoot.isHovered ? 1.02 : 1.0)
         Behavior on scale { NumberAnimation { duration: SkinTheme.animNormal; easing.type: Easing.OutCubic } }
 
         // Animated neon border glow (installed state)
@@ -94,6 +94,31 @@ Item {
             border.color: isInstalled ? SkinTheme.accentCyan : SkinTheme.borderMuted
             border.width: 1
 
+            // Shimmer skeleton while the preview loads
+            Rectangle {
+                id: previewSkeleton
+                anchors.fill: parent
+                color: "#0A101C"
+                visible: previewImg.status !== Image.Ready
+
+                Rectangle {
+                    width: parent.width
+                    height: parent.height
+                    visible: previewSkeleton.visible
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: "#00000000" }
+                        GradientStop { position: 0.5; color: "#14FFFFFF" }
+                        GradientStop { position: 1.0; color: "#00000000" }
+                    }
+                    SequentialAnimation on x {
+                        loops: Animation.Infinite
+                        running: previewSkeleton.visible
+                        NumberAnimation { from: -parent.width; to: parent.width; duration: 1500 }
+                    }
+                }
+            }
+
             Image {
                 id: previewImg
                 anchors.fill: parent
@@ -103,13 +128,11 @@ Item {
                 sourceSize.height: 214
                 asynchronous: true
                 cache: true
-
-                BusyIndicator {
-                    anchors.centerIn: parent
-                    running: previewImg.status === Image.Loading
-                    width: 28
-                    height: 28
-                }
+                // Crossfade in on load + Ken Burns drift on hover
+                opacity: status === Image.Ready ? 1.0 : 0.0
+                scale: cardRoot.isHovered ? 1.06 : 1.0
+                Behavior on opacity { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
+                Behavior on scale { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
             }
 
             // Heavy bottom gradient for text readability

@@ -315,15 +315,7 @@ Item {
             Layout.fillHeight: true
             clip: true
 
-            ScrollBar.vertical: ScrollBar {
-                width: 8
-                policy: ScrollBar.AsNeeded
-                contentItem: Rectangle {
-                    radius: 4
-                    color: SkinTheme.accentCyan
-                    opacity: 0.4
-                }
-            }
+            ScrollBar.vertical: NeonScrollBar {}
 
             GridView {
                 id: fpsGrid

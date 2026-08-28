@@ -316,15 +316,7 @@ Item {
             Layout.fillHeight: true
             clip: true
 
-            ScrollBar.vertical: ScrollBar {
-                width: 8
-                policy: ScrollBar.AsNeeded
-                contentItem: Rectangle {
-                    radius: 4
-                    color: SkinTheme.accentCyan
-                    opacity: 0.3
-                }
-            }
+            ScrollBar.vertical: NeonScrollBar {}
 
             GridView {
                 id: grid
@@ -336,8 +328,24 @@ Item {
                 displayMarginEnd: 20
 
                 delegate: Item {
+                    id: cardDelegate
                     width: grid.cellWidth
                     height: grid.cellHeight
+
+                    // Staggered cascade entrance (per-row delay, capped so
+                    // far-down rows don't wait forever)
+                    opacity: 0
+                    scale: 0.95
+                    SequentialAnimation on opacity {
+                        running: cardDelegate.visible
+                        PauseAnimation { duration: (index % 18) * 30 }
+                        NumberAnimation { to: 1; duration: 300; easing.type: Easing.OutCubic }
+                    }
+                    SequentialAnimation on scale {
+                        running: cardDelegate.visible
+                        PauseAnimation { duration: (index % 18) * 30 }
+                        NumberAnimation { to: 1; duration: 320; easing.type: Easing.OutBack }
+                    }
 
                     SkinModCard {
                         anchors.centerIn: parent

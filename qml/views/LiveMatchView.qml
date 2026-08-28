@@ -295,15 +295,7 @@ Item {
             clip: true
             visible: hasActiveMatch
 
-            ScrollBar.vertical: ScrollBar {
-                width: 8
-                policy: ScrollBar.AsNeeded
-                contentItem: Rectangle {
-                    radius: 4
-                    color: SkinTheme.accentCyan
-                    opacity: 0.4
-                }
-            }
+            ScrollBar.vertical: NeonScrollBar {}
 
             ColumnLayout {
                 width: parent.width

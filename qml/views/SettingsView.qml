@@ -20,15 +20,7 @@ Item {
         clip: true
         boundsBehavior: Flickable.StopAtBounds
 
-        ScrollBar.vertical: ScrollBar {
-            policy: ScrollBar.AsNeeded
-            width: 8
-            contentItem: Rectangle {
-                radius: 4
-                color: SkinTheme.accentCyan
-                opacity: 0.4
-            }
-        }
+        ScrollBar.vertical: NeonScrollBar {}
 
         ColumnLayout {
             id: settingsCol
