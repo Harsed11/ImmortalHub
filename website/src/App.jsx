@@ -3,6 +3,8 @@ import AntigravityParticles from './components/AntigravityParticles';
 import LineSidebar from './components/LineSidebar';
 import BorderGlow from './components/BorderGlow';
 import { playSound, toggleMute } from './utils/audio';
+import aegisNeonImg from './assets/aegis_neon.jpg';
+import heroesBannerImg from './assets/heroes_banner.jpg';
 import './App.css';
 
 // 3D Tilt Card Wrapper
@@ -237,7 +239,7 @@ function App() {
             title="Scroll to top"
           >
             <div className="brand-header-row">
-              <img src="/aegis_neon.jpg" alt="Aegis" className="brand-mini-aegis" />
+              <img src={aegisNeonImg} alt="Aegis" className="brand-mini-aegis" />
               <div>
                 <span className="brand-badge">VPK ENGINE</span>
                 <h2 className="brand-logo">
@@ -343,7 +345,7 @@ function App() {
                 <TiltCard>
                   <div className="hero-aegis-card">
                     <div className="aegis-image-container">
-                      <img src="/aegis_neon.jpg" alt="ImmortalHub Neon Aegis" className="hero-aegis-img" />
+                      <img src={aegisNeonImg} alt="ImmortalHub Neon Aegis" className="hero-aegis-img" />
                       <div className="aegis-radial-glow"></div>
                     </div>
                     <div className="aegis-card-overlay">
@@ -406,7 +408,7 @@ function App() {
             {/* Banner Showcase with Glass Overlays */}
             <div className="showcase-banner-card">
               <img
-                src="/heroes_banner.jpg"
+                src={heroesBannerImg}
                 alt="Dota 2 Arcana Heroes Showcase"
                 className="showcase-banner-img"
               />
