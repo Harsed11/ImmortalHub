@@ -71,7 +71,7 @@ def main():
     def raise_window():
         main_window.show()
         main_window.raise_()
-        main_window.activateWindow()
+        main_window.requestActivate()  # QQuickWindow API (activateWindow is QWidget-only)
 
     guard.start_server(raise_window)
 
