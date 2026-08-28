@@ -111,6 +111,9 @@ class SkinChangerApp(QObject):
                 # Auto-install GSI config if detected
                 GSIServer.install_gsi_config(self._dota_path)
 
+        # Deferred single check: restore mod hooks if a Dota update wiped them
+        QTimer.singleShot(3000, self._auto_restore_hooks)
+
         # Initialize Presets Service & Discord RPC
         self._presets_service = PresetsService(self._app_dir)
         self.installedModsChanged.connect(self._on_installed_changed_for_rpc)
@@ -395,6 +398,28 @@ class SkinChangerApp(QObject):
             logger.error(f"Failed to restore gameinfo.gi: {e}")
             self.errorOccurred.emit(f"Failed to restore gameinfo.gi: {e}")
             return False
+
+    def _auto_restore_hooks(self):
+        """Re-inject gameinfo hooks if a Dota update wiped them (runs at startup).
+
+        Valve patches periodically rewrite gameinfo.gi, silently disabling all
+        installed mods. If mods are installed but hooks are missing, patch again.
+        """
+        try:
+            if not self._dota_path or not os.path.exists(self._dota_path):
+                return
+            if not self._get_installed_dict():
+                return  # No mods installed — hooks are supposed to be absent.
+            health = check_gameinfo_health(self._dota_path)
+            if health.get("isHealthy"):
+                return
+            logger.warning(f"Mod hooks missing (status={health.get('status')}) — re-patching automatically.")
+            if self.patchGameinfo():
+                self.successOccurred.emit(
+                    "A Dota update removed the mod hooks — they were restored automatically."
+                )
+        except Exception as e:
+            logger.debug(f"Auto hook restore check failed: {e}")
 
     # --- Favorites System ---
 
@@ -919,7 +944,7 @@ class SkinChangerApp(QObject):
                     data = json.load(f)
                     self._dota_path = data.get("dotaPath", "")
                     self._install_language = data.get("installLanguage", "both")
-                    self._discord_client_id = data.get("discordClientId", "1541931721216368653")
+                    self._discord_client_id = data.get("discordClientId", DEFAULT_CLIENT_ID)
                     self._theme_mode = data.get("themeMode", "cyberpunk")
                     self._launch_options = data.get("launchOptions", "")
                     

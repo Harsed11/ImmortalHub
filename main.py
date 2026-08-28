@@ -9,6 +9,8 @@ from PySide6.QtQuickControls2 import QQuickStyle
 
 from core.logger import logger
 from core.app import SkinChangerApp
+from core.crash_handler import install_crash_handler
+from core.single_instance import SingleInstanceGuard
 
 
 def resource_path(relative_path: str) -> str:
@@ -19,12 +21,21 @@ def resource_path(relative_path: str) -> str:
 
 def main():
     logger.info("Starting ImmortalHub application...")
-    
+    install_crash_handler()
+
     QQuickStyle.setStyle("Basic")
     app = QApplication(sys.argv)
     app.setApplicationName("ImmortalHub")
     app.setOrganizationName("ImmortalHub")
     app.setQuitOnLastWindowClosed(False)
+
+    # Single-instance guard: a second launch focuses the running window instead
+    # of starting a duplicate that would corrupt gameinfo.gi / manifest writes.
+    guard = SingleInstanceGuard()
+    if not guard.try_lock():
+        guard.notify_running_instance()
+        logger.info("ImmortalHub is already running — focusing the existing window. Exiting.")
+        sys.exit(0)
 
     # Load and register custom gaming & cyberpunk fonts
     fonts_dir = resource_path(os.path.join("assets", "fonts"))
@@ -55,6 +66,14 @@ def main():
         sys.exit(1)
 
     main_window = engine.rootObjects()[0]
+
+    # Raise the existing window when a second instance is started
+    def raise_window():
+        main_window.show()
+        main_window.raise_()
+        main_window.activateWindow()
+
+    guard.start_server(raise_window)
 
     # Setup System Tray
     tray_icon = QSystemTrayIcon(QIcon(resource_path(os.path.join("assets", "app_icon.jpg"))), app)

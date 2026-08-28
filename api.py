@@ -5,6 +5,12 @@ from typing import Optional
 from dataclasses import dataclass, field
 
 BASE_URL = "https://raw.githubusercontent.com/h6rd/Dota2PornFxWeb/main"
+# Tried in order for JSON data fetches. raw.githubusercontent can be flaky or
+# blocked in some regions; jsdelivr serves the same files from GitHub.
+DATA_BASE_MIRRORS = [
+    BASE_URL,
+    "https://cdn.jsdelivr.net/gh/h6rd/Dota2PornFxWeb@main",
+]
 MODS_JSON = f"{BASE_URL}/assets/data/mods.json"
 CONSTANTS_JSON = f"{BASE_URL}/assets/data/constants.json"
 
@@ -105,12 +111,28 @@ class Category:
 
 
 async def fetch_json(url: str) -> dict:
+    """Fetch JSON trying every mirror; raise the last error if all fail."""
     import aiohttp
+    from core.logger import logger
+
+    candidates = [url]
+    for mirror in DATA_BASE_MIRRORS[1:]:
+        if url.startswith(BASE_URL):
+            candidates.append(url.replace(BASE_URL, mirror, 1))
+
+    last_error: Optional[Exception] = None
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
-        async with session.get(safe_url(url)) as resp:
-            if resp.status == 200:
-                return await resp.json(content_type=None)
-            raise Exception(f"HTTP {resp.status} for {url}")
+        for candidate in candidates:
+            try:
+                async with session.get(safe_url(candidate)) as resp:
+                    if resp.status == 200:
+                        if candidate != url:
+                            logger.info(f"Primary source failed — data fetched from mirror: {candidate}")
+                        return await resp.json(content_type=None)
+                    last_error = Exception(f"HTTP {resp.status} for {candidate}")
+            except Exception as e:
+                last_error = e
+    raise last_error or Exception(f"Failed to fetch {url}")
 
 
 async def load_constants() -> dict:
