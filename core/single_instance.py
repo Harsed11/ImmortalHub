@@ -8,7 +8,8 @@ the mod manifest concurrently).
 import os
 import tempfile
 
-from PySide6.QtCore import QLockFile, QLocalServer, QLocalSocket
+from PySide6.QtCore import QLockFile
+from PySide6.QtNetwork import QLocalServer, QLocalSocket
 
 from core.logger import logger
 
