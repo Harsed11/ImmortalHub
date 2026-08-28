@@ -2,8 +2,9 @@ import asyncio
 import aiohttp
 from typing import Optional, Dict, Any
 from core.logger import logger
+from core.version import APP_VERSION, parse_version
 
-CURRENT_VERSION = "1.0.0"
+CURRENT_VERSION = APP_VERSION
 GITHUB_REPO = "Harsed11/ImmortalHub"
 API_RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -21,7 +22,7 @@ class UpdateChecker:
                     if resp.status == 200:
                         data = await resp.json()
                         tag_name = data.get("tag_name", "").lstrip("v")
-                        if tag_name and tag_name != CURRENT_VERSION:
+                        if tag_name and parse_version(tag_name) > parse_version(CURRENT_VERSION):
                             download_url = data.get("html_url", f"https://github.com/{GITHUB_REPO}/releases")
                             # Find exe asset if available
                             for asset in data.get("assets", []):
