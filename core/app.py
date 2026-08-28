@@ -4,6 +4,7 @@ import json
 import shutil
 import zipfile
 import asyncio
+import threading
 import urllib.parse
 from datetime import datetime
 from typing import Optional, Dict, Any
@@ -20,14 +21,14 @@ from api import (
 from core.logger import logger
 from core.version import APP_VERSION
 from core.dota_path import detect_steam_dota_path
-from core.workers import InstallWorker
+from core.workers import InstallWorker, safe_extractall
 from core.stats_service import StatsService
 from core.gsi_server import GSIServer
 from core.log_watcher import DotaLogWatcher
 from core.image_cache import image_cache
 from core.presets_service import PresetsService
 from core.dota_launcher import launch_dota_game, check_gameinfo_health, repair_gameinfo
-from core.discord_rpc import discord_rpc
+from core.discord_rpc import DEFAULT_CLIENT_ID, discord_rpc
 
 class SkinChangerApp(QObject):
     categoriesLoaded = Signal()
@@ -47,6 +48,7 @@ class SkinChangerApp(QObject):
     overlayToggled = Signal(bool)
     gsiStatusChanged = Signal()
     updateAvailable = Signal(str, str, str)  # version, notes, download_url
+    remoteDataReady = Signal(object, object)  # (constants, mods) fetched off-GUI; (None, None) on failure
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -56,10 +58,12 @@ class SkinChangerApp(QObject):
         self._heroes_list = []
         self._dota_path = ""
         self._install_language = "both"
-        self._discord_client_id = "1541931721216368653" # Default to ImmortalHub ID
+        self._discord_client_id = DEFAULT_CLIENT_ID  # Default to ImmortalHub ID
         self._theme_mode = "cyberpunk"
         self._is_loading = True
         self._install_worker: Optional[InstallWorker] = None
+        # Delivered in the GUI thread even though emitted from the fetch worker
+        self.remoteDataReady.connect(self._on_remote_data_ready)
 
         # Stats & Live Match Service
         self._stats_service = StatsService()
@@ -467,7 +471,7 @@ class SkinChangerApp(QObject):
                     for target_pak in target_pak_dirs:
                         extract_dest = os.path.join(target_pak, f"!custom_{mod_name}")
                         os.makedirs(extract_dest, exist_ok=True)
-                        zf.extractall(extract_dest)
+                        safe_extractall(zf, extract_dest)
                         created_files.append(extract_dest)
             elif clean_path.lower().endswith(".vpk"):
                 for target_pak in target_pak_dirs:
@@ -522,9 +526,11 @@ class SkinChangerApp(QObject):
         if not self._mods_data:
             self._is_loading = True
             self.loadingChanged.emit()
-        QTimer.singleShot(10, self._async_load)
+        # Fetch in a background thread so slow networks never freeze the GUI.
+        # Results are marshalled back via remoteDataReady (queued connection).
+        threading.Thread(target=self._fetch_remote_data, daemon=True, name="RemoteDataFetch").start()
 
-    def _async_load(self):
+    def _fetch_remote_data(self):
         loop = asyncio.new_event_loop()
         try:
             logger.info("Fetching fresh constants and mods data in background...")
@@ -540,6 +546,17 @@ class SkinChangerApp(QObject):
             except Exception as e:
                 logger.warning(f"Cache write error: {e}")
 
+            self.remoteDataReady.emit(constants, mods)
+        except Exception as e:
+            logger.warning(f"Network update skipped / failed: {str(e)}")
+            self.remoteDataReady.emit(None, None)
+        finally:
+            loop.close()
+
+    @Slot(object, object)
+    def _on_remote_data_ready(self, constants, mods):
+        """Runs in the GUI thread (queued connection from the fetch worker)."""
+        if constants is not None and mods is not None:
             self._translations = constants.get("translations", {})
             self._heroes_list = constants.get("HEROES_LIST", [])
             self._categories = parse_categories(constants)
@@ -566,14 +583,10 @@ class SkinChangerApp(QObject):
             self.favoritesChanged.emit()
             self.gameinfoStatusChanged.emit()
             logger.info("Successfully updated API data.")
-        except Exception as e:
-            logger.warning(f"Network update skipped / failed: {str(e)}")
-            if self._is_loading:
-                self._is_loading = False
-                self.loadingChanged.emit()
-                self.errorOccurred.emit(f"Network error: {str(e)}")
-        finally:
-            loop.close()
+        elif self._is_loading:
+            self._is_loading = False
+            self.loadingChanged.emit()
+            self.errorOccurred.emit("Network error: could not fetch the latest data.")
 
     def _serialize_mod(self, m) -> dict:
         p_url = safe_url(m.preview_url())

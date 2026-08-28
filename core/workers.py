@@ -12,6 +12,17 @@ from PySide6.QtCore import QThread, Signal
 from api import get_file_url, safe_url
 from core.logger import logger
 
+
+def safe_extractall(zf: zipfile.ZipFile, dest: str) -> None:
+    """Extract a zip archive safely, rejecting path traversal (Zip Slip) entries."""
+    dest_real = os.path.realpath(dest)
+    for member in zf.infolist():
+        target = os.path.realpath(os.path.join(dest, member.filename))
+        if target != dest_real and not target.startswith(dest_real + os.sep):
+            raise ValueError(f"Blocked unsafe zip entry (path traversal): {member.filename!r}")
+    zf.extractall(dest)
+
+
 class InstallWorker(QThread):
     progress = Signal(int, str, str)   # percent, status, item_name
     modDone = Signal(str, bool, str)   # mod_name, success, message
@@ -87,7 +98,7 @@ class InstallWorker(QThread):
                     os.makedirs(temp_extract, exist_ok=True)
 
                     with zipfile.ZipFile(tmp_zip, "r") as zf:
-                        zf.extractall(temp_extract)
+                        safe_extractall(zf, temp_extract)
 
                     try:
                         os.remove(tmp_zip)

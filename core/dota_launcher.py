@@ -13,7 +13,7 @@ except ImportError:
     logger = logging.getLogger("DotaLauncher")
 
 
-DEFAULT_LAUNCH_ARGS = "-novid -high -map dota -dx11"
+DEFAULT_LAUNCH_ARGS = "-novid -high -map dota -dx11 -condebug"  # -condebug enables console.log for the live match watcher
 
 
 def get_gameinfo_paths(dota_path: str) -> list[str]:

@@ -150,31 +150,6 @@ class StatsService:
         total_games = wins + losses
         winrate = round((wins / total_games * 100), 1) if total_games > 0 else 0.0
 
-        # Recent 20 matches stats
-        recent_wins = 0
-        recent_count = 0
-        current_streak = 0
-        streak_type = None
-
-        if recent_matches and isinstance(recent_matches, list):
-            recent_count = len(recent_matches)
-            for i, m in enumerate(recent_matches):
-                is_radiant = m.get('player_slot', 0) < 128
-                radiant_win = m.get('radiant_win', False)
-                won = (is_radiant and radiant_win) or (not is_radiant and not radiant_win)
-                
-                if won:
-                    recent_wins += 1
-                
-                if i == 0:
-                    streak_type = 'W' if won else 'L'
-                    current_streak = 1
-                elif streak_type:
-                    if (won and streak_type == 'W') or (not won and streak_type == 'L'):
-                        current_streak += 1
-                    else:
-                        streak_type = None
-
         # Recent 20 matches stats & history dots
         recent_wins = 0
         recent_count = 0

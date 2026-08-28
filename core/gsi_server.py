@@ -2,7 +2,7 @@
 import os
 import json
 import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 from typing import Optional, Callable, Dict, Any
 
 from core.logger import logger
@@ -68,7 +68,7 @@ class GSIServer:
         GSIRequestHandler.on_gsi_payload = self._handle_payload
 
         try:
-            self.httpd = HTTPServer((self.host, self.port), GSIRequestHandler)
+            self.httpd = ThreadingHTTPServer((self.host, self.port), GSIRequestHandler)
             self._is_running = True
             self._thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
             self._thread.start()

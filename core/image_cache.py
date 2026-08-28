@@ -132,4 +132,22 @@ class ImageCacheManager(QObject):
                     pass
 
 
-image_cache = ImageCacheManager()
+class _LazyImageCacheProxy:
+    """Defers ImageCacheManager (QObject + thread pool) creation until first use.
+
+    Keeps ``from core.image_cache import image_cache`` working everywhere while
+    removing import-time side effects before the QApplication exists.
+    """
+
+    _instance: Optional["ImageCacheManager"] = None
+
+    def _get(self) -> "ImageCacheManager":
+        if _LazyImageCacheProxy._instance is None:
+            _LazyImageCacheProxy._instance = ImageCacheManager()
+        return _LazyImageCacheProxy._instance
+
+    def __getattr__(self, name):
+        return getattr(self._get(), name)
+
+
+image_cache = _LazyImageCacheProxy()

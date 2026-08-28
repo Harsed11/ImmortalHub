@@ -32,8 +32,17 @@ class DiscordRPCClient:
         self._current_details = "ImmortalHub • Dota 2 Custom Skins"
         self._current_state = "Managing Custom Skins"
         self._lock = threading.Lock()
+        self._thread_started = False
+        self._worker_thread: Optional[threading.Thread] = None
+
+    def _ensure_started(self):
+        """Start the background worker only when presence is actually used."""
+        if not HAS_PYPRESENCE or self._thread_started:
+            return
+        self._thread_started = True
         self._worker_thread = threading.Thread(target=self._run_loop, daemon=True)
         self._worker_thread.start()
+        logger.info("Discord Rich Presence thread started.")
 
     def set_client_id(self, client_id: str):
         if client_id and client_id != self.client_id:
@@ -48,6 +57,7 @@ class DiscordRPCClient:
                     self._rpc = None
 
     def update_presence(self, details: str = "Managing Dota 2 Custom Skins", state: str = "ImmortalHub Active", hero: str = "", active_mods_count: int = 0):
+        self._ensure_started()
         with self._lock:
             self._current_details = details
             if hero:
