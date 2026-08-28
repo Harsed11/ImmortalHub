@@ -207,6 +207,118 @@ Item {
                 }
             }
 
+            // 0.6 Accent Color Section
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: accentCol.implicitHeight + 40
+                radius: SkinTheme.radiusXLarge
+                color: SkinTheme.bgCard
+                border.color: SkinTheme.borderMuted
+                border.width: 1
+
+                ColumnLayout {
+                    id: accentCol
+                    anchors.fill: parent
+                    anchors.margins: 20
+                    spacing: 16
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 10
+
+                        Text {
+                            text: "\uE790"
+                            font.family: "Segoe MDL2 Assets"
+                            font.pixelSize: 18
+                            color: SkinTheme.accentCyan
+                        }
+
+                        Text {
+                            text: "Accent Color"
+                            color: SkinTheme.textPrimary
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeTitle
+                            font.bold: true
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Text {
+                            text: "Tints buttons, glows and highlights across the app"
+                            color: SkinTheme.textMuted
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeSmall
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 16
+
+                        Repeater {
+                            model: [
+                                { id: "cyan", color: "#00F0FF", name: "Cyan" },
+                                { id: "violet", color: "#BF00FF", name: "Violet" },
+                                { id: "emerald", color: "#00FF88", name: "Emerald" },
+                                { id: "amber", color: "#FFAA00", name: "Amber" },
+                                { id: "crimson", color: "#FF0055", name: "Crimson" }
+                            ]
+
+                            ColumnLayout {
+                                spacing: 6
+
+                                Rectangle {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    width: 40
+                                    height: 40
+                                    radius: 20
+                                    color: modelData.color
+                                    border.color: (typeof app !== "undefined" && app && app.accentHue === modelData.id) ? SkinTheme.textPrimary : "transparent"
+                                    border.width: 2
+                                    scale: hueMouse.containsMouse ? 1.15 : 1.0
+
+                                    Behavior on scale { NumberAnimation { duration: SkinTheme.animFast; easing.type: Easing.OutBack } }
+                                    Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                                    // Selected ring glow
+                                    Rectangle {
+                                        anchors.centerIn: parent
+                                        width: parent.width + 10
+                                        height: parent.height + 10
+                                        radius: (parent.width + 10) / 2
+                                        color: "transparent"
+                                        border.color: modelData.color
+                                        border.width: 2
+                                        opacity: (typeof app !== "undefined" && app && app.accentHue === modelData.id) ? 0.5 : 0
+
+                                        Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
+                                    }
+
+                                    MouseArea {
+                                        id: hueMouse
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: if (typeof app !== "undefined" && app) app.accentHue = modelData.id
+                                    }
+                                }
+
+                                Text {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    text: modelData.name
+                                    color: (typeof app !== "undefined" && app && app.accentHue === modelData.id) ? SkinTheme.textPrimary : SkinTheme.textSecondary
+                                    font.family: SkinTheme.fontFamily
+                                    font.pixelSize: SkinTheme.fontSizeTiny
+                                    font.bold: (typeof app !== "undefined" && app && app.accentHue === modelData.id)
+                                }
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+                    }
+                }
+            }
+
             // 1. Dota 2 Path Section Card
             Rectangle {
                 Layout.fillWidth: true

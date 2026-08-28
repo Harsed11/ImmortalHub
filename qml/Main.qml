@@ -127,6 +127,7 @@ ApplicationWindow {
 
     Component.onCompleted: {
         SkinTheme.setTheme(app ? app.themeMode : "cyberpunk")
+        SkinTheme.applyAccentHue(app ? app.accentHue : "cyan")
         app.loadAll()
         appStartupAnim.start()
     }
@@ -135,6 +136,9 @@ ApplicationWindow {
         target: app
         function onThemeModeChanged() {
             SkinTheme.setTheme(app.themeMode)
+        }
+        function onAccentHueChanged() {
+            SkinTheme.applyAccentHue(app.accentHue)
         }
         function onErrorOccurred(msg) {
             toast.show(msg, "error")

@@ -64,6 +64,7 @@ class SkinChangerApp(QObject):
         self._discord_client_id = DEFAULT_CLIENT_ID  # Default to ImmortalHub ID
         self._ui_language = "en"
         self._theme_mode = "cyberpunk"
+        self._accent_hue = "cyan"
         self._is_loading = True
         self._install_worker: Optional[InstallWorker] = None
         # Delivered in the GUI thread even though emitted from the fetch worker
@@ -206,6 +207,7 @@ class SkinChangerApp(QObject):
             self.dotaPathChanged.emit() # Reusing signal for simplicity or we can emit a new one, but let's just trigger update
 
     themeModeChanged = Signal()
+    accentHueChanged = Signal()
     totalSavingsChanged = Signal()
     launchOptionsChanged = Signal()
     
@@ -230,6 +232,19 @@ class SkinChangerApp(QObject):
             self._theme_mode = value
             self._save_settings()
             self.themeModeChanged.emit()
+
+    @Property(str, notify=accentHueChanged)
+    def accentHue(self):
+        return self._accent_hue
+
+    @accentHue.setter
+    def accentHue(self, value: str):
+        allowed = {"cyan", "violet", "emerald", "amber", "crimson"}
+        value = value if value in allowed else "cyan"
+        if self._accent_hue != value:
+            self._accent_hue = value
+            self._save_settings()
+            self.accentHueChanged.emit()
 
     @Property(int, notify=totalSavingsChanged)
     def totalSavings(self):
@@ -981,6 +996,7 @@ class SkinChangerApp(QObject):
                     self._install_language = data.get("installLanguage", "both")
                     self._discord_client_id = data.get("discordClientId", DEFAULT_CLIENT_ID)
                     self._theme_mode = data.get("themeMode", "cyberpunk")
+                    self._accent_hue = data.get("accentHue", "cyan")
                     self._launch_options = data.get("launchOptions", "")
                     self._ui_language = normalize_lang(data.get("uiLanguage", "en"))
                     
@@ -999,6 +1015,7 @@ class SkinChangerApp(QObject):
                     "installLanguage": self._install_language,
                     "discordClientId": self._discord_client_id,
                     "themeMode": self._theme_mode,
+                    "accentHue": self._accent_hue,
                     "launchOptions": self._launch_options,
                     "uiLanguage": self._ui_language
                 }, f, indent=2)

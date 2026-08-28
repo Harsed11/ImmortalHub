@@ -79,9 +79,16 @@ QtObject {
     property color glowWhite: "#20FFFFFF"
 
     // ═══════════════════════════════════════════
+    // ACCENT HUE — USER PICKER (persists across themes)
+    // ═══════════════════════════════════════════
+    property string currentThemeId: "cyberpunk"
+    property string accentHue: "cyan"   // cyan | violet | emerald | amber | crimson
+
+    // ═══════════════════════════════════════════
     // THEME SWITCHING LOGIC
     // ═══════════════════════════════════════════
     function setTheme(themeId) {
+        currentThemeId = themeId
         if (themeId === "dire") {
             // Dire: Crimson and Black
             bgVoid = "#0A0303"
@@ -201,6 +208,44 @@ QtObject {
             
             glowCyan = "#4000F0FF"
             glowViolet = "#40BF00FF"
+        }
+
+        // Re-tint the primary accent with the user's hue on top of the base theme
+        applyAccentHue(accentHue)
+    }
+
+    function _themeBaseAccent(themeId) {
+        if (themeId === "dire")
+            return { c: "#FF0033", h: "#FF3355", d: "#AA0022", g: "#15FF0033", m: "#20DD0022" }
+        if (themeId === "radiant")
+            return { c: "#00FFAA", h: "#33FFBB", d: "#00AA77", g: "#1500FFAA", m: "#2000DDAA" }
+        if (themeId === "true_black")
+            return { c: "#FFFFFF", h: "#CCCCCC", d: "#888888", g: "#15FFFFFF", m: "#20DDDDDD" }
+        return { c: "#00F0FF", h: "#40FFFF", d: "#0099AA", g: "#1500F0FF", m: "#2000C8DD" }
+    }
+
+    // Remaps the primary accent family (accentCyan*) to the selected hue.
+    // The whole UI binds to accentCyan*, so everything re-tints instantly.
+    function applyAccentHue(hueId) {
+        accentHue = hueId
+        if (hueId === "violet") {
+            accentCyan = "#BF00FF"; accentCyanHover = "#D94DFF"; accentCyanDark = "#8000AA"
+            accentCyanGlow = "#15BF00FF"; accentCyanMuted = "#20A000DD"; glowCyan = "#40BF00FF"
+        } else if (hueId === "emerald") {
+            accentCyan = "#00FF88"; accentCyanHover = "#40FFB0"; accentCyanDark = "#00AA55"
+            accentCyanGlow = "#1500FF88"; accentCyanMuted = "#2000DD88"; glowCyan = "#4000FF88"
+        } else if (hueId === "amber") {
+            accentCyan = "#FFAA00"; accentCyanHover = "#FFCC44"; accentCyanDark = "#CC8800"
+            accentCyanGlow = "#15FFAA00"; accentCyanMuted = "#20DDAA00"; glowCyan = "#40FFAA00"
+        } else if (hueId === "crimson") {
+            accentCyan = "#FF0055"; accentCyanHover = "#FF4080"; accentCyanDark = "#AA0033"
+            accentCyanGlow = "#15FF0055"; accentCyanMuted = "#20DD0055"; glowCyan = "#40FF0055"
+        } else {
+            // "cyan" restores the base theme's own accent
+            var base = _themeBaseAccent(currentThemeId)
+            accentCyan = base.c; accentCyanHover = base.h; accentCyanDark = base.d
+            accentCyanGlow = base.g; accentCyanMuted = base.m
+            glowCyan = (base.g === "#15FFFFFF") ? "#20FFFFFF" : base.g.replace("#15", "#40")
         }
     }
 
