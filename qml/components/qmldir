@@ -1,6 +1,8 @@
 AegisIcon 1.0 AegisIcon.qml
 SkinTitleBar 1.0 SkinTitleBar.qml
 SkinSidebar 1.0 SkinSidebar.qml
+AuroraBackground 1.0 AuroraBackground.qml
+NeonScrollBar 1.0 NeonScrollBar.qml
 SkinModCard 1.0 SkinModCard.qml
 SkinDetailModal 1.0 SkinDetailModal.qml
 SkinCartDrawer 1.0 SkinCartDrawer.qml

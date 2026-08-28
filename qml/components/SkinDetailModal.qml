@@ -111,7 +111,7 @@ Rectangle {
         clip: true
 
         scale: detailModal.modData !== null ? 1.0 : 0.95
-        Behavior on scale { NumberAnimation { duration: SkinTheme.animNormal; easing.type: Easing.OutCubic } }
+        Behavior on scale { NumberAnimation { duration: SkinTheme.animNormal; easing.type: Easing.OutBack } }
 
         // Neon outline glow
         Rectangle {

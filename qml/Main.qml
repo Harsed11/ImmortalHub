@@ -35,27 +35,10 @@ ApplicationWindow {
         z: -100
     }
 
-    // Ambient glow spots — atmospheric cyberpunk lighting
-    Rectangle {
-        anchors.top: parent.top
-        anchors.left: parent.left
-        width: 400
-        height: 400
-        radius: 200
-        color: SkinTheme.accentCyan
-        opacity: 0.015
-        z: -99
-    }
-
-    Rectangle {
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        width: 500
-        height: 500
-        radius: 250
-        color: SkinTheme.accentViolet
-        opacity: 0.012
-        z: -99
+    // Living aurora background — drifting neon blobs with cursor parallax
+    AuroraBackground {
+        anchors.fill: parent
+        z: -98
     }
 
 
