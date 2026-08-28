@@ -8,7 +8,7 @@ instead of hardcoding string literals across the codebase.
 import re
 
 APP_NAME = "ImmortalHub"
-APP_VERSION = "1.0.0-ALPHA"
+APP_VERSION = "1.1.0"
 
 
 def parse_version(version: str) -> tuple[int, int, int]:
