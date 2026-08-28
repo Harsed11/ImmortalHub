@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 from core.logger import logger
 
 CURRENT_VERSION = "2.4.1"
-GITHUB_REPO = "HarsedXVII/ImmortalHub"
+GITHUB_REPO = "Harsed11/ImmortalHub"
 API_RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
 class UpdateChecker:

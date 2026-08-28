@@ -146,7 +146,7 @@ function App() {
   const handleSidebarClick = (index, label) => {
     playSound('click');
     if (label === 'GitHub') {
-      window.open('https://github.com/HarsedXVII/ImmortalHub', '_blank');
+      window.open('https://github.com/Harsed11/ImmortalHub', '_blank');
     } else {
       const idMap = {
         Overview: 'overview',
@@ -197,7 +197,7 @@ function App() {
 
   const handleCopyCommand = () => {
     playSound('copy');
-    navigator.clipboard.writeText('git clone https://github.com/HarsedXVII/ImmortalHub.git');
+    navigator.clipboard.writeText('git clone https://github.com/Harsed11/ImmortalHub.git');
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
@@ -262,7 +262,7 @@ function App() {
               <span>Dota 2 v7.38 Online</span>
             </div>
             <a
-              href="https://github.com/HarsedXVII/ImmortalHub"
+              href="https://github.com/Harsed11/ImmortalHub"
               target="_blank"
               rel="noreferrer"
               className="sidebar-repo-link"
@@ -852,7 +852,7 @@ function App() {
             </div>
             <div className="footer-right">
               <a
-                href="https://github.com/HarsedXVII/ImmortalHub"
+                href="https://github.com/Harsed11/ImmortalHub"
                 target="_blank"
                 rel="noreferrer"
                 className="footer-link"
@@ -862,7 +862,7 @@ function App() {
               </a>
               <span className="footer-dot">•</span>
               <a
-                href="https://github.com/HarsedXVII/ImmortalHub/issues"
+                href="https://github.com/Harsed11/ImmortalHub/issues"
                 target="_blank"
                 rel="noreferrer"
                 className="footer-link"
@@ -899,7 +899,7 @@ function App() {
 
             <div className="modal-download-actions">
               <a
-                href="https://github.com/HarsedXVII/ImmortalHub/releases/latest"
+                href="https://github.com/Harsed11/ImmortalHub/releases/latest"
                 target="_blank"
                 rel="noreferrer"
                 className="modal-btn-primary"
@@ -913,7 +913,7 @@ function App() {
               </a>
 
               <a
-                href="https://github.com/HarsedXVII/ImmortalHub"
+                href="https://github.com/Harsed11/ImmortalHub"
                 target="_blank"
                 rel="noreferrer"
                 className="modal-btn-secondary"

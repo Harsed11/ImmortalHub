@@ -2,15 +2,15 @@
 
 # ⚡ ImmortalHub — Next-Gen Dota 2 Skin Changer
 
-[![Platform](https://img.shields.io/badge/Platform-Windows_x64-00F0FF.svg?style=for-the-badge&logo=windows)](https://github.com/HarsedXVII/ImmortalHub)
-[![Dota 2](https://img.shields.io/badge/Dota_2-Patch_7.38c_Ready-A855F7.svg?style=for-the-badge&logo=dota2)](https://github.com/HarsedXVII/ImmortalHub)
+[![Platform](https://img.shields.io/badge/Platform-Windows_x64-00F0FF.svg?style=for-the-badge&logo=windows)](https://github.com/Harsed11/ImmortalHub)
+[![Dota 2](https://img.shields.io/badge/Dota_2-Patch_7.38c_Ready-A855F7.svg?style=for-the-badge&logo=dota2)](https://github.com/Harsed11/ImmortalHub)
 [![License](https://img.shields.io/badge/License-MIT-10B981.svg?style=for-the-badge)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/HarsedXVII/ImmortalHub?style=for-the-badge&color=FBBC04)](https://github.com/HarsedXVII/ImmortalHub/stargazers)
+[![GitHub Stars](https://img.shields.io/github/stars/Harsed11/ImmortalHub?style=for-the-badge&color=FBBC04)](https://github.com/Harsed11/ImmortalHub/stargazers)
 
 **The ultimate zero-latency, VAC-safe skin changer and cosmetic manager for Dota 2.**  
 Unlock all 142+ Arcanas, 850+ Immortals, Custom Announcers, Map Terrains, and Weather Effects with one click.
 
-[🌐 Official Website](https://github.com/HarsedXVII/ImmortalHub) • [📥 Download Releases](https://github.com/HarsedXVII/ImmortalHub/releases) • [🐛 Report Issue](https://github.com/HarsedXVII/ImmortalHub/issues)
+[🌐 Official Website](https://github.com/Harsed11/ImmortalHub) • [📥 Download Releases](https://github.com/Harsed11/ImmortalHub/releases) • [🐛 Report Issue](https://github.com/Harsed11/ImmortalHub/issues)
 
 </div>
 
@@ -33,7 +33,7 @@ Unlock all 142+ Arcanas, 850+ Immortals, Custom Announcers, Map Terrains, and We
 
 ### Option 1: Standalone Portable EXE (Recommended)
 
-1. Download the latest `ImmortalHub_Portable_x64.zip` from [Releases](https://github.com/HarsedXVII/ImmortalHub/releases/latest).
+1. Download the latest `ImmortalHub_Portable_x64.zip` from [Releases](https://github.com/Harsed11/ImmortalHub/releases/latest).
 2. Extract the archive anywhere on your PC.
 3. Launch `ImmortalHub.exe` (Run as Administrator).
 4. The application will automatically detect your Steam Dota 2 directory.
@@ -43,7 +43,7 @@ Unlock all 142+ Arcanas, 850+ Immortals, Custom Announcers, Map Terrains, and We
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/HarsedXVII/ImmortalHub.git
+git clone https://github.com/Harsed11/ImmortalHub.git
 cd ImmortalHub
 
 # 2. Set up virtual environment
