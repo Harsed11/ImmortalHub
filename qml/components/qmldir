@@ -5,3 +5,4 @@ SkinModCard 1.0 SkinModCard.qml
 SkinDetailModal 1.0 SkinDetailModal.qml
 SkinCartDrawer 1.0 SkinCartDrawer.qml
 SkinToast 1.0 SkinToast.qml
+GlobalSearchModal 1.0 GlobalSearchModal.qml

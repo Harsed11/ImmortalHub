@@ -492,6 +492,119 @@ Item {
                 }
             }
 
+            // 1b. Interface Language Section Card
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: uiLangCol.implicitHeight + 40
+                radius: SkinTheme.radiusXLarge
+                color: SkinTheme.bgCard
+                border.color: SkinTheme.borderMuted
+                border.width: 1
+
+                ColumnLayout {
+                    id: uiLangCol
+                    anchors.fill: parent
+                    anchors.margins: 20
+                    spacing: 16
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 10
+
+                        Text {
+                            text: "💬"
+                            font.pixelSize: 18
+                        }
+
+                        Text {
+                            text: "Interface Language / Язык интерфейса"
+                            color: SkinTheme.textPrimary
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeTitle
+                            font.bold: true
+                        }
+
+                        Item { Layout.fillWidth: true }
+                    }
+
+                    RowLayout {
+                        spacing: 8
+
+                        Repeater {
+                            model: [
+                                { id: "en", label: "English", badge: "EN" },
+                                { id: "ru", label: "Русский", badge: "RU" }
+                            ]
+
+                            delegate: Rectangle {
+                                width: 190
+                                height: 44
+                                radius: SkinTheme.radiusMedium
+                                color: (typeof app !== "undefined" && app && app.uiLanguage === modelData.id)
+                                       ? "#132038" : "transparent"
+                                border.color: (typeof app !== "undefined" && app && app.uiLanguage === modelData.id)
+                                              ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                                border.width: 1
+
+                                Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+                                Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+                                    spacing: 10
+
+                                    Rectangle {
+                                        width: 28
+                                        height: 22
+                                        radius: 4
+                                        color: "transparent"
+                                        border.color: (typeof app !== "undefined" && app && app.uiLanguage === modelData.id)
+                                                      ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                                        border.width: 1
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: modelData.badge
+                                            color: (typeof app !== "undefined" && app && app.uiLanguage === modelData.id)
+                                                   ? SkinTheme.accentCyan : SkinTheme.textMuted
+                                            font.family: SkinTheme.fontMono
+                                            font.pixelSize: 9
+                                            font.bold: true
+                                        }
+                                    }
+
+                                    Text {
+                                        text: modelData.label
+                                        color: (typeof app !== "undefined" && app && app.uiLanguage === modelData.id)
+                                               ? SkinTheme.textPrimary : SkinTheme.textSecondary
+                                        font.family: SkinTheme.fontFamily
+                                        font.pixelSize: 13
+                                        font.bold: (typeof app !== "undefined" && app) ? app.uiLanguage === modelData.id : false
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: if (typeof app !== "undefined" && app) app.setUiLanguage(modelData.id)
+                                }
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+                    }
+
+                    Text {
+                        text: "Applies instantly to navigation, search and buttons. Mod and hero names come from the remote manifest and remain in English."
+                        color: SkinTheme.textMuted
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
+                    }
+                }
+            }
+
             // 2. Language & Target Folder Section Card
             Rectangle {
                 Layout.fillWidth: true

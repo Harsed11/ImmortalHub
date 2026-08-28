@@ -20,6 +20,8 @@ from api import (
 )
 from core.logger import logger
 from core.version import APP_VERSION
+from core.i18n import translate_ui, translate_category, normalize_lang
+from core.mod_search import filter_mods
 from core.dota_path import detect_steam_dota_path
 from core.workers import InstallWorker, safe_extractall
 from core.stats_service import StatsService
@@ -49,6 +51,7 @@ class SkinChangerApp(QObject):
     gsiStatusChanged = Signal()
     updateAvailable = Signal(str, str, str)  # version, notes, download_url
     remoteDataReady = Signal(object, object)  # (constants, mods) fetched off-GUI; (None, None) on failure
+    uiLanguageChanged = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -59,6 +62,7 @@ class SkinChangerApp(QObject):
         self._dota_path = ""
         self._install_language = "both"
         self._discord_client_id = DEFAULT_CLIENT_ID  # Default to ImmortalHub ID
+        self._ui_language = "en"
         self._theme_mode = "cyberpunk"
         self._is_loading = True
         self._install_worker: Optional[InstallWorker] = None
@@ -131,6 +135,23 @@ class SkinChangerApp(QObject):
             pass
 
     # --- Properties ---
+
+    @Property(str, notify=uiLanguageChanged)
+    def uiLanguage(self) -> str:
+        return self._ui_language
+
+    @Slot(str)
+    def setUiLanguage(self, lang: str):
+        lang = normalize_lang(lang)
+        if lang != self._ui_language:
+            self._ui_language = lang
+            self._save_settings()
+            self.uiLanguageChanged.emit()
+
+    @Slot(str, result=str)
+    def t(self, key: str) -> str:
+        """Translate an application-chrome string in the active UI language."""
+        return translate_ui(key, self._ui_language)
 
     @Property(str, constant=True)
     def appVersion(self) -> str:
@@ -694,7 +715,21 @@ class SkinChangerApp(QObject):
 
     @Slot(str, result=str)
     def translate(self, key: str) -> str:
-        return self._translations.get(key, key)
+        """Translate a data-category label from the remote manifest."""
+        label = self._translations.get(key, key)
+        return translate_category(label, self._ui_language, key)
+
+    # --- Global Search ---
+
+    @Slot(str, result=str)
+    def searchMods(self, query: str) -> str:
+        """Search every category by name/hero/tags. Returns a JSON array."""
+        flat = []
+        for mods in self._mods_data.values():
+            for m in mods:
+                flat.append(self._serialize_mod(m))
+        results = filter_mods(flat, query, category_label=self.translate, limit=60)
+        return json.dumps(results, ensure_ascii=False)
 
     # --- Installation & Uninstallation ---
 
@@ -947,6 +982,7 @@ class SkinChangerApp(QObject):
                     self._discord_client_id = data.get("discordClientId", DEFAULT_CLIENT_ID)
                     self._theme_mode = data.get("themeMode", "cyberpunk")
                     self._launch_options = data.get("launchOptions", "")
+                    self._ui_language = normalize_lang(data.get("uiLanguage", "en"))
                     
                     # Update discord client ID upon loading
                     from core.discord_rpc import discord_rpc
@@ -963,7 +999,8 @@ class SkinChangerApp(QObject):
                     "installLanguage": self._install_language,
                     "discordClientId": self._discord_client_id,
                     "themeMode": self._theme_mode,
-                    "launchOptions": self._launch_options
+                    "launchOptions": self._launch_options,
+                    "uiLanguage": self._ui_language
                 }, f, indent=2)
         except Exception as e:
             logger.error(f"Failed to save settings: {e}")

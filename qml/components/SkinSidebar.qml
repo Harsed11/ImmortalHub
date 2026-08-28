@@ -143,12 +143,12 @@ Rectangle {
 
             Repeater {
                 model: [
-                    { id: "heroes",    label: "Hero Skins",        icon: "⚔" },
-                    { id: "favorites", label: "Favorites",         icon: "★" },
-                    { id: "effects",   label: "Effects & Shaders", icon: "✦" },
-                    { id: "map",       label: "Terrain & World",   icon: "◈" },
-                    { id: "audio",     label: "Voice & Music",     icon: "♪" },
-                    { id: "misc",      label: "Items & Misc",      icon: "◆" }
+                    { id: "heroes",    label: app.uiLanguage.length && app.t("nav.heroes"),    icon: "⚔" },
+                    { id: "favorites", label: app.uiLanguage.length && app.t("nav.favorites"), icon: "★" },
+                    { id: "effects",   label: app.uiLanguage.length && app.t("nav.effects"),   icon: "✦" },
+                    { id: "map",       label: app.uiLanguage.length && app.t("nav.map"),       icon: "◈" },
+                    { id: "audio",     label: app.uiLanguage.length && app.t("nav.audio"),     icon: "♪" },
+                    { id: "misc",      label: app.uiLanguage.length && app.t("nav.misc"),      icon: "◆" }
                 ]
 
                 delegate: Rectangle {
@@ -333,9 +333,9 @@ Rectangle {
 
             Repeater {
                 model: [
-                    { id: "fpsboost",  label: "Performance",      icon: "⚡", color: SkinTheme.accentViolet },
-                    { id: "installed", label: "Active Mods",      icon: "☰", color: SkinTheme.accentEmerald },
-                    { id: "settings",  label: "Settings",         icon: "⚙", color: "" }
+                    { id: "fpsboost",  label: app.uiLanguage.length && app.t("nav.fpsboost"),  icon: "⚡", color: SkinTheme.accentViolet },
+                    { id: "installed", label: app.uiLanguage.length && app.t("nav.installed"), icon: "☰", color: SkinTheme.accentEmerald },
+                    { id: "settings",  label: app.uiLanguage.length && app.t("nav.settings"),  icon: "⚙", color: "" }
                 ]
 
                 delegate: Rectangle {
@@ -512,7 +512,7 @@ Rectangle {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "▶ LAUNCH DOTA 2"
+                        text: app.uiLanguage.length && app.t("status.launch")
                         color: SkinTheme.accentCyan
                         font.family: SkinTheme.fontMono
                         font.pixelSize: 10
@@ -544,7 +544,7 @@ Rectangle {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "📁 OPEN MOD FOLDER"
+                        text: app.uiLanguage.length && app.t("status.open_folder")
                         color: openMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textMuted
                         font.family: SkinTheme.fontMono
                         font.pixelSize: 9

@@ -14,6 +14,7 @@ Rectangle {
     signal queueClicked()
     signal presetsClicked()
     signal playDotaClicked()
+    signal searchClicked()
 
     // Bottom subtle border
     Rectangle {
@@ -180,7 +181,7 @@ Rectangle {
 
                 Text {
                     id: playDotaLabel
-                    text: "▶ PLAY DOTA 2"
+                    text: app.uiLanguage.length && app.t("tb.play")
                     color: "#060810"
                     font.family: SkinTheme.fontMono
                     font.pixelSize: 10
@@ -195,6 +196,44 @@ Rectangle {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: titleBar.playDotaClicked()
+            }
+        }
+
+        // Search Button (Ctrl+K)
+        Rectangle {
+            Layout.alignment: Qt.AlignVCenter
+            Layout.rightMargin: 6
+            height: 24
+            radius: SkinTheme.radiusSmall
+            implicitWidth: searchBtnLabel.implicitWidth + 20
+            color: searchBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
+            border.color: searchBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.borderMuted
+            border.width: 1
+
+            Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+            Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
+
+            RowLayout {
+                anchors.centerIn: parent
+                spacing: 5
+
+                Text {
+                    id: searchBtnLabel
+                    text: app.uiLanguage.length && app.t("tb.search")
+                    color: searchBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.textSecondary
+                    font.family: SkinTheme.fontMono
+                    font.pixelSize: 10
+                    font.bold: true
+                    font.letterSpacing: 0.8
+                }
+            }
+
+            MouseArea {
+                id: searchBtnMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: titleBar.searchClicked()
             }
         }
 
@@ -218,7 +257,7 @@ Rectangle {
 
                 Text {
                     id: presetsBtnLabel
-                    text: "🎭 PRESETS"
+                    text: app.uiLanguage.length && app.t("tb.presets")
                     color: presetsBtnMouse.containsMouse ? SkinTheme.accentViolet : SkinTheme.textSecondary
                     font.family: SkinTheme.fontMono
                     font.pixelSize: 10

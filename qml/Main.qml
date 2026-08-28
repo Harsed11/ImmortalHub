@@ -332,6 +332,7 @@ ApplicationWindow {
                 onQueueClicked: cartDrawer.isOpen = true
                 onPlayDotaClicked: app.launchDota()
                 onPresetsClicked: presetsModal.isOpen = true
+                onSearchClicked: searchModal.openWith()
             }
 
             RowLayout {
@@ -449,6 +450,18 @@ ApplicationWindow {
     Shortcut {
         sequence: "F2"
         onActivated: app.toggleOverlay()
+    }
+
+    // Ctrl+K — Global Search
+    Shortcut {
+        sequence: "Ctrl+K"
+        onActivated: searchModal.openWith()
+    }
+
+    // Global Search Modal
+    GlobalSearchModal {
+        id: searchModal
+        onModPicked: function(m) { root.selectedDetailMod = m }
     }
 
     // Overlay

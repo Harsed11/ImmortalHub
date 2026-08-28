@@ -214,3 +214,54 @@ def test_api_fetch_json_falls_back_to_mirror(monkeypatch):
     assert result == {"ok": True}
     assert len(attempted) == len(api.DATA_BASE_MIRRORS)
 
+
+
+# --- i18n (EN/RU) ---
+
+from core.i18n import STRINGS, normalize_lang, translate_ui
+
+
+def test_normalize_lang_defaults_to_english():
+    assert normalize_lang("RU") == "ru"
+    assert normalize_lang("en") == "en"
+    assert normalize_lang("de") == "en"
+    assert normalize_lang(None) == "en"
+
+
+def test_translate_ui_fallback_chain():
+    assert translate_ui("nav.heroes", "ru") == "Скины героев"
+    assert translate_ui("nav.heroes", "en") == "Hero Skins"
+    # unknown key falls back to the key itself
+    assert translate_ui("no.such.key", "ru") == "no.such.key"
+
+
+def test_every_string_has_en_and_ru():
+    for key, entry in STRINGS.items():
+        assert "en" in entry and entry["en"], f"{key} missing 'en'"
+        assert "ru" in entry and entry["ru"], f"{key} missing 'ru'"
+
+
+# --- Global mod search ---
+
+from core.mod_search import filter_mods
+
+
+SEARCH_FIXTURE = [
+    {"name": "Invoker robes", "hero": "Invoker", "tags": ["arcana"],
+     "categoryId": "heroes", "previewUrl": "", "isInstalled": True, "isFavorite": False},
+    {"name": "Aegis icons", "hero": "", "tags": ["hud"],
+     "categoryId": "huds", "previewUrl": "", "isInstalled": False, "isFavorite": False},
+]
+
+
+def test_filter_mods_matches_name_hero_and_tags():
+    r = filter_mods(SEARCH_FIXTURE, "invo")
+    assert len(r) == 1 and r[0]["name"] == "Invoker robes"
+    assert len(filter_mods(SEARCH_FIXTURE, "aegis")) == 1
+    assert len(filter_mods(SEARCH_FIXTURE, "HUD")) == 1
+
+
+def test_filter_mods_no_match_returns_empty():
+    assert filter_mods(SEARCH_FIXTURE, "zzz") == []
+    assert filter_mods(SEARCH_FIXTURE, "") in (SEARCH_FIXTURE, [])
+
