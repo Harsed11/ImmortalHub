@@ -5,7 +5,7 @@ import "../theme"
 
 Rectangle {
     id: topNav
-    height: 52
+    height: 60
     color: SkinTheme.bgHeader
     z: 100
 
@@ -142,9 +142,9 @@ Rectangle {
         anchors.right: windowControls.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.leftMargin: 12
-        anchors.rightMargin: 10
-        spacing: 8
+        anchors.leftMargin: 16
+        anchors.rightMargin: 12
+        spacing: 10
         z: 10
 
         // ── Brand & Live Dota 2 Pill ──
@@ -152,8 +152,8 @@ Rectangle {
             spacing: 8
 
             AegisIcon {
-                width: 22
-                height: 22
+                width: 24
+                height: 24
             }
 
             RowLayout {
@@ -162,7 +162,7 @@ Rectangle {
                     text: "IMMORTAL"
                     color: SkinTheme.textPrimary
                     font.family: SkinTheme.fontDisplay
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     font.bold: true
                     font.letterSpacing: 1.5
                 }
@@ -170,7 +170,7 @@ Rectangle {
                     text: "HUB"
                     color: SkinTheme.accentCyan
                     font.family: SkinTheme.fontDisplay
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     font.bold: true
                     font.letterSpacing: 1.5
                 }
@@ -179,7 +179,7 @@ Rectangle {
             // Dota 2 Status Pill
             Rectangle {
                 property bool isLinked: typeof app !== "undefined" && app && app.dotaDetected
-                height: 20
+                height: 22
                 radius: SkinTheme.radiusPill
                 implicitWidth: statusPillRow.implicitWidth + 12
                 color: isLinked ? SkinTheme.accentEmeraldGlow : SkinTheme.accentCrimsonGlow
@@ -230,8 +230,8 @@ Rectangle {
 
         // ── Main Launcher Tabs ──
         RowLayout {
-            spacing: 2
-            Layout.leftMargin: 6
+            spacing: 3
+            Layout.leftMargin: 8
 
             Repeater {
                 model: [
@@ -244,9 +244,9 @@ Rectangle {
                 ]
 
                 delegate: Rectangle {
-                    height: 32
+                    height: 34
                     radius: SkinTheme.radiusSmall
-                    implicitWidth: tabRow.implicitWidth + 16
+                    implicitWidth: tabRow.implicitWidth + 18
                     color: topNav.currentTab === modelData.id
                            ? SkinTheme.bgCardHover
                            : (tabMouse.containsMouse ? SkinTheme.bgCard : "transparent")
@@ -296,7 +296,7 @@ Rectangle {
                         // Badge count (loadout)
                         Rectangle {
                             visible: modelData.badge !== undefined && modelData.badge > 0
-                            height: 15
+                            height: 16
                             radius: SkinTheme.radiusPill
                             implicitWidth: badgeText.implicitWidth + 6
                             color: topNav.currentTab === modelData.id ? SkinTheme.accentEmerald : SkinTheme.bgSurface
@@ -321,7 +321,6 @@ Rectangle {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            topNav.currentTab = modelData.id
                             topNav.tabSelected(modelData.id)
                         }
                     }
@@ -337,7 +336,7 @@ Rectangle {
 
             // Search Trigger (Ctrl+K)
             Rectangle {
-                height: 30
+                height: 32
                 width: 120
                 radius: SkinTheme.radiusSmall
                 color: searchBtnMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgInput
@@ -395,7 +394,7 @@ Rectangle {
 
             // Queue Button
             Rectangle {
-                height: 30
+                height: 32
                 radius: SkinTheme.radiusSmall
                 implicitWidth: queueBtnRow.implicitWidth + 16
                 color: queueCount > 0
@@ -437,8 +436,8 @@ Rectangle {
 
             // Settings Button
             Rectangle {
-                height: 30
-                width: 30
+                height: 32
+                width: 32
                 radius: SkinTheme.radiusSmall
                 color: topNav.currentTab === "settings" || settingsBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
                 border.color: topNav.currentTab === "settings" ? SkinTheme.accentCyan : SkinTheme.borderMuted
@@ -458,7 +457,6 @@ Rectangle {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        topNav.currentTab = "settings"
                         topNav.settingsClicked()
                     }
                 }
@@ -466,7 +464,7 @@ Rectangle {
 
             // Big Liquid PLAY DOTA 2 Button
             Rectangle {
-                height: 32
+                height: 34
                 radius: SkinTheme.radiusSmall
                 implicitWidth: playRow.implicitWidth + 20
                 color: playDotaMouse.containsMouse ? SkinTheme.accentEmeraldHover : SkinTheme.accentEmerald
