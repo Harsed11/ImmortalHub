@@ -1,30 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
-import AntigravityParticles from './components/AntigravityParticles';
+import React, { useState, useEffect } from 'react';
 import LineSidebar from './components/LineSidebar';
 import BorderGlow from './components/BorderGlow';
-import CustomCursor from './components/CustomCursor';
 import LiveStats from './components/LiveStats';
 import ScrollReveal from './components/ScrollReveal';
 import { playSound, toggleMute } from './utils/audio';
+
+// Real Application Screenshots
+import screenDashboard from './assets/screen_dashboard.png';
+import screenHeroes from './assets/screen_heroes.png';
+import screenLoadout from './assets/screen_loadout.png';
+import screenCollections from './assets/screen_collections.png';
 import aegisNeonImg from './assets/aegis_neon.jpg';
-import heroesBannerImg from './assets/heroes_banner.jpg';
 import './App.css';
 
 // 3D Tilt Card Wrapper
 const TiltCard = ({ children, className = '' }) => {
   const [style, setStyle] = useState({});
-  const cardRef = useRef(null);
 
   const handleMouseMove = (e) => {
-    const card = cardRef.current;
-    if (!card) return;
+    const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    const rotateX = ((y - centerY) / centerY) * -8;
-    const rotateY = ((x - centerX) / centerX) * 8;
+    const rotateX = ((y - centerY) / centerY) * -6;
+    const rotateY = ((x - centerX) / centerX) * 6;
 
     setStyle({
       transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`,
@@ -43,7 +44,6 @@ const TiltCard = ({ children, className = '' }) => {
 
   return (
     <div
-      ref={cardRef}
       className={`tilt-card-wrapper ${className}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -54,9 +54,8 @@ const TiltCard = ({ children, className = '' }) => {
   );
 };
 
-// Global reference for smooth scroll animation to allow clean cancellations
+// Smooth scroll helper
 let scrollRafId = null;
-
 const smoothScrollTo = (targetY, duration) => {
   if (scrollRafId) {
     cancelAnimationFrame(scrollRafId);
@@ -67,7 +66,7 @@ const smoothScrollTo = (targetY, duration) => {
   const distance = targetY - startY;
   if (Math.abs(distance) < 4) return;
 
-  const calculatedDuration = duration || Math.min(Math.max(Math.abs(distance) * 0.45, 800), 1500);
+  const calculatedDuration = duration || Math.min(Math.max(Math.abs(distance) * 0.45, 800), 1400);
   const startTime = performance.now();
 
   const step = (currentTime) => {
@@ -95,25 +94,48 @@ function App() {
   const [activeSection, setActiveSection] = useState(0);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
-  // Terminal Simulator State
-  const [isInjecting, setIsInjecting] = useState(false);
-  const [injectionLogs, setInjectionLogs] = useState([
-    { text: '[SYSTEM] ImmortalHub Core VPK v1.3.1 initialized.', type: 'info' },
-    { text: '[GSI] Listening for Dota 2 Game State Integration on port 39888...', type: 'dim' },
-    { text: '[STATUS] Engine ready. Click "Simulate VPK Injection" below to test hook.', type: 'accent' },
-  ]);
-
-  // Audio test state
-  const [activeAudioIndex, setActiveAudioIndex] = useState(null);
+  // App Screenshot Gallery Active Tab
+  const [activeGalleryTab, setActiveGalleryTab] = useState(0);
 
   // FAQ accordion state
   const [openFaq, setOpenFaq] = useState(0);
 
-  const sidebarItems = ['Overview', 'Showcase', 'Architecture', 'Terminal', 'FAQ', 'GitHub'];
+  const galleryScreens = [
+    {
+      id: 'dashboard',
+      title: 'Main Dashboard',
+      badge: 'OVERVIEW & STATUS',
+      desc: 'Central command center with real-time Dota 2 game status, recently installed mods, and quick loadout access.',
+      image: screenDashboard,
+    },
+    {
+      id: 'heroes',
+      title: 'Hero Studio',
+      badge: '127 HEROES & ARCANAS',
+      desc: 'Visual trading-card hero browser filtered by Dota 2 roles (Pos 1–5) and primary attributes (STR, AGI, INT, UNI).',
+      image: screenHeroes,
+    },
+    {
+      id: 'loadout',
+      title: 'Active Loadout Manager',
+      badge: 'ONE-CLICK CONTROL',
+      desc: 'Strictly aligned baseline table with real-time active indicators, individual mod toggling, and batch uninstaller.',
+      image: screenLoadout,
+    },
+    {
+      id: 'collections',
+      title: 'Collections Vault',
+      badge: 'ATMOSPHERE & SHADERS',
+      desc: 'Explore custom weather effects, map terrains, high-FPS foliage, versus screens, and audio packs.',
+      image: screenCollections,
+    },
+  ];
+
+  const sidebarItems = ['Overview', 'App Preview', 'Architecture', 'FAQ', 'GitHub'];
 
   // Scroll Spy: highlight active section as user scrolls
   useEffect(() => {
-    const sections = ['overview', 'showcase', 'architecture', 'terminal', 'faq'];
+    const sections = ['overview', 'app-preview', 'architecture', 'faq'];
     const handleScroll = () => {
       const scrollPosition = window.scrollY + 160;
       for (let i = sections.length - 1; i >= 0; i--) {
@@ -139,9 +161,8 @@ function App() {
     } else {
       const idMap = {
         Overview: 'overview',
-        Showcase: 'showcase',
+        'App Preview': 'app-preview',
         Architecture: 'architecture',
-        Terminal: 'terminal',
         FAQ: 'faq',
       };
       const elementId = idMap[label];
@@ -155,51 +176,21 @@ function App() {
     }
   };
 
-  const handleRunInjection = () => {
-    if (isInjecting) return;
-    setIsInjecting(true);
-    playSound('inject');
-
-    const steps = [
-      { text: '[PROCESS] Locating dota2.exe (x64) process space...', delay: 300, type: 'info' },
-      { text: '[VPK] Initializing virtual VFS redirector (bypass pak01_dir)...', delay: 850, type: 'info' },
-      { text: '[LOADOUT] Mounting Arcana & Immortal cosmetic overrides in memory...', delay: 1500, type: 'accent' },
-      { text: '[SOUND] Activating Gabe Newell Announcer & custom kill sounds...', delay: 2100, type: 'info' },
-      { text: '[GSI] Connected to live match state via port 39888 (0ms latency).', delay: 2700, type: 'accent' },
-      { text: '[SUCCESS] INJECTION COMPLETE: All Arcanas active in-game!', delay: 3300, type: 'success' },
-    ];
-
-    setInjectionLogs([{ text: '[ACTION] Initializing live injection routine...', type: 'dim' }]);
-
-    steps.forEach(({ text, delay, type }) => {
-      setTimeout(() => {
-        setInjectionLogs((prev) => [...prev, { text, type }]);
-        playSound('click');
-        if (type === 'success') {
-          setIsInjecting(false);
-          playSound('equip');
-        }
-      }, delay);
-    });
-  };
-
   const handleSoundToggle = () => {
     const newState = toggleMute();
     setIsMuted(newState);
     if (!newState) playSound('click');
   };
 
-  const handlePlaySample = (type, index) => {
-    setActiveAudioIndex(index);
-    playSound(type);
-    setTimeout(() => setActiveAudioIndex(null), 600);
-  };
-
   return (
     <div className="app-wrapper">
-      <CustomCursor />
-      {/* Antigravity Particles Backdrop */}
-      <AntigravityParticles />
+      {/* Clean Ambient Radial Background Gradients (Lightweight & Calm) */}
+      <div className="ambient-background">
+        <div className="ambient-glow top-center"></div>
+        <div className="ambient-glow right-mid"></div>
+        <div className="ambient-glow left-bot"></div>
+        <div className="ambient-grid-overlay"></div>
+      </div>
 
       {/* Floating Sound Toggle */}
       <button className="sound-toggle-btn" onClick={handleSoundToggle} title="Toggle Sound FX">
@@ -260,7 +251,7 @@ function App() {
           {/* ═══════════════════════════════════════════════════════════
               1. GRAND CENTERED HERO SECTION
           ═══════════════════════════════════════════════════════════ */}
-          <ScrollReveal delay={0.1}>
+          <ScrollReveal>
             <section id="overview" className="hero-section hero-centered-layout">
               <div className="hero-centered-inner">
                 {/* Eyebrow Badge */}
@@ -363,84 +354,59 @@ function App() {
           </div>
 
           {/* ═══════════════════════════════════════════════════════════
-              2. VISUAL SHOWCASE & SOUNDBOARD
+              2. REAL APP SCREENSHOTS SHOWCASE GALLERY
           ═══════════════════════════════════════════════════════════ */}
-          <ScrollReveal delay={0.15}>
-            <section id="showcase" className="showcase-section">
+          <ScrollReveal>
+            <section id="app-preview" className="app-gallery-section">
               <div className="section-header">
-                <span className="section-badge">COSMETICS CATALOG</span>
-                <h2 className="section-title">Battlefield Transformation</h2>
+                <span className="section-badge">DESKTOP CLIENT UI</span>
+                <h2 className="section-title">Experience the New Desktop App</h2>
                 <p className="section-desc">
-                  From Juggernaut's Bladeform Legacy to Phantom Assassin's Manifold Paradox and Invoker's Dark Artistry.
-                  High-fidelity custom models with full ambient spell particles.
+                  Built natively in Qt 6 Quick & Python with gaming-grade responsive design, hardware-accelerated transitions, and pro tournament loadouts.
                 </p>
               </div>
 
-              {/* Panoramic Banner Card */}
-              <div className="showcase-banner-card">
-                <img
-                  src={heroesBannerImg}
-                  alt="Dota 2 Arcana Heroes Showcase"
-                  className="showcase-banner-img"
-                />
-                <div className="showcase-banner-gradient"></div>
-
-                <div className="showcase-hero-highlights">
-                  <div className="hero-highlight-pill">
-                    <span className="pill-dot blue"></span>
-                    <div>
-                      <strong>Juggernaut</strong>
-                      <span>Bladeform Legacy Arcana</span>
-                    </div>
-                  </div>
-
-                  <div className="hero-highlight-pill center">
-                    <span className="pill-dot teal"></span>
-                    <div>
-                      <strong>Phantom Assassin</strong>
-                      <span>Manifold Paradox Origins</span>
-                    </div>
-                  </div>
-
-                  <div className="hero-highlight-pill">
-                    <span className="pill-dot purple"></span>
-                    <div>
-                      <strong>Invoker</strong>
-                      <span>Dark Artistry & Sunburst FX</span>
-                    </div>
-                  </div>
-                </div>
+              {/* Gallery Category Selector Tabs */}
+              <div className="gallery-tabs-row">
+                {galleryScreens.map((screen, idx) => (
+                  <button
+                    key={screen.id}
+                    className={`gallery-tab-btn ${activeGalleryTab === idx ? 'active' : ''}`}
+                    onClick={() => {
+                      playSound('click');
+                      setActiveGalleryTab(idx);
+                    }}
+                  >
+                    <span className="tab-title">{screen.title}</span>
+                  </button>
+                ))}
               </div>
 
-              {/* Interactive Audio Soundboard */}
-              <div className="soundboard-card">
-                <div className="soundboard-header">
-                  <div>
-                    <span className="soundboard-badge">AUDIO ENGINE</span>
-                    <h3 className="soundboard-title">Custom Announcer & Sound FX Tester</h3>
+              {/* Active Screenshot Display Frame */}
+              <div className="gallery-preview-frame">
+                <div className="frame-header-bar">
+                  <div className="frame-dots">
+                    <span className="frame-dot red"></span>
+                    <span className="frame-dot yellow"></span>
+                    <span className="frame-dot green"></span>
                   </div>
-                  <span className="soundboard-hint">Click below to test in-game announcer triggers</span>
+                  <span className="frame-title">
+                    ImmortalHub v1.3.1 — {galleryScreens[activeGalleryTab].title}
+                  </span>
+                  <span className="frame-badge">
+                    {galleryScreens[activeGalleryTab].badge}
+                  </span>
                 </div>
 
-                <div className="soundboard-grid">
-                  {[
-                    { label: 'Gabe Newell Announcer', desc: 'Mega-Kill streak alert', sound: 'inject' },
-                    { label: 'Deus Ex Kill Sound', desc: 'Ultra-Kill bass drop', sound: 'equip' },
-                    { label: 'Rick & Morty Pack', desc: 'First Blood trigger line', sound: 'copy' },
-                    { label: 'Immortal Level-Up', desc: 'Shimmering chord chime', sound: 'equip' },
-                  ].map((item, idx) => (
-                    <button
-                      key={idx}
-                      className={`soundboard-btn ${activeAudioIndex === idx ? 'playing' : ''}`}
-                      onClick={() => handlePlaySample(item.sound, idx)}
-                    >
-                      <span className="play-icon">{activeAudioIndex === idx ? '🔊' : '▶'}</span>
-                      <div className="sound-meta">
-                        <span className="sound-name">{item.label}</span>
-                        <span className="sound-desc">{item.desc}</span>
-                      </div>
-                    </button>
-                  ))}
+                <div className="frame-image-container">
+                  <img
+                    src={galleryScreens[activeGalleryTab].image}
+                    alt={galleryScreens[activeGalleryTab].title}
+                    className="frame-screenshot-img"
+                  />
+                  <div className="frame-image-caption">
+                    <p>{galleryScreens[activeGalleryTab].desc}</p>
+                  </div>
                 </div>
               </div>
             </section>
@@ -449,7 +415,7 @@ function App() {
           {/* ═══════════════════════════════════════════════════════════
               3. CORE ARCHITECTURE & CAPABILITIES
           ═══════════════════════════════════════════════════════════ */}
-          <ScrollReveal delay={0.15}>
+          <ScrollReveal>
             <section id="architecture" className="features-section">
               <div className="section-header">
                 <span className="section-badge">CORE CAPABILITIES</span>
@@ -556,65 +522,9 @@ function App() {
           </ScrollReveal>
 
           {/* ═══════════════════════════════════════════════════════════
-              4. INTERACTIVE VPK TERMINAL CONSOLE
+              4. FAQ SECTION
           ═══════════════════════════════════════════════════════════ */}
-          <ScrollReveal delay={0.15}>
-            <section id="terminal" className="terminal-section">
-              <div className="section-header">
-                <span className="section-badge">INTERACTIVE CONSOLE</span>
-                <h2 className="section-title">Live VPK Engine Terminal</h2>
-                <p className="section-desc">
-                  Simulate how ImmortalHub seamlessly interfaces with Dota 2 game client processes in real time.
-                </p>
-              </div>
-
-              <div className="cyber-terminal-card">
-                <div className="terminal-topbar">
-                  <div className="terminal-dots">
-                    <span className="tdot red"></span>
-                    <span className="tdot yellow"></span>
-                    <span className="tdot green"></span>
-                  </div>
-                  <span className="terminal-title">immortalhub_engine_x64.exe - Live Debug Stream</span>
-                  <span className="terminal-badge">PID: 39888</span>
-                </div>
-
-                <div className="terminal-log-window">
-                  {injectionLogs.map((log, idx) => (
-                    <div key={idx} className={`terminal-line ${log.type}`}>
-                      <span className="prompt-arrow">❯</span>
-                      <span className="line-text">{log.text}</span>
-                    </div>
-                  ))}
-                  {isInjecting && (
-                    <div className="terminal-line pulsing">
-                      <span className="prompt-arrow">❯</span>
-                      <span className="line-text">Hooking memory sectors...</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="terminal-actions-bar">
-                  <button
-                    className={`btn-test-inject ${isInjecting ? 'loading' : ''}`}
-                    onClick={handleRunInjection}
-                    disabled={isInjecting}
-                  >
-                    <span className="inject-icon">⚡</span>
-                    {isInjecting ? 'INJECTING COSMETICS...' : 'SIMULATE VPK INJECTION'}
-                  </button>
-                  <span className="terminal-helper">
-                    Click "Simulate VPK Injection" to test the real-time VFS hook and cosmetic overrides.
-                  </span>
-                </div>
-              </div>
-            </section>
-          </ScrollReveal>
-
-          {/* ═══════════════════════════════════════════════════════════
-              5. FAQ SECTION
-          ═══════════════════════════════════════════════════════════ */}
-          <ScrollReveal delay={0.15}>
+          <ScrollReveal>
             <section id="faq" className="faq-section">
               <div className="section-header">
                 <span className="section-badge">KNOWLEDGE BASE</span>
@@ -665,7 +575,7 @@ function App() {
           </ScrollReveal>
 
           {/* ═══════════════════════════════════════════════════════════
-              6. CALL TO ACTION BANNER
+              5. CALL TO ACTION BANNER
           ═══════════════════════════════════════════════════════════ */}
           <section className="cta-banner">
             <div className="cta-inner">
@@ -689,7 +599,7 @@ function App() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════
-              7. FOOTER
+              6. FOOTER
           ═══════════════════════════════════════════════════════════ */}
           <footer className="app-footer">
             <div className="footer-left">
@@ -727,7 +637,7 @@ function App() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
-          8. DOWNLOAD MODAL
+          7. DOWNLOAD MODAL
       ═══════════════════════════════════════════════════════════ */}
       {showDownloadModal && (
         <div className="modal-overlay" onClick={() => setShowDownloadModal(false)}>
