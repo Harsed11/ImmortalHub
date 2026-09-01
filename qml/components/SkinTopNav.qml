@@ -44,13 +44,10 @@ Rectangle {
         opacity: 0.4
     }
 
-    // Native Window Drag Area
+    // Native Window Drag Area (covers all non-interactive background)
     MouseArea {
         id: dragArea
-        anchors.left: parent.left
-        anchors.right: windowControls.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
+        anchors.fill: parent
         z: 0
 
         property point clickPos: "0,0"
@@ -79,54 +76,250 @@ Rectangle {
         }
     }
 
-    // ═══════════════════════════════════════════
-    // WINDOW CONTROLS (ALWAYS PINNED TO TOP-RIGHT)
-    // ═══════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════
+    // RIGHT CONTROLS BAR (Actions + Window Controls in SINGLE Row)
+    // ═══════════════════════════════════════════════════════════════
     Row {
-        id: windowControls
+        id: rightControlsRow
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        spacing: 0
+        spacing: 6
         z: 20
 
-        Repeater {
-            model: [
-                { sym: "\uE921", action: "min", hoverBg: SkinTheme.bgCardHover },
-                { sym: "\uE922", action: "max", hoverBg: SkinTheme.bgCardHover },
-                { sym: "\uE8BB", action: "close", hoverBg: "#E23B3B" }
-            ]
+        // ── Action Buttons Container ──
+        RowLayout {
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 6
 
-            delegate: Rectangle {
-                width: 44
-                height: topNav.height
-                color: wcMouse.containsMouse ? modelData.hoverBg : "transparent"
+            // Search Trigger (Ctrl+K)
+            Rectangle {
+                height: 32
+                width: 100
+                radius: SkinTheme.radiusSmall
+                color: searchBtnMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgInput
+                border.color: searchBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                border.width: 1
 
-                Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 6
+                    spacing: 4
 
-                Text {
-                    anchors.centerIn: parent
-                    text: modelData.action === "max" && rootWindow && rootWindow.visibility === Window.Maximized ? "\uE923" : modelData.sym
-                    color: wcMouse.containsMouse ? "#FFFFFF" : SkinTheme.textMuted
-                    font.family: "Segoe MDL2 Assets"
-                    font.pixelSize: 10
+                    Text {
+                        text: "\uE721"
+                        font.family: "Segoe MDL2 Assets"
+                        font.pixelSize: 10
+                        color: SkinTheme.textMuted
+                    }
 
-                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+                    Text {
+                        text: "Search"
+                        color: SkinTheme.textMuted
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
+                        Layout.fillWidth: true
+                    }
+
+                    Rectangle {
+                        width: 26
+                        height: 16
+                        radius: 3
+                        color: SkinTheme.bgCard
+                        border.color: SkinTheme.borderMuted
+                        border.width: 1
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "^K"
+                            color: SkinTheme.textMuted
+                            font.family: SkinTheme.fontMono
+                            font.pixelSize: 7
+                            font.bold: true
+                        }
+                    }
                 }
 
                 MouseArea {
-                    id: wcMouse
+                    id: searchBtnMouse
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (rootWindow) {
-                            if (modelData.action === "min") rootWindow.showMinimized()
-                            else if (modelData.action === "max") {
-                                if (rootWindow.visibility === Window.Maximized) rootWindow.showNormal()
-                                else rootWindow.showMaximized()
+                    onClicked: topNav.searchClicked()
+                }
+            }
+
+            // Queue Button
+            Rectangle {
+                height: 32
+                radius: SkinTheme.radiusSmall
+                implicitWidth: queueBtnRow.implicitWidth + 14
+                color: queueCount > 0
+                       ? (queueBtnMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan)
+                       : (queueBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent")
+                border.color: queueCount > 0 ? "transparent" : (queueBtnMouse.containsMouse ? SkinTheme.borderActive : SkinTheme.borderMuted)
+                border.width: 1
+
+                RowLayout {
+                    id: queueBtnRow
+                    anchors.centerIn: parent
+                    spacing: 5
+
+                    Text {
+                        text: "\uE896"
+                        font.family: "Segoe MDL2 Assets"
+                        font.pixelSize: 10
+                        color: queueCount > 0 ? "#FFFFFF" : (queueBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
+                    }
+
+                    Text {
+                        text: queueCount > 0 ? "QUEUE " + queueCount : "QUEUE"
+                        color: queueCount > 0 ? "#FFFFFF" : (queueBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
+                        font.bold: true
+                        font.letterSpacing: 0.5
+                    }
+                }
+
+                MouseArea {
+                    id: queueBtnMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: topNav.queueClicked()
+                }
+            }
+
+            // Settings Button
+            Rectangle {
+                height: 32
+                width: 32
+                radius: SkinTheme.radiusSmall
+                color: topNav.currentTab === "settings" || settingsBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
+                border.color: topNav.currentTab === "settings" ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                border.width: 1
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "\uE713"
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 12
+                    color: topNav.currentTab === "settings" || settingsBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary
+                }
+
+                MouseArea {
+                    id: settingsBtnMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: topNav.settingsClicked()
+                }
+            }
+
+            // Big Liquid PLAY DOTA 2 Button
+            Rectangle {
+                height: 34
+                radius: SkinTheme.radiusSmall
+                implicitWidth: playRow.implicitWidth + 18
+                color: playDotaMouse.containsMouse ? SkinTheme.accentEmeraldHover : SkinTheme.accentEmerald
+
+                Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                // Outer ambient glow
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: parent.width + 4
+                    height: parent.height + 4
+                    radius: parent.radius + 2
+                    color: SkinTheme.accentEmerald
+                    opacity: playDotaMouse.containsMouse ? 0.35 : 0.15
+                    z: -1
+                }
+
+                RowLayout {
+                    id: playRow
+                    anchors.centerIn: parent
+                    spacing: 5
+
+                    Text {
+                        text: "▶"
+                        color: "#FFFFFF"
+                        font.pixelSize: 9
+                    }
+
+                    Text {
+                        text: "PLAY"
+                        color: "#FFFFFF"
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
+                        font.bold: true
+                        font.letterSpacing: 0.8
+                    }
+                }
+
+                MouseArea {
+                    id: playDotaMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: topNav.playDotaClicked()
+                }
+            }
+        }
+
+        // ── Vertical Divider between Actions and Window Controls ──
+        Rectangle {
+            anchors.verticalCenter: parent.verticalCenter
+            width: 1
+            height: 24
+            color: SkinTheme.borderSubtle
+        }
+
+        // ── Window Controls (Min, Max, Close) ──
+        Row {
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 0
+
+            Repeater {
+                model: [
+                    { sym: "\uE921", action: "min", hoverBg: SkinTheme.bgCardHover },
+                    { sym: "\uE922", action: "max", hoverBg: SkinTheme.bgCardHover },
+                    { sym: "\uE8BB", action: "close", hoverBg: "#E23B3B" }
+                ]
+
+                delegate: Rectangle {
+                    width: 42
+                    height: topNav.height
+                    color: wcMouse.containsMouse ? modelData.hoverBg : "transparent"
+
+                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: modelData.action === "max" && rootWindow && rootWindow.visibility === Window.Maximized ? "\uE923" : modelData.sym
+                        color: wcMouse.containsMouse ? "#FFFFFF" : SkinTheme.textMuted
+                        font.family: "Segoe MDL2 Assets"
+                        font.pixelSize: 10
+
+                        Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+                    }
+
+                    MouseArea {
+                        id: wcMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (rootWindow) {
+                                if (modelData.action === "min") rootWindow.showMinimized()
+                                else if (modelData.action === "max") {
+                                    if (rootWindow.visibility === Window.Maximized) rootWindow.showNormal()
+                                    else rootWindow.showMaximized()
+                                }
+                                else if (modelData.action === "close") rootWindow.close()
                             }
-                            else if (modelData.action === "close") rootWindow.close()
                         }
                     }
                 }
@@ -134,20 +327,20 @@ Rectangle {
         }
     }
 
-    // ═══════════════════════════════════════════
-    // MAIN HEADER CONTENT (Brand, Tabs, Actions)
-    // ═══════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════
+    // LEFT & CENTER CONTENT (Brand & Navigation Tabs)
+    // ═══════════════════════════════════════════════════════════════
     RowLayout {
         anchors.left: parent.left
-        anchors.right: windowControls.left
+        anchors.right: rightControlsRow.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.leftMargin: 16
         anchors.rightMargin: 12
-        spacing: 10
+        spacing: 12
         z: 10
 
-        // ── Brand & Live Dota 2 Pill ──
+        // ── Brand Logo & Dota 2 Status ──
         RowLayout {
             spacing: 8
 
@@ -230,23 +423,23 @@ Rectangle {
 
         // ── Main Launcher Tabs ──
         RowLayout {
-            spacing: 3
-            Layout.leftMargin: 8
+            spacing: 4
+            Layout.leftMargin: 6
 
             Repeater {
                 model: [
                     { id: "dashboard", label: "DASHBOARD", icon: "\uE80F" },
-                    { id: "heroes",    label: "HERO STUDIO", icon: "\uE716" },
+                    { id: "heroes",    label: "HEROES",    icon: "\uE716" },
                     { id: "effects",   label: "COLLECTIONS", icon: "\uE790" },
-                    { id: "creators",  label: "CREATORS", icon: "\uE77B" },
-                    { id: "installed", label: "LOADOUT", icon: "\uE8F1", badge: topNav.installedCount },
+                    { id: "creators",  label: "CREATORS",  icon: "\uE77B" },
+                    { id: "installed", label: "LOADOUT",   icon: "\uE8F1", badge: topNav.installedCount },
                     { id: "fpsboost",  label: "FPS BOOST", icon: "\uE945" }
                 ]
 
                 delegate: Rectangle {
                     height: 34
                     radius: SkinTheme.radiusSmall
-                    implicitWidth: tabRow.implicitWidth + 18
+                    implicitWidth: tabRow.implicitWidth + 16
                     color: topNav.currentTab === modelData.id
                            ? SkinTheme.bgCardHover
                            : (tabMouse.containsMouse ? SkinTheme.bgCard : "transparent")
@@ -260,7 +453,7 @@ Rectangle {
                         anchors.bottom: parent.bottom
                         anchors.horizontalCenter: parent.horizontalCenter
                         height: 2
-                        width: topNav.currentTab === modelData.id ? parent.width - 12 : 0
+                        width: topNav.currentTab === modelData.id ? parent.width - 10 : 0
                         radius: 1
                         color: SkinTheme.accentCyan
                         visible: topNav.currentTab === modelData.id
@@ -271,7 +464,7 @@ Rectangle {
                     RowLayout {
                         id: tabRow
                         anchors.centerIn: parent
-                        spacing: 6
+                        spacing: 5
 
                         Text {
                             text: modelData.icon
@@ -320,197 +513,12 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            topNav.tabSelected(modelData.id)
-                        }
+                        onClicked: topNav.tabSelected(modelData.id)
                     }
                 }
             }
         }
 
         Item { Layout.fillWidth: true }
-
-        // ── Action Controls ──
-        RowLayout {
-            spacing: 6
-
-            // Search Trigger (Ctrl+K)
-            Rectangle {
-                height: 32
-                width: 120
-                radius: SkinTheme.radiusSmall
-                color: searchBtnMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgInput
-                border.color: searchBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.borderMuted
-                border.width: 1
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 8
-                    anchors.rightMargin: 6
-                    spacing: 4
-
-                    Text {
-                        text: "\uE721"
-                        font.family: "Segoe MDL2 Assets"
-                        font.pixelSize: 10
-                        color: SkinTheme.textMuted
-                    }
-
-                    Text {
-                        text: "Search..."
-                        color: SkinTheme.textMuted
-                        font.family: SkinTheme.fontFamily
-                        font.pixelSize: SkinTheme.fontSizeSmall
-                        Layout.fillWidth: true
-                    }
-
-                    Rectangle {
-                        width: 30
-                        height: 16
-                        radius: 3
-                        color: SkinTheme.bgCard
-                        border.color: SkinTheme.borderMuted
-                        border.width: 1
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "Ctrl+K"
-                            color: SkinTheme.textMuted
-                            font.family: SkinTheme.fontMono
-                            font.pixelSize: 7
-                            font.bold: true
-                        }
-                    }
-                }
-
-                MouseArea {
-                    id: searchBtnMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: topNav.searchClicked()
-                }
-            }
-
-            // Queue Button
-            Rectangle {
-                height: 32
-                radius: SkinTheme.radiusSmall
-                implicitWidth: queueBtnRow.implicitWidth + 16
-                color: queueCount > 0
-                       ? (queueBtnMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan)
-                       : (queueBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent")
-                border.color: queueCount > 0 ? "transparent" : (queueBtnMouse.containsMouse ? SkinTheme.borderActive : SkinTheme.borderMuted)
-                border.width: 1
-
-                RowLayout {
-                    id: queueBtnRow
-                    anchors.centerIn: parent
-                    spacing: 5
-
-                    Text {
-                        text: "\uE896"
-                        font.family: "Segoe MDL2 Assets"
-                        font.pixelSize: 10
-                        color: queueCount > 0 ? "#FFFFFF" : (queueBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
-                    }
-
-                    Text {
-                        text: queueCount > 0 ? "QUEUE " + queueCount : "QUEUE"
-                        color: queueCount > 0 ? "#FFFFFF" : (queueBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
-                        font.family: SkinTheme.fontFamily
-                        font.pixelSize: SkinTheme.fontSizeSmall
-                        font.bold: true
-                        font.letterSpacing: 0.5
-                    }
-                }
-
-                MouseArea {
-                    id: queueBtnMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: topNav.queueClicked()
-                }
-            }
-
-            // Settings Button
-            Rectangle {
-                height: 32
-                width: 32
-                radius: SkinTheme.radiusSmall
-                color: topNav.currentTab === "settings" || settingsBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
-                border.color: topNav.currentTab === "settings" ? SkinTheme.accentCyan : SkinTheme.borderMuted
-                border.width: 1
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "\uE713"
-                    font.family: "Segoe MDL2 Assets"
-                    font.pixelSize: 12
-                    color: topNav.currentTab === "settings" || settingsBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary
-                }
-
-                MouseArea {
-                    id: settingsBtnMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        topNav.settingsClicked()
-                    }
-                }
-            }
-
-            // Big Liquid PLAY DOTA 2 Button
-            Rectangle {
-                height: 34
-                radius: SkinTheme.radiusSmall
-                implicitWidth: playRow.implicitWidth + 20
-                color: playDotaMouse.containsMouse ? SkinTheme.accentEmeraldHover : SkinTheme.accentEmerald
-
-                Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
-
-                // Outer ambient glow
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: parent.width + 4
-                    height: parent.height + 4
-                    radius: parent.radius + 2
-                    color: SkinTheme.accentEmerald
-                    opacity: playDotaMouse.containsMouse ? 0.35 : 0.15
-                    z: -1
-                }
-
-                RowLayout {
-                    id: playRow
-                    anchors.centerIn: parent
-                    spacing: 5
-
-                    Text {
-                        text: "▶"
-                        color: "#FFFFFF"
-                        font.pixelSize: 9
-                    }
-
-                    Text {
-                        text: "PLAY"
-                        color: "#FFFFFF"
-                        font.family: SkinTheme.fontFamily
-                        font.pixelSize: SkinTheme.fontSizeSmall
-                        font.bold: true
-                        font.letterSpacing: 0.8
-                    }
-                }
-
-                MouseArea {
-                    id: playDotaMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: topNav.playDotaClicked()
-                }
-            }
-        }
     }
 }
