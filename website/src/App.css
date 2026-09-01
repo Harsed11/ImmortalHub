@@ -16,6 +16,12 @@
   --accent-gold: #F59E0B;
   --accent-emerald: #10B981;
   --accent-white: #FFFFFF;
+
+  /* Fluid Layout Proportions */
+  --sidebar-width: clamp(220px, 18vw, 280px);
+  --content-padding-x: clamp(20px, 4vw, 72px);
+  --content-padding-y: clamp(32px, 5vh, 64px);
+  --section-gap: clamp(48px, 8vh, 120px);
 }
 
 *, *::before, *::after {
@@ -34,6 +40,7 @@ html, body {
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
   line-height: 1.5;
+  font-size: clamp(14px, 0.95vw, 16px);
 }
 
 button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-btn, .sidebar-brand {
@@ -42,7 +49,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 /* Custom Gaming Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 7px;
 }
 
 ::-webkit-scrollbar-track {
@@ -56,7 +63,6 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-red);
-  box-shadow: 0 0 10px var(--accent-red);
 }
 
 /* App Wrapper */
@@ -65,6 +71,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   width: 100%;
   min-height: 100vh;
   background: #000000;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Pitch-Black Clean Background (Pure Void Dark) */
@@ -81,23 +89,23 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   inset: 0;
   background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
                     linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 60px 60px;
+  background-size: clamp(40px, 4vw, 64px) clamp(40px, 4vw, 64px);
   mask-image: radial-gradient(circle at 50% 30%, black 30%, transparent 85%);
 }
 
 /* Sound Toggle Floating Button */
 .sound-toggle-btn {
   position: fixed;
-  top: 24px;
-  right: 28px;
+  top: clamp(16px, 2.5vh, 24px);
+  right: clamp(16px, 2.5vw, 28px);
   z-index: 100;
   background: #0A0A0E;
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  padding: 10px 18px;
+  padding: clamp(8px, 1vh, 10px) clamp(14px, 1.5vw, 18px);
   border-radius: 30px;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 0.9vw, 0.9rem);
   font-weight: 600;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
   transition: all 0.25s ease;
@@ -118,21 +126,22 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 /* ═══════════════════════════════════════════════════════════
-   LEFT FIXED SIDEBAR (TRULY STATIC DOCKED ACROSS FULL SCROLL)
+   LEFT FIXED SIDEBAR (TRULY STATIC & RESPONSIVELY SIZED)
 ═══════════════════════════════════════════════════════════ */
 .sidebar-container {
   position: fixed;
   top: 0;
   left: 0;
-  width: 280px;
+  width: var(--sidebar-width);
   height: 100vh;
   z-index: 50;
-  padding: 44px 20px 44px 24px;
+  padding: clamp(24px, 4vh, 44px) clamp(14px, 1.6vw, 24px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   border-right: 1px solid var(--border-color);
   background: #050508;
+  overflow-y: auto;
 }
 
 .sidebar-brand {
@@ -142,12 +151,12 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .brand-header-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: clamp(8px, 1vw, 12px);
 }
 
 .brand-mini-aegis {
-  width: 42px;
-  height: 42px;
+  width: clamp(34px, 3.2vw, 42px);
+  height: clamp(34px, 3.2vw, 42px);
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -157,7 +166,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .brand-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.68rem;
+  font-size: clamp(0.6rem, 0.7vw, 0.68rem);
   letter-spacing: 2px;
   color: #FFFFFF;
   background: rgba(255, 255, 255, 0.08);
@@ -165,12 +174,12 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   display: inline-block;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .brand-logo {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.35rem;
+  font-size: clamp(1.15rem, 1.4vw, 1.35rem);
   font-weight: 800;
   letter-spacing: -0.5px;
 }
@@ -192,7 +201,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .sidebar-footer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .status-pill {
@@ -200,7 +209,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   align-items: center;
   gap: 8px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  font-size: clamp(0.68rem, 0.75vw, 0.75rem);
   color: var(--text-secondary);
   background: #0A0A0E;
   padding: 6px 12px;
@@ -217,7 +226,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .sidebar-repo-link {
-  font-size: 0.8rem;
+  font-size: clamp(0.72rem, 0.8vw, 0.8rem);
   color: #FFFFFF;
   text-decoration: none;
   display: flex;
@@ -233,17 +242,17 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 /* ═══════════════════════════════════════════════════════════
-   MAIN CONTENT AREA (OFFSET FROM FIXED SIDEBAR)
+   MAIN CONTENT AREA (FLUID & SCALED AT ANY RESOLUTION)
 ═══════════════════════════════════════════════════════════ */
 .main-content {
-  margin-left: 280px;
-  width: calc(100% - 280px);
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
   min-height: 100vh;
-  padding: 64px 72px;
+  padding: var(--content-padding-y) var(--content-padding-x);
   display: flex;
   flex-direction: column;
-  gap: 120px;
-  max-width: 1280px;
+  gap: var(--section-gap);
+  max-width: 1440px;
   background: #000000;
 }
 
@@ -251,7 +260,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
    1. GRAND CENTERED HERO SECTION
 ═══════════════════════════════════════════════════════════ */
 .hero-centered-layout {
-  min-height: 85vh;
+  min-height: calc(100vh - clamp(32px, 5vh, 64px) * 2);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -269,17 +278,17 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .hero-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(6px, 0.8vw, 10px);
   background: #0A0A0E;
   border: 1px solid var(--border-color);
-  padding: 8px 18px;
+  padding: clamp(5px, 0.7vh, 7px) clamp(12px, 1.4vw, 16px);
   border-radius: 40px;
-  margin-bottom: 20px;
+  margin-bottom: clamp(12px, 1.6vh, 18px);
 }
 
 .pulse-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   background-color: var(--accent-red);
   border-radius: 50%;
   box-shadow: 0 0 10px var(--accent-red);
@@ -293,7 +302,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .eyebrow-text {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.78rem;
+  font-size: clamp(0.68rem, 0.8vw, 0.76rem);
   font-weight: 700;
   letter-spacing: 2px;
   color: #FFFFFF;
@@ -303,7 +312,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   background: rgba(16, 185, 129, 0.15);
   border: 1px solid rgba(16, 185, 129, 0.4);
   color: var(--accent-emerald);
-  font-size: 0.7rem;
+  font-size: clamp(0.62rem, 0.7vw, 0.68rem);
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 20px;
@@ -312,30 +321,30 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .hero-grand-title {
   font-family: 'Outfit', sans-serif;
-  font-size: clamp(3.5rem, 8vw, 6.8rem);
+  font-size: clamp(2.4rem, 5.2vw, 5.4rem);
   font-weight: 900;
   line-height: 0.98;
   letter-spacing: -0.04em;
-  margin-bottom: 20px;
+  margin-bottom: clamp(10px, 1.4vh, 16px);
   text-align: center;
 }
 
 .hero-grand-subtitle {
-  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  font-size: clamp(0.88rem, 1.15vw, 1.1rem);
   color: var(--text-secondary);
-  max-width: 720px;
-  line-height: 1.6;
-  margin: 0 auto 36px;
+  max-width: min(680px, 92%);
+  line-height: 1.55;
+  margin: 0 auto clamp(18px, 2.5vh, 28px);
   text-align: center;
 }
 
 .hero-cta-row {
   display: flex;
-  gap: 16px;
+  gap: clamp(10px, 1.2vw, 16px);
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 48px;
+  margin-bottom: clamp(24px, 3vh, 36px);
 }
 
 .btn-primary-action {
@@ -345,9 +354,9 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   background: #FFFFFF;
   color: #000000;
   font-family: 'Outfit', sans-serif;
-  font-size: 1.05rem;
+  font-size: clamp(0.85rem, 0.98vw, 0.98rem);
   font-weight: 800;
-  padding: 15px 32px;
+  padding: clamp(11px, 1.4vh, 14px) clamp(20px, 2vw, 28px);
   border-radius: 12px;
   border: none;
   letter-spacing: 0.5px;
@@ -369,9 +378,9 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   font-family: 'Outfit', sans-serif;
-  font-size: 1.05rem;
+  font-size: clamp(0.85rem, 0.98vw, 0.98rem);
   font-weight: 700;
-  padding: 15px 28px;
+  padding: clamp(11px, 1.4vh, 14px) clamp(18px, 1.8vw, 24px);
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.25s ease;
@@ -385,18 +394,18 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 /* 3D Centered Aegis Card */
 .hero-aegis-centered-container {
-  max-width: 460px;
+  max-width: clamp(260px, 26vw, 360px);
   width: 100%;
-  margin: 0 auto 48px;
+  margin: 0 auto clamp(20px, 3vh, 36px);
 }
 
 .hero-aegis-card {
   position: relative;
   background: #0A0A0E;
   border: 1px solid var(--border-color);
-  border-radius: 28px;
+  border-radius: clamp(18px, 2vw, 28px);
   overflow: hidden;
-  padding: 20px;
+  padding: clamp(14px, 1.6vw, 20px);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
   text-align: left;
 }
@@ -405,7 +414,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 20px;
+  border-radius: clamp(12px, 1.5vw, 20px);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -434,7 +443,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .aegis-card-overlay {
-  margin-top: 16px;
+  margin-top: clamp(10px, 1.4vh, 16px);
 }
 
 .overlay-badge {
@@ -442,17 +451,17 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   align-items: center;
   gap: 8px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
+  font-size: clamp(0.65rem, 0.72vw, 0.72rem);
   color: #FFFFFF;
   background: rgba(255, 255, 255, 0.08);
   padding: 3px 10px;
   border-radius: 20px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .live-ring {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   background: var(--accent-emerald);
   border-radius: 50%;
   box-shadow: 0 0 8px var(--accent-emerald);
@@ -460,23 +469,23 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .overlay-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.3rem;
+  font-size: clamp(1.1rem, 1.3vw, 1.3rem);
   font-weight: 800;
   margin-bottom: 4px;
 }
 
 .overlay-sub {
-  font-size: 0.84rem;
+  font-size: clamp(0.76rem, 0.84vw, 0.84rem);
   color: var(--text-secondary);
   line-height: 1.5;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .overlay-tags {
   display: flex;
   gap: 8px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
+  font-size: clamp(0.65rem, 0.72vw, 0.72rem);
   color: var(--text-muted);
 }
 
@@ -487,15 +496,15 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   background: #050508;
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
-  padding: 14px 0;
-  margin: 0 -72px;
+  padding: clamp(10px, 1.4vh, 14px) 0;
+  margin: 0 calc(-1 * var(--content-padding-x));
 }
 
 .marquee-content {
   display: inline-flex;
   gap: 24px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 0.85vw, 0.85rem);
   font-weight: 700;
   color: var(--text-secondary);
   animation: marquee 25s linear infinite;
@@ -512,30 +521,30 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 /* Section Header Shared */
 .section-header {
-  margin-bottom: 36px;
+  margin-bottom: clamp(24px, 3.5vh, 36px);
   text-align: left;
 }
 
 .section-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  font-size: clamp(0.68rem, 0.75vw, 0.75rem);
   font-weight: 700;
   letter-spacing: 2px;
   color: #FFFFFF;
   display: inline-block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .section-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 2.5rem;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
   font-weight: 800;
   letter-spacing: -0.02em;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .section-desc {
-  font-size: 1.05rem;
+  font-size: clamp(0.9rem, 1.1vw, 1.05rem);
   color: var(--text-secondary);
   max-width: 680px;
   line-height: 1.6;
@@ -551,8 +560,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .gallery-tabs-row {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: clamp(8px, 1vw, 12px);
+  margin-bottom: clamp(16px, 2.5vh, 24px);
   flex-wrap: wrap;
 }
 
@@ -560,10 +569,10 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   background: #0A0A0E;
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  padding: 12px 24px;
+  padding: clamp(8px, 1.2vh, 12px) clamp(14px, 1.6vw, 24px);
   border-radius: 12px;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.95rem;
+  font-size: clamp(0.82rem, 0.95vw, 0.95rem);
   font-weight: 700;
   transition: all 0.2s ease;
 }
@@ -584,7 +593,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .gallery-preview-frame {
   background: #050508;
   border: 1px solid var(--border-color);
-  border-radius: 20px;
+  border-radius: clamp(14px, 1.6vw, 20px);
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
 }
@@ -594,7 +603,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   align-items: center;
   justify-content: space-between;
   background: #0A0A0E;
-  padding: 14px 20px;
+  padding: clamp(10px, 1.4vh, 14px) clamp(14px, 1.6vw, 20px);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -604,8 +613,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .frame-dot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
 }
 
@@ -615,13 +624,13 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .frame-title {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
+  font-size: clamp(0.72rem, 0.8vw, 0.8rem);
   color: var(--text-secondary);
 }
 
 .frame-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+  font-size: clamp(0.62rem, 0.7vw, 0.7rem);
   font-weight: 700;
   color: #FFFFFF;
   background: rgba(255, 255, 255, 0.08);
@@ -636,15 +645,16 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .frame-screenshot-img {
   width: 100%;
+  height: auto;
   display: block;
   object-fit: cover;
   border-bottom: 1px solid var(--border-color);
 }
 
 .frame-image-caption {
-  padding: 18px 24px;
+  padding: clamp(12px, 1.8vh, 18px) clamp(16px, 2vw, 24px);
   background: #050508;
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 0.95vw, 0.95rem);
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -654,29 +664,29 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 ═══════════════════════════════════════════════════════════ */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: clamp(16px, 2vw, 24px);
 }
 
 .glass-feature-card {
   height: 100%;
-  border-radius: 20px;
+  border-radius: clamp(14px, 1.6vw, 20px);
   background: #0A0A0E;
   border: 1px solid var(--border-color);
 }
 
 .feature-card-body {
-  padding: 32px 28px;
+  padding: clamp(20px, 3vh, 32px) clamp(18px, 2.2vw, 28px);
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
 .feature-icon-wrapper {
-  font-size: 1.8rem;
-  margin-bottom: 16px;
-  width: 48px;
-  height: 48px;
+  font-size: clamp(1.4rem, 1.8vw, 1.8rem);
+  margin-bottom: clamp(10px, 1.5vh, 16px);
+  width: clamp(40px, 3.8vw, 48px);
+  height: clamp(40px, 3.8vw, 48px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -684,36 +694,28 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   background: rgba(255, 255, 255, 0.04);
 }
 
-.glow-red {
-  color: var(--accent-red);
-}
-
-.glow-green {
-  color: var(--accent-emerald);
-}
-
-.glow-gold {
-  color: var(--accent-gold);
-}
+.glow-red { color: var(--accent-red); }
+.glow-green { color: var(--accent-emerald); }
+.glow-gold { color: var(--accent-gold); }
 
 .feature-tag {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+  font-size: clamp(0.62rem, 0.7vw, 0.7rem);
   letter-spacing: 1.5px;
   color: #FFFFFF;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   display: block;
 }
 
 .feature-heading {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.35rem;
+  font-size: clamp(1.15rem, 1.35vw, 1.35rem);
   font-weight: 800;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .feature-text {
-  font-size: 0.92rem;
+  font-size: clamp(0.82rem, 0.92vw, 0.92rem);
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -724,14 +726,14 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .faq-accordion {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: clamp(8px, 1.2vh, 12px);
 }
 
 .faq-card {
   background: #0A0A0E;
   border: 1px solid var(--border-color);
   border-radius: 14px;
-  padding: 20px 24px;
+  padding: clamp(14px, 2vh, 20px) clamp(16px, 2vw, 24px);
   transition: all 0.25s ease;
 }
 
@@ -750,21 +752,21 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   justify-content: space-between;
   align-items: center;
   font-family: 'Outfit', sans-serif;
-  font-size: 1.15rem;
+  font-size: clamp(0.98rem, 1.15vw, 1.15rem);
   font-weight: 700;
 }
 
 .faq-toggle-icon {
-  font-size: 1.3rem;
+  font-size: clamp(1.1rem, 1.3vw, 1.3rem);
   color: #FFFFFF;
   font-weight: 400;
 }
 
 .faq-answer-row {
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 0.95vw, 0.95rem);
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -775,34 +777,34 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .cta-banner {
   background: #0A0A0E;
   border: 1px solid var(--border-color);
-  border-radius: 24px;
-  padding: 56px 48px;
+  border-radius: clamp(16px, 2vw, 24px);
+  padding: clamp(32px, 5vh, 56px) clamp(24px, 4vw, 48px);
   text-align: center;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
 }
 
 .cta-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  font-size: clamp(0.68rem, 0.75vw, 0.75rem);
   letter-spacing: 2px;
   color: #FFFFFF;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   display: inline-block;
 }
 
 .cta-heading {
   font-family: 'Outfit', sans-serif;
-  font-size: 2.4rem;
+  font-size: clamp(1.6rem, 2.5vw, 2.4rem);
   font-weight: 900;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   letter-spacing: -0.02em;
 }
 
 .cta-sub {
-  font-size: 1.1rem;
+  font-size: clamp(0.92rem, 1.1vw, 1.1rem);
   color: var(--text-secondary);
   max-width: 620px;
-  margin: 0 auto 32px;
+  margin: 0 auto clamp(20px, 3.5vh, 32px);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -812,17 +814,17 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 40px 0 20px;
+  padding: clamp(24px, 4vh, 40px) 0 20px;
   border-top: 1px solid var(--border-color);
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 0.85vw, 0.85rem);
   color: var(--text-muted);
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 16px;
 }
 
 .footer-brand {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.1rem;
+  font-size: clamp(0.95rem, 1.1vw, 1.1rem);
   font-weight: 800;
   color: var(--text-primary);
   display: block;
@@ -832,7 +834,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .footer-disclaimer {
   max-width: 520px;
   display: block;
-  font-size: 0.78rem;
+  font-size: clamp(0.7rem, 0.78vw, 0.78rem);
   line-height: 1.5;
 }
 
@@ -868,24 +870,24 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
 }
 
 .modal-cyber-card {
   position: relative;
   background: #08080C;
   border: 1px solid var(--border-color);
-  border-radius: 24px;
-  padding: 40px;
-  max-width: 540px;
+  border-radius: clamp(16px, 2vw, 24px);
+  padding: clamp(24px, 4vh, 40px);
+  max-width: min(540px, 95vw);
   width: 100%;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.98);
 }
 
 .modal-close-btn {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: clamp(12px, 2vh, 20px);
+  right: clamp(12px, 2vw, 20px);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
@@ -907,34 +909,34 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .modal-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
+  font-size: clamp(0.65rem, 0.72vw, 0.72rem);
   color: #FFFFFF;
   background: rgba(255, 255, 255, 0.08);
   padding: 3px 10px;
   border-radius: 20px;
   display: inline-block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .modal-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.8rem;
+  font-size: clamp(1.4rem, 1.8vw, 1.8rem);
   font-weight: 800;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .modal-subtitle {
-  font-size: 0.92rem;
+  font-size: clamp(0.82rem, 0.92vw, 0.92rem);
   color: var(--text-secondary);
   line-height: 1.5;
-  margin-bottom: 28px;
+  margin-bottom: clamp(18px, 2.5vh, 28px);
 }
 
 .modal-download-actions {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 28px;
+  margin-bottom: clamp(18px, 2.5vh, 28px);
 }
 
 .modal-btn-primary {
@@ -943,7 +945,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   gap: 14px;
   background: #FFFFFF;
   color: #000000;
-  padding: 14px 20px;
+  padding: clamp(10px, 1.4vh, 14px) clamp(14px, 1.6vw, 20px);
   border-radius: 12px;
   text-decoration: none;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
@@ -959,12 +961,12 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   display: block;
   font-family: 'Outfit', sans-serif;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 0.95vw, 0.95rem);
 }
 
 .btn-download-sub {
   display: block;
-  font-size: 0.75rem;
+  font-size: clamp(0.68rem, 0.75vw, 0.75rem);
   opacity: 0.8;
 }
 
@@ -975,12 +977,12 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  padding: 12px 20px;
+  padding: clamp(10px, 1.2vh, 12px) clamp(14px, 1.6vw, 20px);
   border-radius: 12px;
   text-decoration: none;
   font-family: 'Outfit', sans-serif;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: clamp(0.82rem, 0.9vw, 0.9rem);
   transition: all 0.2s;
 }
 
@@ -993,40 +995,40 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   background: rgba(0, 0, 0, 0.8);
   border: 1px solid var(--border-color);
   border-radius: 14px;
-  padding: 16px 18px;
-  margin-bottom: 20px;
+  padding: clamp(12px, 1.6vh, 16px) clamp(14px, 1.6vw, 18px);
+  margin-bottom: clamp(14px, 2vh, 20px);
 }
 
 .quickstart-heading {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  font-size: clamp(0.68rem, 0.75vw, 0.75rem);
   color: var(--accent-gold);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .quickstart-steps {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .step-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.82rem;
+  font-size: clamp(0.74rem, 0.82vw, 0.82rem);
   color: var(--text-secondary);
 }
 
 .step-num {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   color: #FFFFFF;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: clamp(0.65rem, 0.72vw, 0.72rem);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1038,35 +1040,29 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .vac-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  font-size: clamp(0.68rem, 0.75vw, 0.75rem);
   color: var(--accent-emerald);
 }
 
 /* ═══════════════════════════════════════════════════════════
-   8. RESPONSIVE QUERIES
+   8. RESPONSIVE BREAKPOINTS (ALL RESOLUTIONS & MOBILE)
 ═══════════════════════════════════════════════════════════ */
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .sidebar-container {
     display: none;
   }
   .main-content {
     margin-left: 0;
     width: 100%;
-    padding: 40px 24px;
-    gap: 80px;
+    padding: clamp(24px, 3vh, 36px) clamp(16px, 3vw, 24px);
+    gap: clamp(40px, 6vh, 60px);
   }
   .marquee-wrapper {
-    margin: 0 -24px;
-  }
-  .features-grid {
-    grid-template-columns: 1fr;
+    margin: 0 clamp(-16px, -3vw, -24px);
   }
 }
 
-@media (max-width: 640px) {
-  .hero-grand-title {
-    font-size: 2.8rem;
-  }
+@media (max-width: 600px) {
   .hero-cta-row {
     flex-direction: column;
     width: 100%;
@@ -1077,6 +1073,11 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   }
   .gallery-tabs-row {
     flex-direction: column;
+    width: 100%;
+  }
+  .gallery-tab-btn {
+    width: 100%;
+    text-align: center;
   }
   .app-footer {
     flex-direction: column;
