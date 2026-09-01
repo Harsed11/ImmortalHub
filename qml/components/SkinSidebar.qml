@@ -5,7 +5,7 @@ import "../theme"
 
 Rectangle {
     id: sidebar
-    width: isHovered ? SkinTheme.sidebarExpanded : SkinTheme.sidebarCollapsed
+    width: isExpanded ? SkinTheme.sidebarExpanded : SkinTheme.sidebarCollapsed
     implicitWidth: width
     Layout.preferredWidth: width
     Layout.minimumWidth: width
@@ -14,82 +14,20 @@ Rectangle {
     z: 20
     clip: true
 
-    property string currentTab: "heroes"
-    property bool isHovered: false
-    property bool isExpanded: width > (SkinTheme.sidebarCollapsed + 30)
+    property string currentTab: "dashboard"
+    property bool isExpanded: true
     signal tabSelected(string tabId)
 
     Behavior on width {
-        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: SkinTheme.animNormal; easing.type: Easing.OutCubic }
     }
 
-    // Debounce timer: prevents flickering/jittering when mouse moves across child elements or borders
-    Timer {
-        id: collapseTimer
-        interval: 220
-        repeat: false
-        onTriggered: {
-            sidebar.isHovered = false
-        }
-    }
-
-    function expandSidebar() {
-        collapseTimer.stop()
-        sidebar.isHovered = true
-    }
-
-    function scheduleCollapse() {
-        collapseTimer.restart()
-    }
-
-    // Right edge neon border
+    // Right border
     Rectangle {
         anchors.right: parent.right
         width: 1
         height: parent.height
-        color: SkinTheme.borderMuted
-    }
-
-    // Scanning line effect — slow horizontal sweep
-    Rectangle {
-        id: scanLine
-        width: parent.width
-        height: 1
-        color: SkinTheme.accentCyan
-        opacity: 0.08
-        y: 0
-
-        SequentialAnimation on y {
-            running: true
-            loops: Animation.Infinite
-            NumberAnimation { to: sidebar.height; duration: SkinTheme.animScanline; easing.type: Easing.Linear }
-            NumberAnimation { to: 0; duration: 0 }
-        }
-    }
-
-    // Scanning line glow trail
-    Rectangle {
-        width: parent.width
-        height: 30
-        y: scanLine.y - 15
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: "transparent" }
-            GradientStop { position: 0.5; color: SkinTheme.accentCyanGlow }
-            GradientStop { position: 1.0; color: "transparent" }
-        }
-        opacity: 0.15
-    }
-
-    // Master hover area (background)
-    MouseArea {
-        id: masterHoverArea
-        anchors.fill: parent
-        hoverEnabled: true
-        acceptedButtons: Qt.NoButton
-        z: -1
-        onEntered: sidebar.expandSidebar()
-        onExited: sidebar.scheduleCollapse()
-        onPositionChanged: sidebar.expandSidebar()
+        color: SkinTheme.borderSubtle
     }
 
     ColumnLayout {
@@ -97,15 +35,13 @@ Rectangle {
         spacing: 0
 
         // Top spacer
-        Item { Layout.preferredHeight: 8 }
+        Item { Layout.preferredHeight: 10 }
 
-        // ─── BROWSE Section ───
+        // ─── BROWSE Section Header ───
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: sidebar.isHovered ? 28 : 16
-            Layout.leftMargin: 16
-
-            Behavior on Layout.preferredHeight { NumberAnimation { duration: SkinTheme.animFast } }
+            Layout.preferredHeight: 28
+            Layout.leftMargin: 18
 
             Text {
                 anchors.left: parent.left
@@ -113,38 +49,28 @@ Rectangle {
                 text: "BROWSE"
                 color: SkinTheme.textMuted
                 font.family: SkinTheme.fontMono
-                font.pixelSize: 9
+                font.pixelSize: SkinTheme.fontSizeTiny
                 font.bold: true
                 font.letterSpacing: 2.0
-                opacity: sidebar.isHovered ? 1.0 : 0.0
+                opacity: sidebar.isExpanded ? 1.0 : 0.0
                 visible: opacity > 0
-                Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
-            }
-
-            Rectangle {
-                anchors.left: parent.left
-                anchors.leftMargin: 2
-                anchors.verticalCenter: parent.verticalCenter
-                width: 4
-                height: 4
-                radius: 2
-                color: SkinTheme.accentCyan
-                opacity: sidebar.isHovered ? 0.0 : 0.4
                 Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
             }
         }
 
-        // Navigation Items — Browse
+        // ─── Browse Navigation Items ───
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 3
-            Layout.leftMargin: 4
-            Layout.rightMargin: 4
+            spacing: 2
+            Layout.leftMargin: 6
+            Layout.rightMargin: 6
 
             Repeater {
                 model: [
+                    { id: "dashboard", label: app.uiLanguage.length && app.t("nav.dashboard"), icon: "\uE80F" },
                     { id: "heroes",    label: app.uiLanguage.length && app.t("nav.heroes"),    icon: "\uE716" },
                     { id: "favorites", label: app.uiLanguage.length && app.t("nav.favorites"), icon: "\uE734" },
+                    { id: "creators",  label: app.uiLanguage.length && app.t("nav.creators"),  icon: "\uE77B" },
                     { id: "effects",   label: app.uiLanguage.length && app.t("nav.effects"),   icon: "\uE790" },
                     { id: "map",       label: app.uiLanguage.length && app.t("nav.map"),       icon: "\uE774" },
                     { id: "audio",     label: app.uiLanguage.length && app.t("nav.audio"),     icon: "\uE8D6" },
@@ -153,62 +79,48 @@ Rectangle {
 
                 delegate: Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 42
+                    Layout.preferredHeight: 40
                     radius: SkinTheme.radiusMedium
                     color: sidebar.currentTab === modelData.id
                            ? SkinTheme.bgCardHover
-                           : (navMouse.containsMouse ? "#0E1422" : "transparent")
+                           : (navMouse.containsMouse ? SkinTheme.bgCard : "transparent")
 
                     Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
-                    // Active neon indicator — left edge
+                    // Active indicator — left accent bar
                     Rectangle {
                         anchors.left: parent.left
-                        anchors.leftMargin: 0
                         anchors.verticalCenter: parent.verticalCenter
                         width: 3
-                        height: sidebar.currentTab === modelData.id ? 26 : 0
-                        radius: 1.5
+                        height: sidebar.currentTab === modelData.id ? 22 : 0
+                        radius: 2
                         color: SkinTheme.accentCyan
 
                         Behavior on height { NumberAnimation { duration: SkinTheme.animNormal; easing.type: Easing.OutBack } }
 
-                        // Neon glow
+                        // Subtle glow
                         Rectangle {
                             anchors.centerIn: parent
-                            width: parent.width + 8
-                            height: parent.height + 8
-                            radius: parent.radius + 4
+                            width: parent.width + 6
+                            height: parent.height + 6
+                            radius: parent.radius + 3
                             color: SkinTheme.accentCyan
-                            opacity: 0.25
+                            opacity: 0.15
                             z: -1
                         }
                     }
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 8
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 10
                         spacing: 12
 
-                        // Icon container — stays fixed at 24px
+                        // Icon
                         Item {
-                            Layout.preferredWidth: 24
-                            Layout.preferredHeight: 24
+                            Layout.preferredWidth: 22
+                            Layout.preferredHeight: 22
                             Layout.alignment: Qt.AlignVCenter
-
-                            // Icon Glow
-                            Text {
-                                anchors.centerIn: parent
-                                text: modelData.icon
-                                font.family: "Segoe MDL2 Assets"
-                                font.pixelSize: 14
-                                color: SkinTheme.accentCyan
-                                opacity: sidebar.currentTab === modelData.id ? 0.45 : 0
-                                visible: opacity > 0
-                                scale: 1.15
-                                Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
-                            }
 
                             Text {
                                 anchors.centerIn: parent
@@ -223,41 +135,22 @@ Rectangle {
                             }
                         }
 
-                        // Label — appears on expand with active glow
-                        Item {
+                        // Label
+                        Text {
+                            text: modelData.label
+                            color: sidebar.currentTab === modelData.id
+                                   ? SkinTheme.textPrimary
+                                   : (navMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeBody
+                            font.weight: sidebar.currentTab === modelData.id ? Font.DemiBold : Font.Medium
                             Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            opacity: sidebar.isHovered ? 1.0 : 0.0
+                            elide: Text.ElideRight
+                            opacity: sidebar.isExpanded ? 1.0 : 0.0
                             visible: opacity > 0
+
                             Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
-
-                            Text {
-                                anchors.left: parent.left
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: modelData.label
-                                color: SkinTheme.accentCyan
-                                font.family: SkinTheme.fontFamily
-                                font.pixelSize: 14
-                                font.weight: Font.Bold
-                                opacity: sidebar.currentTab === modelData.id ? 0.35 : 0
-                                visible: opacity > 0
-                            }
-
-                            Text {
-                                anchors.left: parent.left
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: modelData.label
-                                color: sidebar.currentTab === modelData.id
-                                       ? SkinTheme.textPrimary
-                                       : (navMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
-                                font.family: SkinTheme.fontFamily
-                                font.pixelSize: 14
-                                font.weight: sidebar.currentTab === modelData.id ? Font.Bold : Font.Medium
-                                elide: Text.ElideRight
-                                width: parent.width
-
-                                Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
-                            }
+                            Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
                         }
                     }
 
@@ -266,9 +159,6 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onEntered: sidebar.expandSidebar()
-                        onPositionChanged: sidebar.expandSidebar()
-                        onExited: sidebar.scheduleCollapse()
                         onClicked: {
                             sidebar.currentTab = modelData.id
                             sidebar.tabSelected(modelData.id)
@@ -278,24 +168,20 @@ Rectangle {
             }
         }
 
-        // ─── TOOLS Section separator ───
+        // ─── SYSTEM Section ───
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: sidebar.isHovered ? 28 : 16
-            Layout.topMargin: 8
-            Layout.leftMargin: 16
+            Layout.preferredHeight: 28
+            Layout.topMargin: 12
+            Layout.leftMargin: 18
 
-            Behavior on Layout.preferredHeight { NumberAnimation { duration: SkinTheme.animFast } }
-
-            // Thin separator line
             Rectangle {
                 anchors.top: parent.top
                 anchors.left: parent.left
                 anchors.right: parent.right
-                anchors.leftMargin: sidebar.isHovered ? 0 : 4
-                anchors.rightMargin: sidebar.isHovered ? 16 : 8
+                anchors.rightMargin: 12
                 height: 1
-                color: SkinTheme.borderMuted
+                color: SkinTheme.borderSubtle
             }
 
             Text {
@@ -304,83 +190,70 @@ Rectangle {
                 text: "SYSTEM"
                 color: SkinTheme.textMuted
                 font.family: SkinTheme.fontMono
-                font.pixelSize: 9
+                font.pixelSize: SkinTheme.fontSizeTiny
                 font.bold: true
                 font.letterSpacing: 2.0
-                opacity: sidebar.isHovered ? 1.0 : 0.0
+                opacity: sidebar.isExpanded ? 1.0 : 0.0
                 visible: opacity > 0
-                Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
-            }
-
-            Rectangle {
-                anchors.left: parent.left
-                anchors.leftMargin: 2
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 4
-                width: 4
-                height: 4
-                radius: 2
-                color: SkinTheme.accentViolet
-                opacity: sidebar.isHovered ? 0.0 : 0.4
                 Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
             }
         }
 
-        // Tools Navigation Items
+        // ─── System Navigation Items ───
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 3
-            Layout.leftMargin: 4
-            Layout.rightMargin: 4
+            spacing: 2
+            Layout.leftMargin: 6
+            Layout.rightMargin: 6
 
             Repeater {
                 model: [
-                    { id: "fpsboost",  label: app.uiLanguage.length && app.t("nav.fpsboost"),  icon: "\uE945", color: SkinTheme.accentViolet },
-                    { id: "installed", label: app.uiLanguage.length && app.t("nav.installed"), icon: "\uE8F1", color: SkinTheme.accentEmerald },
-                    { id: "settings",  label: app.uiLanguage.length && app.t("nav.settings"),  icon: "\uE713", color: "" }
+                    { id: "fpsboost",  label: app.uiLanguage.length && app.t("nav.fpsboost"),  icon: "\uE945", accent: SkinTheme.accentAmber },
+                    { id: "installed", label: app.uiLanguage.length && app.t("nav.installed"), icon: "\uE8F1", accent: SkinTheme.accentEmerald, badge: app.installedCount },
+                    { id: "settings",  label: app.uiLanguage.length && app.t("nav.settings"),  icon: "\uE713", accent: "", badge: 0 }
                 ]
 
                 delegate: Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 42
+                    Layout.preferredHeight: 40
                     radius: SkinTheme.radiusMedium
                     color: sidebar.currentTab === modelData.id
                            ? SkinTheme.bgCardHover
-                           : (toolNavMouse.containsMouse ? "#0E1422" : "transparent")
+                           : (toolNavMouse.containsMouse ? SkinTheme.bgCard : "transparent")
 
                     Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
-                    // Active neon indicator
+                    // Active indicator
                     Rectangle {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
                         width: 3
-                        height: sidebar.currentTab === modelData.id ? 26 : 0
-                        radius: 1.5
-                        color: modelData.color || SkinTheme.accentViolet
+                        height: sidebar.currentTab === modelData.id ? 22 : 0
+                        radius: 2
+                        color: modelData.accent || SkinTheme.accentViolet
 
                         Behavior on height { NumberAnimation { duration: SkinTheme.animNormal; easing.type: Easing.OutBack } }
 
                         Rectangle {
                             anchors.centerIn: parent
-                            width: parent.width + 8
-                            height: parent.height + 8
-                            radius: parent.radius + 4
+                            width: parent.width + 6
+                            height: parent.height + 6
+                            radius: parent.radius + 3
                             color: parent.color
-                            opacity: 0.25
+                            opacity: 0.15
                             z: -1
                         }
                     }
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 8
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 10
                         spacing: 12
 
                         Item {
-                            Layout.preferredWidth: 24
-                            Layout.preferredHeight: 24
+                            Layout.preferredWidth: 22
+                            Layout.preferredHeight: 22
                             Layout.alignment: Qt.AlignVCenter
 
                             Text {
@@ -389,7 +262,7 @@ Rectangle {
                                 font.family: "Segoe MDL2 Assets"
                                 font.pixelSize: 14
                                 color: sidebar.currentTab === modelData.id
-                                       ? (modelData.color || SkinTheme.accentViolet)
+                                       ? (modelData.accent || SkinTheme.accentViolet)
                                        : (toolNavMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
 
                                 Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
@@ -402,15 +275,36 @@ Rectangle {
                                    ? SkinTheme.textPrimary
                                    : (toolNavMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
                             font.family: SkinTheme.fontFamily
-                            font.pixelSize: 14
-                            font.weight: sidebar.currentTab === modelData.id ? Font.Bold : Font.Medium
+                            font.pixelSize: SkinTheme.fontSizeBody
+                            font.weight: sidebar.currentTab === modelData.id ? Font.DemiBold : Font.Medium
                             Layout.fillWidth: true
                             elide: Text.ElideRight
-                            opacity: sidebar.isHovered ? 1.0 : 0.0
+                            opacity: sidebar.isExpanded ? 1.0 : 0.0
                             visible: opacity > 0
 
                             Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
                             Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+                        }
+
+                        // Badge counter (installed count)
+                        Rectangle {
+                            visible: sidebar.isExpanded && modelData.badge !== undefined && modelData.badge > 0
+                            width: badgeText.implicitWidth + 10
+                            height: 18
+                            radius: SkinTheme.radiusPill
+                            color: SkinTheme.bgSurface
+                            border.color: SkinTheme.borderMuted
+                            border.width: 1
+
+                            Text {
+                                id: badgeText
+                                anchors.centerIn: parent
+                                text: modelData.badge !== undefined ? modelData.badge.toString() : ""
+                                color: modelData.accent || SkinTheme.textSecondary
+                                font.family: SkinTheme.fontMono
+                                font.pixelSize: 9
+                                font.bold: true
+                            }
                         }
                     }
 
@@ -419,9 +313,6 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onEntered: sidebar.expandSidebar()
-                        onPositionChanged: sidebar.expandSidebar()
-                        onExited: sidebar.scheduleCollapse()
                         onClicked: {
                             sidebar.currentTab = modelData.id
                             sidebar.tabSelected(modelData.id)
@@ -433,26 +324,52 @@ Rectangle {
 
         Item { Layout.fillHeight: true }
 
+        // ─── Collapse Toggle ───
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 32
+            Layout.leftMargin: 6
+            Layout.rightMargin: 6
+            Layout.bottomMargin: 4
+            radius: SkinTheme.radiusMedium
+            color: collapseMouse.containsMouse ? SkinTheme.bgCard : "transparent"
+
+            Text {
+                anchors.centerIn: parent
+                text: sidebar.isExpanded ? "\uE76B" : "\uE76C"
+                font.family: "Segoe MDL2 Assets"
+                font.pixelSize: 12
+                color: SkinTheme.textMuted
+            }
+
+            MouseArea {
+                id: collapseMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: sidebar.isExpanded = !sidebar.isExpanded
+            }
+        }
+
         // ─── Bottom Status Card ───
         Rectangle {
             Layout.fillWidth: true
-            Layout.margins: sidebar.isHovered ? 8 : 4
-            Layout.preferredHeight: sidebar.isHovered ? 104 : 48
+            Layout.margins: 6
+            Layout.preferredHeight: sidebar.isExpanded ? 100 : 48
             radius: SkinTheme.radiusMedium
             color: SkinTheme.bgCard
             border.color: SkinTheme.borderMuted
             border.width: 1
             clip: true
 
-            Behavior on Layout.margins { NumberAnimation { duration: SkinTheme.animFast } }
             Behavior on Layout.preferredHeight { NumberAnimation { duration: SkinTheme.animNormal } }
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: sidebar.isHovered ? 10 : 6
+                anchors.margins: sidebar.isExpanded ? 10 : 6
                 spacing: 6
 
-                // Dota status indicator
+                // Dota status
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 8
@@ -463,52 +380,51 @@ Rectangle {
                         radius: 4
                         color: app.dotaDetected ? SkinTheme.accentEmerald : SkinTheme.accentCrimson
 
-                        // Pulse animation
                         SequentialAnimation on opacity {
                             running: true
                             loops: Animation.Infinite
-                            NumberAnimation { to: 0.3; duration: 1500; easing.type: Easing.InOutSine }
+                            NumberAnimation { to: 0.4; duration: 1500; easing.type: Easing.InOutSine }
                             NumberAnimation { to: 1.0; duration: 1500; easing.type: Easing.InOutSine }
                         }
                     }
 
                     Text {
-                        text: sidebar.isHovered ? (app.dotaDetected ? "DOTA 2 LINKED" : "NO GAME PATH") : ""
+                        text: sidebar.isExpanded ? (app.dotaDetected ? "DOTA 2 LINKED" : "NO GAME PATH") : ""
                         color: app.dotaDetected ? SkinTheme.accentEmerald : SkinTheme.accentCrimson
                         font.family: SkinTheme.fontMono
-                        font.pixelSize: 10
+                        font.pixelSize: SkinTheme.fontSizeLabel
                         font.bold: true
                         font.letterSpacing: 1.0
                         Layout.fillWidth: true
-                        opacity: sidebar.isHovered ? 1.0 : 0.0
+                        opacity: sidebar.isExpanded ? 1.0 : 0.0
                         visible: opacity > 0
                         Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
                     }
 
                     Text {
-                        text: sidebar.isHovered ? (app.installedCount + " MODS") : ""
+                        text: sidebar.isExpanded ? (app.installedCount + " MODS") : ""
                         color: app.installedCount > 0 ? SkinTheme.accentEmerald : SkinTheme.textMuted
                         font.family: SkinTheme.fontMono
                         font.pixelSize: 9
                         font.bold: true
-                        visible: sidebar.isHovered
+                        visible: sidebar.isExpanded
                     }
                 }
 
-                // Expanded: extra info
+                // Separator
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 1
-                    color: SkinTheme.borderMuted
-                    visible: sidebar.isHovered
+                    color: SkinTheme.borderSubtle
+                    visible: sidebar.isExpanded
                 }
 
-                // Launch Dota button (expanded only)
+                // Launch Dota button
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 28
                     radius: SkinTheme.radiusSmall
-                    visible: sidebar.isHovered && app.dotaDetected
+                    visible: sidebar.isExpanded && app.dotaDetected
                     color: launchMouse.containsMouse ? SkinTheme.accentCyanGlow : SkinTheme.bgDark
                     border.color: SkinTheme.accentCyan
                     border.width: 1
@@ -517,8 +433,8 @@ Rectangle {
                         anchors.centerIn: parent
                         text: app.uiLanguage.length && app.t("status.launch")
                         color: SkinTheme.accentCyan
-                        font.family: SkinTheme.fontMono
-                        font.pixelSize: 10
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeLabel
                         font.bold: true
                         font.letterSpacing: 1.0
                     }
@@ -528,9 +444,6 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onEntered: sidebar.expandSidebar()
-                        onPositionChanged: sidebar.expandSidebar()
-                        onExited: sidebar.scheduleCollapse()
                         onClicked: app.launchDota()
                     }
                 }
@@ -540,7 +453,7 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 24
                     radius: SkinTheme.radiusSmall
-                    visible: sidebar.isHovered
+                    visible: sidebar.isExpanded
                     color: openMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
                     border.color: SkinTheme.borderMuted
                     border.width: 1
@@ -549,10 +462,9 @@ Rectangle {
                         anchors.centerIn: parent
                         text: app.uiLanguage.length && app.t("status.open_folder")
                         color: openMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textMuted
-                        font.family: SkinTheme.fontMono
+                        font.family: SkinTheme.fontFamily
                         font.pixelSize: 9
                         font.bold: true
-                        font.letterSpacing: 0.5
                     }
 
                     MouseArea {
@@ -560,9 +472,6 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onEntered: sidebar.expandSidebar()
-                        onPositionChanged: sidebar.expandSidebar()
-                        onExited: sidebar.scheduleCollapse()
                         onClicked: app.openPakFolder()
                     }
                 }

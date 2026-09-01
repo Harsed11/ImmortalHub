@@ -9,8 +9,10 @@ SUPPORTED_LANGUAGES = ("en", "ru")
 
 STRINGS: dict = {
     # --- Sidebar navigation ---
+    "nav.dashboard": {"en": "Dashboard",         "ru": "Главная"},
     "nav.heroes":    {"en": "Hero Skins",        "ru": "Скины героев"},
     "nav.favorites": {"en": "Favorites",         "ru": "Избранное"},
+    "nav.creators":  {"en": "Creators & TG",     "ru": "Авторы и TG"},
     "nav.effects":   {"en": "Effects & Shaders", "ru": "Эффекты и шейдеры"},
     "nav.map":       {"en": "Terrain & World",   "ru": "Мир и ландшафт"},
     "nav.audio":     {"en": "Voice & Music",     "ru": "Звук и музыка"},
@@ -18,6 +20,17 @@ STRINGS: dict = {
     "nav.fpsboost":  {"en": "FPS Boost",         "ru": "FPS Boost"},
     "nav.installed": {"en": "Installed",         "ru": "Установленные"},
     "nav.settings":  {"en": "Settings",          "ru": "Настройки"},
+    # --- Creators section ---
+    "creators.title":        {"en": "CREATORS & TELEGRAM CHANNELS", "ru": "АВТОРЫ И TELEGRAM КАНАЛЫ"},
+    "creators.subtitle":     {"en": "Custom VPK skin collections from modders and Telegram channels", "ru": "Коллекции кастомных VPK скинов от авторов и Telegram-каналов"},
+    "creators.add_creator":  {"en": "+ ADD CHANNEL / CREATOR", "ru": "+ ДОБАВИТЬ КАНАЛ / АВТОРА"},
+    "creators.import_pack":  {"en": "📦 IMPORT PACK", "ru": "📦 ИМПОРТ ПАКА"},
+    "creators.add_mod":      {"en": "+ ADD VPK SKIN", "ru": "+ ДОБАВИТЬ VPK СКИН"},
+    "creators.import_folder":{"en": "📁 SCAN FOLDER", "ru": "📁 СКАНИРОВАТЬ ПАПКУ"},
+    "creators.mods_count":   {"en": "skins", "ru": "скинов"},
+    "creators.no_creators":  {"en": "No creators yet. Click '+ ADD CHANNEL / CREATOR' to start!", "ru": "Пока нет авторов. Нажмите '+ ДОБАВИТЬ КАНАЛ / АВТОРА'!"},
+    "creators.no_mods":      {"en": "No skins added yet. Click '+ ADD VPK SKIN' or 'SCAN FOLDER' to import!", "ru": "Скинов пока нет. Нажмите '+ ДОБАВИТЬ VPK СКИН' или 'СКАНИРОВАТЬ ПАПКУ'!"},
+    "creators.open_tg":      {"en": "OPEN IN TELEGRAM", "ru": "ОТКРЫТЬ В TELEGRAM"},
     # --- Sidebar sections ---
     "section.browse": {"en": "BROWSE", "ru": "КАТАЛОГ"},
     "section.system": {"en": "SYSTEM", "ru": "СИСТЕМА"},

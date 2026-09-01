@@ -72,72 +72,68 @@ Rectangle {
         onTriggered: searchField.forceActiveFocus()
     }
 
-    // Click outside the panel closes the modal
+    // Dismiss on backdrop click
     MouseArea {
         anchors.fill: parent
         enabled: searchModal.isOpen
         onClicked: searchModal.close()
     }
 
-    // Search panel
+    // Search Dialog Box
     Rectangle {
         id: panel
         anchors.top: parent.top
-        anchors.topMargin: 90
+        anchors.topMargin: 80
         anchors.horizontalCenter: parent.horizontalCenter
-        width: Math.min(620, parent.width - 80)
-        height: Math.min(480, parent.height - 150)
-        radius: SkinTheme.radiusLarge
-        color: SkinTheme.bgCard
-        border.color: SkinTheme.accentCyan
+        width: Math.min(640, parent.width - 64)
+        height: Math.min(500, parent.height - 140)
+        radius: SkinTheme.radiusXLarge
+        color: SkinTheme.bgModal
+        border.color: SkinTheme.borderLight
         border.width: 1
         clip: true
 
-        Rectangle {
-            anchors.fill: parent
-            radius: parent.radius
-            color: SkinTheme.accentCyan
-            opacity: 0.03
-            z: -1
-        }
+        scale: searchModal.isOpen ? 1.0 : 0.96
+        Behavior on scale { NumberAnimation { duration: SkinTheme.animNormal; easing.type: Easing.OutBack } }
 
         ColumnLayout {
             anchors.fill: parent
             spacing: 0
 
-            // Input row
+            // ── Input Bar ──
             RowLayout {
                 Layout.fillWidth: true
-                Layout.margins: 12
+                Layout.margins: 14
                 spacing: 10
 
                 Text {
-                    text: "🔍"
-                    font.pixelSize: 15
-                    color: SkinTheme.accentCyan
+                    text: "\uE721"
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 14
+                    color: searchField.activeFocus ? SkinTheme.accentCyan : SkinTheme.textMuted
                 }
 
                 TextField {
                     id: searchField
                     Layout.fillWidth: true
                     placeholderText: app.t("search.placeholder")
+                    placeholderTextColor: SkinTheme.textMuted
                     font.family: SkinTheme.fontFamily
-                    font.pixelSize: 14
+                    font.pixelSize: SkinTheme.fontSizeBody
                     color: SkinTheme.textPrimary
                     selectByMouse: true
                     background: Rectangle {
                         radius: SkinTheme.radiusMedium
-                        color: SkinTheme.bgVoid
+                        color: SkinTheme.bgInput
                         border.color: searchField.activeFocus ? SkinTheme.accentCyan : SkinTheme.borderMuted
                         border.width: 1
                     }
                     onTextChanged: debounceTimer.restart()
                     onActiveFocusChanged: if (!activeFocus && searchModal.isOpen) searchModal.close()
 
-                    // Debounce: avoid re-serializing the whole catalog on every keystroke
                     Timer {
                         id: debounceTimer
-                        interval: 120
+                        interval: 100
                         onTriggered: searchModal.runSearch()
                     }
 
@@ -159,22 +155,32 @@ Rectangle {
                     }
                 }
 
-                Text {
-                    text: "ESC"
-                    color: SkinTheme.textMuted
-                    font.family: SkinTheme.fontMono
-                    font.pixelSize: 10
-                    opacity: 0.7
+                Rectangle {
+                    width: 38
+                    height: 24
+                    radius: SkinTheme.radiusSmall
+                    color: SkinTheme.bgCard
+                    border.color: SkinTheme.borderMuted
+                    border.width: 1
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "ESC"
+                        color: SkinTheme.textMuted
+                        font.family: SkinTheme.fontMono
+                        font.pixelSize: 9
+                        font.bold: true
+                    }
                 }
             }
 
             Rectangle {
                 Layout.fillWidth: true
                 height: 1
-                color: SkinTheme.borderMuted
+                color: SkinTheme.borderSubtle
             }
 
-            // Results area
+            // ── Results Area ──
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -191,28 +197,30 @@ Rectangle {
                               : app.t("search.no_results") + " \"" + searchModal.lastQuery + "\""
                         color: SkinTheme.textMuted
                         font.family: SkinTheme.fontFamily
-                        font.pixelSize: 12
+                        font.pixelSize: SkinTheme.fontSizeBody
                     }
                     Text {
                         Layout.alignment: Qt.AlignHCenter
                         visible: searchModal.lastQuery.trim().length >= 2
                         text: app.t("search.hint")
-                        color: SkinTheme.borderMuted
+                        color: SkinTheme.textDisabled
                         font.family: SkinTheme.fontMono
-                        font.pixelSize: 10
+                        font.pixelSize: SkinTheme.fontSizeSmall
                     }
                 }
 
                 ListView {
                     id: resultsList
                     anchors.fill: parent
-                    anchors.margins: 6
+                    anchors.margins: 8
                     model: searchModal.results
-                    spacing: 2
+                    spacing: 4
                     visible: searchModal.results.length > 0
                     boundsBehavior: Flickable.StopAtBounds
                     currentIndex: searchModal.selectedIndex
                     clip: true
+
+                    ScrollBar.vertical: NeonScrollBar {}
 
                     delegate: Rectangle {
                         width: resultsList.width
@@ -220,7 +228,7 @@ Rectangle {
                         radius: SkinTheme.radiusMedium
                         color: resultsList.currentIndex === index
                                ? SkinTheme.bgCardHover
-                               : (rowHover.containsMouse ? "#0E1422" : "transparent")
+                               : (rowHover.containsMouse ? SkinTheme.bgCard : "transparent")
                         border.color: resultsList.currentIndex === index ? SkinTheme.accentCyan : "transparent"
                         border.width: 1
 
@@ -228,13 +236,14 @@ Rectangle {
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 10
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
                             spacing: 12
 
+                            // Left Accent Bar
                             Rectangle {
                                 width: 3
-                                height: resultsList.currentIndex === index ? 30 : 0
+                                height: resultsList.currentIndex === index ? 28 : 0
                                 radius: 1.5
                                 color: SkinTheme.accentCyan
                                 Layout.alignment: Qt.AlignVCenter
@@ -242,11 +251,12 @@ Rectangle {
                                 Behavior on height { NumberAnimation { duration: SkinTheme.animFast } }
                             }
 
+                            // Preview Thumbnail
                             Rectangle {
-                                Layout.preferredWidth: 36
+                                Layout.preferredWidth: 40
                                 Layout.preferredHeight: 36
                                 radius: SkinTheme.radiusSmall
-                                color: SkinTheme.bgVoid
+                                color: SkinTheme.bgDark
                                 clip: true
 
                                 Image {
@@ -261,10 +271,11 @@ Rectangle {
                                     visible: (modelData.previewUrl || "") === ""
                                     text: "🛡"
                                     font.pixelSize: 14
-                                    opacity: 0.4
+                                    opacity: 0.3
                                 }
                             }
 
+                            // Info
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 spacing: 2
@@ -274,45 +285,56 @@ Rectangle {
                                     text: modelData.name
                                     color: SkinTheme.textPrimary
                                     font.family: SkinTheme.fontFamily
-                                    font.pixelSize: 13
-                                    font.bold: true
+                                    font.pixelSize: SkinTheme.fontSizeBody
+                                    font.weight: Font.DemiBold
                                     elide: Text.ElideRight
                                 }
                                 Text {
                                     Layout.fillWidth: true
-                                    text: (modelData.hero && modelData.hero !== "" ? modelData.hero + "  ·  " : "")
+                                    text: (modelData.hero && modelData.hero !== "" ? modelData.hero + "  •  " : "")
                                           + app.translate(String(modelData.categoryId))
                                     color: SkinTheme.textSecondary
                                     font.family: SkinTheme.fontFamily
-                                    font.pixelSize: 11
+                                    font.pixelSize: SkinTheme.fontSizeSmall
                                     elide: Text.ElideRight
                                 }
                             }
 
-                            Text {
-                                text: modelData.isInstalled
-                                      ? app.t("search.installed_badge")
-                                      : app.t("search.install_action")
-                                color: modelData.isInstalled ? SkinTheme.accentCyan : SkinTheme.textMuted
-                                font.family: SkinTheme.fontMono
-                                font.pixelSize: 10
-                                font.bold: true
-                                font.letterSpacing: 1.0
+                            // Active Tag
+                            Rectangle {
+                                height: 18
+                                radius: SkinTheme.radiusSmall
+                                implicitWidth: 46
+                                color: SkinTheme.accentEmeraldGlow
+                                border.color: SkinTheme.accentEmerald
+                                border.width: 1
+                                visible: Boolean(modelData.isInstalled)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "ACTIVE"
+                                    color: SkinTheme.accentEmerald
+                                    font.family: SkinTheme.fontMono
+                                    font.pixelSize: 8
+                                    font.bold: true
+                                }
                             }
 
+                            // Favorite Star
                             Text {
-                                text: "♥"
-                                color: SkinTheme.accentViolet
-                                font.pixelSize: 13
-                                visible: modelData.isFavorite === true
+                                text: "★"
+                                color: SkinTheme.accentAmber
+                                font.pixelSize: 12
+                                visible: Boolean(modelData.isFavorite)
                             }
 
+                            // Return Shortcut Arrow
                             Text {
                                 text: "↵"
                                 color: SkinTheme.accentCyan
                                 font.family: SkinTheme.fontMono
                                 font.pixelSize: 12
-                                opacity: resultsList.currentIndex === index ? 0.9 : 0.25
+                                opacity: resultsList.currentIndex === index ? 1.0 : 0.2
                             }
                         }
 
@@ -330,12 +352,12 @@ Rectangle {
                 }
             }
 
-            // Footer hints
+            // ── Footer Hints ──
             Rectangle {
                 Layout.fillWidth: true
-                height: 30
-                color: SkinTheme.bgVoid
-                border.color: SkinTheme.borderMuted
+                height: 32
+                color: SkinTheme.bgDark
+                border.color: SkinTheme.borderSubtle
                 border.width: 1
 
                 RowLayout {
@@ -348,26 +370,26 @@ Rectangle {
                         text: "↑↓ " + app.t("search.navigate")
                         color: SkinTheme.textMuted
                         font.family: SkinTheme.fontMono
-                        font.pixelSize: 10
+                        font.pixelSize: SkinTheme.fontSizeTiny
                     }
                     Text {
                         text: "↵ " + app.t("search.open")
                         color: SkinTheme.textMuted
                         font.family: SkinTheme.fontMono
-                        font.pixelSize: 10
+                        font.pixelSize: SkinTheme.fontSizeTiny
                     }
                     Text {
                         text: "ESC " + app.t("search.close")
                         color: SkinTheme.textMuted
                         font.family: SkinTheme.fontMono
-                        font.pixelSize: 10
+                        font.pixelSize: SkinTheme.fontSizeTiny
                     }
                     Item { Layout.fillWidth: true }
                     Text {
                         text: "Ctrl+K"
                         color: SkinTheme.accentCyan
                         font.family: SkinTheme.fontMono
-                        font.pixelSize: 10
+                        font.pixelSize: SkinTheme.fontSizeTiny
                         font.bold: true
                     }
                 }

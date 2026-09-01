@@ -76,33 +76,17 @@ Rectangle {
         return copy
     }
 
-    // Background Click Dismiss
+    // Dismiss by clicking backdrop
     MouseArea {
         anchors.fill: parent
         onClicked: detailModal.closeRequested()
     }
 
-    // Scanning lines on backdrop
-    Column {
-        anchors.fill: parent
-        opacity: 0.02
-        z: -1
-        Repeater {
-            model: Math.floor(parent.height / 3)
-            Rectangle {
-                width: parent.width
-                height: 1
-                color: "#FFFFFF"
-                visible: index % 2 === 0
-            }
-        }
-    }
-
-    // Modal Content
+    // Modal Card
     Rectangle {
         id: modalBox
-        width: Math.min(880, parent.width - 40)
-        height: Math.min(640, parent.height - 40)
+        width: Math.min(880, parent.width - 48)
+        height: Math.min(620, parent.height - 48)
         anchors.centerIn: parent
         radius: SkinTheme.radiusXLarge
         color: SkinTheme.bgModal
@@ -110,21 +94,8 @@ Rectangle {
         border.width: 1
         clip: true
 
-        scale: detailModal.modData !== null ? 1.0 : 0.95
+        scale: detailModal.modData !== null ? 1.0 : 0.96
         Behavior on scale { NumberAnimation { duration: SkinTheme.animNormal; easing.type: Easing.OutBack } }
-
-        // Neon outline glow
-        Rectangle {
-            anchors.centerIn: parent
-            width: parent.width + 4
-            height: parent.height + 4
-            radius: parent.radius + 2
-            color: "transparent"
-            border.color: SkinTheme.accentCyan
-            border.width: 1
-            opacity: 0.15
-            z: -1
-        }
 
         MouseArea {
             anchors.fill: parent
@@ -135,32 +106,17 @@ Rectangle {
             anchors.fill: parent
             spacing: 0
 
-            // Header
+            // ── Modal Header ──
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 52
+                Layout.preferredHeight: 56
                 color: SkinTheme.bgDark
 
                 Rectangle {
                     anchors.bottom: parent.bottom
                     width: parent.width
                     height: 1
-                    color: SkinTheme.borderMuted
-                }
-
-                // Top neon accent
-                Rectangle {
-                    anchors.top: parent.top
-                    width: parent.width
-                    height: 1
-                    gradient: Gradient {
-                        orientation: Gradient.Horizontal
-                        GradientStop { position: 0.0; color: "transparent" }
-                        GradientStop { position: 0.3; color: SkinTheme.accentCyan }
-                        GradientStop { position: 0.7; color: SkinTheme.accentViolet }
-                        GradientStop { position: 1.0; color: "transparent" }
-                    }
-                    opacity: 0.6
+                    color: SkinTheme.borderSubtle
                 }
 
                 RowLayout {
@@ -173,7 +129,7 @@ Rectangle {
                         text: modData ? modData.name : ""
                         color: SkinTheme.textPrimary
                         font.family: SkinTheme.fontFamily
-                        font.pixelSize: SkinTheme.fontSizeTitle
+                        font.pixelSize: SkinTheme.fontSizeHeader
                         font.bold: true
                         Layout.fillWidth: true
                         elide: Text.ElideRight
@@ -219,7 +175,7 @@ Rectangle {
                         width: 32
                         height: 32
                         radius: SkinTheme.radiusSmall
-                        color: closeMouse.containsMouse ? SkinTheme.accentCrimson : "transparent"
+                        color: closeMouse.containsMouse ? SkinTheme.accentCrimsonHover : "transparent"
                         border.color: closeMouse.containsMouse ? "transparent" : SkinTheme.borderMuted
                         border.width: 1
 
@@ -228,7 +184,7 @@ Rectangle {
                         Text {
                             anchors.centerIn: parent
                             text: "✕"
-                            color: closeMouse.containsMouse ? "#ffffff" : SkinTheme.textMuted
+                            color: closeMouse.containsMouse ? "#FFFFFF" : SkinTheme.textMuted
                             font.pixelSize: 12
                             font.bold: true
                         }
@@ -244,14 +200,14 @@ Rectangle {
                 }
             }
 
-            // Body — Preview + Details
+            // ── Modal Body: Image Preview + Details ──
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.margins: 20
                 spacing: 20
 
-                // Preview
+                // Preview Image Frame
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -284,39 +240,39 @@ Rectangle {
                             color: SkinTheme.textMuted
                             font.family: SkinTheme.fontMono
                             font.pixelSize: 11
-                            font.letterSpacing: 1.0
                             visible: bigPreview.status === Image.Error || !getCurrentPreviewUrl()
                         }
                     }
                 }
 
-                // Details Panel
+                // Details Column
                 ColumnLayout {
-                    Layout.preferredWidth: 340
+                    Layout.preferredWidth: 320
                     Layout.fillHeight: true
-                    spacing: 14
+                    spacing: 12
 
-                    // Category & Hero Info
+                    // Information Tags
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 6
 
                         Text {
-                            text: "// MOD INFORMATION"
+                            text: "MOD DETAILS"
                             color: SkinTheme.textMuted
                             font.family: SkinTheme.fontMono
-                            font.pixelSize: 9
+                            font.pixelSize: SkinTheme.fontSizeTiny
                             font.bold: true
-                            font.letterSpacing: 1.5
+                            font.letterSpacing: 1.0
                         }
 
                         RowLayout {
                             spacing: 6
 
+                            // Category Tag
                             Rectangle {
                                 height: 24
                                 radius: SkinTheme.radiusSmall
-                                implicitWidth: catPillText.implicitWidth + 16
+                                implicitWidth: catPillText.implicitWidth + 14
                                 color: SkinTheme.accentCyanGlow
                                 border.color: SkinTheme.accentCyan
                                 border.width: 1
@@ -332,10 +288,11 @@ Rectangle {
                                 }
                             }
 
+                            // Hero Tag
                             Rectangle {
                                 height: 24
                                 radius: SkinTheme.radiusSmall
-                                implicitWidth: heroPillText.implicitWidth + 16
+                                implicitWidth: heroPillText.implicitWidth + 14
                                 color: SkinTheme.accentVioletGlow
                                 border.color: SkinTheme.accentViolet
                                 border.width: 1
@@ -354,19 +311,19 @@ Rectangle {
                         }
                     }
 
-                    // Styles Selection
+                    // Variants / Styles
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 6
                         visible: Boolean(modData && modData.styles && modData.styles.length > 0)
 
                         Text {
-                            text: "// SELECT VARIANT (" + (modData && modData.styles ? modData.styles.length : 0) + ")"
+                            text: "SELECT VARIANT (" + (modData && modData.styles ? modData.styles.length : 0) + ")"
                             color: SkinTheme.textMuted
                             font.family: SkinTheme.fontMono
-                            font.pixelSize: 9
+                            font.pixelSize: SkinTheme.fontSizeTiny
                             font.bold: true
-                            font.letterSpacing: 1.5
+                            font.letterSpacing: 1.0
                         }
 
                         Flow {
@@ -378,7 +335,7 @@ Rectangle {
                                 delegate: Rectangle {
                                     height: 28
                                     radius: SkinTheme.radiusSmall
-                                    implicitWidth: styleLabel.implicitWidth + 20
+                                    implicitWidth: styleLabel.implicitWidth + 18
                                     color: selectedStyleIndex === index
                                            ? SkinTheme.accentViolet
                                            : (styleMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard)
@@ -391,9 +348,9 @@ Rectangle {
                                         id: styleLabel
                                         anchors.centerIn: parent
                                         text: modelData.label ? modelData.label : "Style " + (index + 1)
-                                        color: selectedStyleIndex === index ? "#ffffff" : SkinTheme.textSecondary
+                                        color: selectedStyleIndex === index ? "#FFFFFF" : SkinTheme.textSecondary
                                         font.family: SkinTheme.fontFamily
-                                        font.pixelSize: 11
+                                        font.pixelSize: SkinTheme.fontSizeSmall
                                         font.bold: true
                                     }
 
@@ -409,23 +366,23 @@ Rectangle {
                         }
                     }
 
-                    // Package File
+                    // File / Package info
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 4
 
                         Text {
-                            text: "// PACKAGE FILE"
+                            text: "PACKAGE FILE"
                             color: SkinTheme.textMuted
                             font.family: SkinTheme.fontMono
-                            font.pixelSize: 9
+                            font.pixelSize: SkinTheme.fontSizeTiny
                             font.bold: true
-                            font.letterSpacing: 1.5
+                            font.letterSpacing: 1.0
                         }
 
                         Rectangle {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 30
+                            Layout.preferredHeight: 28
                             radius: SkinTheme.radiusSmall
                             color: SkinTheme.bgInput
                             border.color: SkinTheme.borderMuted
@@ -437,16 +394,15 @@ Rectangle {
                                 anchors.right: parent.right
                                 anchors.margins: 10
                                 text: getCurrentFile()
-                                color: SkinTheme.accentCyan
-                                font.pixelSize: 10
+                                color: SkinTheme.textSecondary
+                                font.pixelSize: SkinTheme.fontSizeSmall
                                 font.family: SkinTheme.fontMono
                                 elide: Text.ElideMiddle
-                                opacity: 0.8
                             }
                         }
                     }
 
-                    // Interactive Audio & Voice Line Preview with Waveform
+                    // Audio & Voice Line Preview
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 44
@@ -462,18 +418,18 @@ Rectangle {
                             anchors.fill: parent
                             anchors.leftMargin: 12
                             anchors.rightMargin: 12
-                            spacing: 12
+                            spacing: 10
 
                             Rectangle {
                                 width: 28
                                 height: 28
                                 radius: SkinTheme.radiusSmall
-                                color: isAudioPlaying ? SkinTheme.accentCyan : SkinTheme.bgCardActive
+                                color: isAudioPlaying ? SkinTheme.accentCyan : SkinTheme.bgElevated
 
                                 Text {
                                     anchors.centerIn: parent
                                     text: isAudioPlaying ? "❚❚" : "▶"
-                                    color: isAudioPlaying ? "#060810" : SkinTheme.accentCyan
+                                    color: isAudioPlaying ? "#FFFFFF" : SkinTheme.accentCyan
                                     font.pixelSize: 10
                                     font.bold: true
                                 }
@@ -484,30 +440,29 @@ Rectangle {
                                 spacing: 2
 
                                 Text {
-                                    text: isAudioPlaying ? "PLAYING AUDIO PREVIEW" : "LISTEN AUDIO & VOICE LINE"
+                                    text: isAudioPlaying ? "PLAYING AUDIO" : "AUDIO PREVIEW"
                                     color: isAudioPlaying ? SkinTheme.accentCyan : SkinTheme.textPrimary
                                     font.family: SkinTheme.fontMono
                                     font.pixelSize: 10
                                     font.bold: true
-                                    font.letterSpacing: 0.8
                                 }
 
                                 Text {
-                                    text: isAudioPlaying ? "Click to stop playback" : "Voice lines, spell sounds, and music pack"
+                                    text: isAudioPlaying ? "Click to stop" : "Voice lines & sounds"
                                     color: SkinTheme.textMuted
                                     font.family: SkinTheme.fontFamily
                                     font.pixelSize: 11
                                 }
                             }
 
-                            // Animated Neon Waveform Bars
+                            // Waveform bars animation
                             Row {
                                 spacing: 3
                                 Layout.alignment: Qt.AlignVCenter
                                 visible: isAudioPlaying
 
                                 Repeater {
-                                    model: 6
+                                    model: 5
                                     delegate: Rectangle {
                                         width: 3
                                         height: 6
@@ -517,8 +472,8 @@ Rectangle {
                                         SequentialAnimation on height {
                                             running: isAudioPlaying
                                             loops: Animation.Infinite
-                                            NumberAnimation { to: (index % 2 === 0 ? 16 : 8); duration: 200 + index * 60; easing.type: Easing.InOutQuad }
-                                            NumberAnimation { to: (index % 2 === 0 ? 6 : 18); duration: 200 + index * 60; easing.type: Easing.InOutQuad }
+                                            NumberAnimation { to: (index % 2 === 0 ? 14 : 7); duration: 200 + index * 50; easing.type: Easing.InOutQuad }
+                                            NumberAnimation { to: (index % 2 === 0 ? 5 : 16); duration: 200 + index * 50; easing.type: Easing.InOutQuad }
                                         }
                                     }
                                 }
@@ -543,43 +498,28 @@ Rectangle {
 
                     Item { Layout.fillHeight: true }
 
-                    // Action Buttons
+                    // Action Buttons (Install / Queue / Uninstall)
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 6
+                        spacing: 8
 
-                        // Install Button — neon gradient
+                        // Install Button
                         Rectangle {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 42
+                            Layout.preferredHeight: 40
                             radius: SkinTheme.radiusMedium
-                            gradient: Gradient {
-                                orientation: Gradient.Horizontal
-                                GradientStop { position: 0.0; color: instModalMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan }
-                                GradientStop { position: 1.0; color: instModalMouse.containsMouse ? SkinTheme.accentVioletHover : SkinTheme.accentViolet }
-                            }
+                            color: instModalMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan
 
-                            // Glow
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: parent.width + 6
-                                height: parent.height + 6
-                                radius: parent.radius + 3
-                                color: "transparent"
-                                border.color: SkinTheme.accentCyan
-                                border.width: 1
-                                opacity: instModalMouse.containsMouse ? 0.3 : 0
-                                Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
-                            }
+                            Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "⚡ INSTALL SKIN"
-                                color: "#060810"
-                                font.family: SkinTheme.fontMono
-                                font.pixelSize: 12
+                                color: "#FFFFFF"
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeBody
                                 font.bold: true
-                                font.letterSpacing: 1.0
+                                font.letterSpacing: 0.5
                             }
 
                             MouseArea {
@@ -599,20 +539,19 @@ Rectangle {
                         // Add to Queue
                         Rectangle {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 36
+                            Layout.preferredHeight: 34
                             radius: SkinTheme.radiusMedium
                             color: addQueueMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
-                            border.color: SkinTheme.accentCyan
+                            border.color: SkinTheme.borderMuted
                             border.width: 1
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "+ ADD TO QUEUE"
-                                color: SkinTheme.accentCyan
-                                font.family: SkinTheme.fontMono
-                                font.pixelSize: 11
+                                color: SkinTheme.textPrimary
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeSmall
                                 font.bold: true
-                                font.letterSpacing: 0.8
                             }
 
                             MouseArea {
@@ -629,24 +568,21 @@ Rectangle {
                             }
                         }
 
-                        // Uninstall
+                        // Uninstall Button (if installed)
                         Rectangle {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 36
+                            Layout.preferredHeight: 34
                             radius: SkinTheme.radiusMedium
-                            color: uninstMouse.containsMouse ? SkinTheme.accentCrimsonGlow : "transparent"
-                            border.color: SkinTheme.accentCrimson
-                            border.width: 1
+                            color: uninstMouse.containsMouse ? SkinTheme.accentCrimsonHover : SkinTheme.accentCrimson
                             visible: modData ? app.isModInstalled(modData.name, modData.categoryId) : false
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "⊘ UNINSTALL"
-                                color: SkinTheme.accentCrimson
-                                font.family: SkinTheme.fontMono
-                                font.pixelSize: 11
+                                color: "#FFFFFF"
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeSmall
                                 font.bold: true
-                                font.letterSpacing: 0.8
                             }
 
                             MouseArea {

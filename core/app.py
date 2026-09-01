@@ -29,12 +29,14 @@ from core.gsi_server import GSIServer
 from core.log_watcher import DotaLogWatcher
 from core.image_cache import image_cache
 from core.presets_service import PresetsService
+from core.creators_service import CreatorsService
 from core.dota_launcher import launch_dota_game, check_gameinfo_health, repair_gameinfo
 from core.discord_rpc import DEFAULT_CLIENT_ID, discord_rpc
 
 class SkinChangerApp(QObject):
     categoriesLoaded = Signal()
     modsLoaded = Signal()
+    creatorsChanged = Signal()
     errorOccurred = Signal(str)
     successOccurred = Signal(str)
     installedModsChanged = Signal()
@@ -63,7 +65,8 @@ class SkinChangerApp(QObject):
         self._discord_client_id = DEFAULT_CLIENT_ID  # Default to ImmortalHub ID
         self._ui_language = "en"
         self._theme_mode = "cyberpunk"
-        self._accent_hue = "cyan"
+        self._accent_hue = "immortal"
+        self._bg_image_path = ""
         self._is_loading = True
         self._install_worker: Optional[InstallWorker] = None
         # Delivered in the GUI thread even though emitted from the fetch worker
@@ -116,8 +119,9 @@ class SkinChangerApp(QObject):
         # Deferred single check: restore mod hooks if a Dota update wiped them
         QTimer.singleShot(3000, self._auto_restore_hooks)
 
-        # Initialize Presets Service & Discord RPC
+        # Initialize Presets & Creators Service & Discord RPC
         self._presets_service = PresetsService(self._app_dir)
+        self._creators_service = CreatorsService(self._app_dir)
         self.installedModsChanged.connect(self._on_installed_changed_for_rpc)
         self._on_installed_changed_for_rpc()
 
@@ -205,6 +209,7 @@ class SkinChangerApp(QObject):
 
     themeModeChanged = Signal()
     accentHueChanged = Signal()
+    bgImagePathChanged = Signal()
     totalSavingsChanged = Signal()
     launchOptionsChanged = Signal()
     
@@ -236,12 +241,23 @@ class SkinChangerApp(QObject):
 
     @accentHue.setter
     def accentHue(self, value: str):
-        allowed = {"cyan", "violet", "emerald", "amber", "crimson"}
-        value = value if value in allowed else "cyan"
+        allowed = {"immortal", "cyan", "violet", "emerald", "amber", "crimson"}
+        value = value if value in allowed else "immortal"
         if self._accent_hue != value:
             self._accent_hue = value
             self._save_settings()
             self.accentHueChanged.emit()
+
+    @Property(str, notify=bgImagePathChanged)
+    def bgImagePath(self):
+        return self._bg_image_path
+
+    @bgImagePath.setter
+    def bgImagePath(self, value: str):
+        if self._bg_image_path != value:
+            self._bg_image_path = value
+            self._save_settings()
+            self.bgImagePathChanged.emit()
 
     @Property(int, notify=totalSavingsChanged)
     def totalSavings(self):
@@ -429,26 +445,13 @@ class SkinChangerApp(QObject):
             return False
 
     def _auto_restore_hooks(self):
-        """Re-inject gameinfo hooks if a Dota update wiped them (runs at startup).
-
-        Valve patches periodically rewrite gameinfo.gi, silently disabling all
-        installed mods. If mods are installed but hooks are missing, patch again.
+        """(DISABLED FOR VAC BYPASS)
+        We no longer auto-patch on startup. We only patch right before launching
+        Dota 2 via the app, and then revert 25 seconds later. This guarantees that
+        if the user launches Dota 2 directly from Steam without the app, they
+        won't accidentally play with modified files and get a VAC warning.
         """
-        try:
-            if not self._dota_path or not os.path.exists(self._dota_path):
-                return
-            if not self._get_installed_dict():
-                return  # No mods installed — hooks are supposed to be absent.
-            health = check_gameinfo_health(self._dota_path)
-            if health.get("isHealthy"):
-                return
-            logger.warning(f"Mod hooks missing (status={health.get('status')}) — re-patching automatically.")
-            if self.patchGameinfo():
-                self.successOccurred.emit(
-                    "A Dota update removed the mod hooks — they were restored automatically."
-                )
-        except Exception as e:
-            logger.debug(f"Auto hook restore check failed: {e}")
+        pass
 
     # --- Favorites System ---
 
@@ -555,6 +558,215 @@ class SkinChangerApp(QObject):
         except Exception as e:
             logger.error(f"Failed to import custom mod: {e}", exc_info=True)
             self.errorOccurred.emit(f"Failed to import custom mod: {e}")
+
+    # --- Creators & Telegram Channels Slots ---
+
+    @Slot(result=str)
+    def getCreators(self) -> str:
+        creators = self._creators_service.get_all_creators()
+        installed = self._get_installed_dict()
+        result = []
+        for c in creators:
+            c_dict = dict(c)
+            c_mods = c_dict.get("mods", [])
+            installed_in_creator = 0
+            for m in c_mods:
+                m_name = m.get("name", "")
+                m_cat = m.get("categoryId", "custom_creator")
+                if f"{m_cat}::{m_name}" in installed or f"custom::{m_name}" in installed:
+                    installed_in_creator += 1
+            c_dict["installedCount"] = installed_in_creator
+            c_dict["modsCount"] = len(c_mods)
+            result.append(c_dict)
+        return json.dumps(result, ensure_ascii=False)
+
+    @Slot(str, result=str)
+    def getCreator(self, creator_id: str) -> str:
+        c = self._creators_service.get_creator(creator_id)
+        if c:
+            return json.dumps(c, ensure_ascii=False)
+        return "{}"
+
+    @Slot(str, str, str, str, result=bool)
+    def createCreator(self, name: str, telegram: str, description: str, avatar_path: str) -> bool:
+        try:
+            created = self._creators_service.add_creator(
+                name=name,
+                telegram=telegram,
+                description=description,
+                avatar_path=avatar_path
+            )
+            self.creatorsChanged.emit()
+            self.successOccurred.emit(f"Added channel: {created.get('name')}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create creator: {e}")
+            self.errorOccurred.emit(f"Failed to create creator: {e}")
+            return False
+
+    @Slot(str, str, str, str, str, result=bool)
+    def updateCreator(self, creator_id: str, name: str, telegram: str, description: str, avatar_path: str) -> bool:
+        try:
+            ok = self._creators_service.update_creator(creator_id, name, telegram, description, avatar_path)
+            if ok:
+                self.creatorsChanged.emit()
+                self.successOccurred.emit("Creator updated successfully.")
+            return ok
+        except Exception as e:
+            logger.error(f"Failed to update creator: {e}")
+            self.errorOccurred.emit(f"Failed to update creator: {e}")
+            return False
+
+    @Slot(str, result=bool)
+    def deleteCreator(self, creator_id: str) -> bool:
+        try:
+            ok = self._creators_service.delete_creator(creator_id)
+            if ok:
+                self.creatorsChanged.emit()
+                self.successOccurred.emit("Creator removed.")
+            return ok
+        except Exception as e:
+            logger.error(f"Failed to delete creator: {e}")
+            self.errorOccurred.emit(f"Failed to delete creator: {e}")
+            return False
+
+    @Slot(str, result=str)
+    def getCreatorMods(self, creator_id: str) -> str:
+        creator = self._creators_service.get_creator(creator_id)
+        if not creator:
+            return "[]"
+        mods = creator.get("mods", [])
+        result = []
+        for m in mods:
+            m_dict = dict(m)
+            m_name = m_dict.get("name", "")
+            m_cat = m_dict.get("categoryId", "custom_creator")
+            m_dict["isInstalled"] = self.isModInstalled(m_name, m_cat) or self.isModInstalled(m_name, "custom")
+            m_dict["isFavorite"] = self.isFavorite(m_name, m_cat)
+            result.append(m_dict)
+        return json.dumps(result, ensure_ascii=False)
+
+    @Slot(str, str, str, str, str, str, result=bool)
+    def addCreatorMod(self, creator_id: str, name: str, hero: str, file_path: str, preview_path: str, description: str) -> bool:
+        try:
+            # Clean file URL if passed from QML
+            clean_file = file_path.replace("file:///", "").replace("file://", "")
+            clean_file = urllib.parse.unquote(clean_file)
+            clean_preview = preview_path.replace("file:///", "").replace("file://", "")
+            clean_preview = urllib.parse.unquote(clean_preview)
+
+            mod = self._creators_service.add_mod_to_creator(
+                creator_id=creator_id,
+                name=name,
+                hero=hero,
+                file_path=clean_file,
+                preview_path=clean_preview,
+                description=description
+            )
+            if mod:
+                self.creatorsChanged.emit()
+                self.successOccurred.emit(f"Added skin '{mod.get('name')}' successfully!")
+                return True
+            else:
+                self.errorOccurred.emit("Failed to add skin.")
+                return False
+        except Exception as e:
+            logger.error(f"Error adding skin to creator: {e}")
+            self.errorOccurred.emit(f"Error: {e}")
+            return False
+
+    @Slot(str, str, result=bool)
+    def deleteCreatorMod(self, creator_id: str, mod_id: str) -> bool:
+        try:
+            ok = self._creators_service.delete_mod(creator_id, mod_id)
+            if ok:
+                self.creatorsChanged.emit()
+                self.successOccurred.emit("Custom skin deleted.")
+            return ok
+        except Exception as e:
+            logger.error(f"Failed to delete custom skin: {e}")
+            self.errorOccurred.emit(f"Failed to delete: {e}")
+            return False
+
+    @Slot(str, str, result=int)
+    def importCreatorFolder(self, creator_id: str, folder_path: str) -> int:
+        try:
+            clean_folder = folder_path.replace("file:///", "").replace("file://", "")
+            clean_folder = urllib.parse.unquote(clean_folder)
+            imported = self._creators_service.import_folder(creator_id, clean_folder)
+            count = len(imported)
+            if count > 0:
+                self.creatorsChanged.emit()
+                self.successOccurred.emit(f"Scanned folder and imported {count} skins!")
+            else:
+                self.errorOccurred.emit("No .vpk or .zip skins found in this folder.")
+            return count
+        except Exception as e:
+            logger.error(f"Failed to import folder: {e}")
+            self.errorOccurred.emit(f"Failed to scan folder: {e}")
+            return 0
+
+    @Slot(str, str, result=bool)
+    def exportCreatorPack(self, creator_id: str, save_path: str) -> bool:
+        try:
+            clean_path = save_path.replace("file:///", "").replace("file://", "")
+            clean_path = urllib.parse.unquote(clean_path)
+            ok = self._creators_service.export_creator_pack(creator_id, clean_path)
+            if ok:
+                self.successOccurred.emit("Exported Creator Pack successfully!")
+            else:
+                self.errorOccurred.emit("Failed to export pack.")
+            return ok
+        except Exception as e:
+            logger.error(f"Export pack error: {e}")
+            self.errorOccurred.emit(f"Export error: {e}")
+            return False
+
+    @Slot(str, result=bool)
+    def importCreatorPack(self, pack_path: str) -> bool:
+        try:
+            clean_path = pack_path.replace("file:///", "").replace("file://", "")
+            clean_path = urllib.parse.unquote(clean_path)
+            creator = self._creators_service.import_creator_pack(clean_path)
+            if creator:
+                self.creatorsChanged.emit()
+                self.successOccurred.emit(f"Imported pack: {creator.get('name')} with {len(creator.get('mods', []))} skins!")
+                return True
+            else:
+                self.errorOccurred.emit("Failed to import pack file.")
+                return False
+        except Exception as e:
+            logger.error(f"Import pack error: {e}")
+            self.errorOccurred.emit(f"Import error: {e}")
+            return False
+
+    # --- Native File Dialog Helpers for QML ---
+
+    @Slot(str, str, result=str)
+    def chooseFile(self, title: str, filter_str: str) -> str:
+        file_path, _ = QFileDialog.getOpenFileName(None, title, "", filter_str)
+        return file_path or ""
+
+    @Slot(str, result=str)
+    def chooseFolder(self, title: str) -> str:
+        folder_path = QFileDialog.getExistingDirectory(None, title, "")
+        return folder_path or ""
+
+    @Slot(str, str, str, result=str)
+    def chooseSaveFile(self, title: str, default_name: str, filter_str: str) -> str:
+        save_path, _ = QFileDialog.getSaveFileName(None, title, default_name, filter_str)
+        return save_path or ""
+
+    @Slot(str)
+    def openExternalUrl(self, url: str):
+        if not url:
+            return
+        target = url.strip()
+        if target.startswith("@"):
+            target = f"https://t.me/{target[1:]}"
+        elif not target.startswith("http://") and not target.startswith("https://") and not target.startswith("file://"):
+            target = f"https://t.me/{target}"
+        QDesktopServices.openUrl(QUrl(target))
 
     def _load_from_local_cache(self):
         try:
@@ -665,6 +877,32 @@ class SkinChangerApp(QObject):
                     "file": s.file,
                     "color": s.color
                 })
+        name_l = (m.name or "").lower()
+        if "arcana" in name_l:
+            rarity = "arcana"
+        elif "persona" in name_l:
+            rarity = "persona"
+        elif "immortal" in name_l:
+            rarity = "immortal"
+        elif "collector" in name_l or "cache" in name_l or "mythical" in name_l:
+            rarity = "mythical"
+        elif "rare" in name_l:
+            rarity = "rare"
+        else:
+            rarity = "standard"
+
+        cat = str(m.category_id or "").lower()
+        if "sound" in cat or "voice" in cat or "music" in cat or "audio" in cat:
+            slot = "audio"
+        elif "fx" in cat or "effect" in cat or "shader" in cat:
+            slot = "fx"
+        elif any(w in name_l for w in ["weapon", "sword", "blade", "bow", "staff", "gun", "dagger", "axe", "glaive", "scythe", "hammer", "mace", "hook"]):
+            slot = "weapon"
+        elif "arcana" in name_l or "persona" in name_l or "set" in name_l or "bundle" in name_l or cat == "heroes":
+            slot = "set"
+        else:
+            slot = "item"
+
         return {
             "name": m.name,
             "preview": m.preview,
@@ -678,6 +916,8 @@ class SkinChangerApp(QObject):
             "links": m.links,
             "styles": styles_data,
             "meta": m.meta,
+            "rarity": rarity,
+            "slot": slot,
             "isInstalled": self.isModInstalled(m.name, m.category_id),
             "isFavorite": self.isFavorite(m.name, m.category_id)
         }
@@ -697,6 +937,103 @@ class SkinChangerApp(QObject):
             for m in mods:
                 all_mods.append(self._serialize_mod(m))
         return json.dumps(all_mods, ensure_ascii=False)
+
+    @Slot(result=str)
+    def getHeroCards(self) -> str:
+        """Returns JSON list of all available heroes with rich attributes, skin counts, and artwork."""
+        sorted_heroes = sorted(list(set(self._heroes_list)))
+        
+        exceptions = {
+            'anti-mage': 'antimage', 'centaur warrunner': 'centaur', 'clockwerk': 'rattletrap',
+            'doom': 'doom_bringer', 'io': 'wisp', 'keeper of the light': 'keeper_of_the_light',
+            'lifestealer': 'life_stealer', 'magnus': 'magnataur', 'natures prophet': 'furion',
+            'necrophos': 'necrolyte', 'outworld destroyer': 'obsidian_destroyer',
+            'queen of pain': 'queenofpain', 'shadow fiend': 'nevermore', 'timbersaw': 'shredder',
+            'treant protector': 'treant', 'underlord': 'abyssal_underlord',
+            'vengeful spirit': 'vengefulspirit', 'windranger': 'windrunner',
+            'wraith king': 'skeleton_king', 'zeus': 'zuus'
+        }
+
+        # Dota 2 Primary Attributes Map
+        attr_map = {
+            # Strength
+            'axe': 'str', 'earthshaker': 'str', 'pudge': 'str', 'sand_king': 'str', 'sven': 'str',
+            'tiny': 'str', 'kunkka': 'str', 'slardar': 'str', 'tidehunter': 'str', 'skeleton_king': 'str',
+            'dragon_knight': 'str', 'rattletrap': 'str', 'life_stealer': 'str', 'omniknight': 'str',
+            'huskar': 'str', 'night_stalker': 'str', 'doom_bringer': 'str', 'spirit_breaker': 'str',
+            'alchemist': 'str', 'lycan': 'str', 'chaos_knight': 'str', 'treant': 'str', 'ogre_magi': 'str',
+            'undying': 'str', 'centaur': 'str', 'magnataur': 'str', 'shredder': 'str', 'bristleback': 'str',
+            'tusk': 'str', 'abaddon': 'str', 'elder_titan': 'str', 'legion_commander': 'str',
+            'earth_spirit': 'str', 'abyssal_underlord': 'str', 'phoenix': 'str', 'mars': 'str',
+            'dawnbreaker': 'str', 'primal_beast': 'str',
+            # Agility
+            'antimage': 'agi', 'bloodseeker': 'agi', 'drow_ranger': 'agi', 'juggernaut': 'agi',
+            'mirana': 'agi', 'morphling': 'agi', 'nevermore': 'agi', 'phantom_lancer': 'agi',
+            'razor': 'agi', 'riki': 'agi', 'sniper': 'agi', 'templar_assassin': 'agi',
+            'viper': 'agi', 'luna': 'agi', 'clinkz': 'agi', 'broodmother': 'agi', 'bounty_hunter': 'agi',
+            'weaver': 'agi', 'spectre': 'agi', 'ursa': 'agi', 'gyrocopter': 'agi', 'lone_druid': 'agi',
+            'meepo': 'agi', 'nyx_assassin': 'agi', 'naga_siren': 'agi', 'slark': 'agi',
+            'troll_warlord': 'agi', 'ember_spirit': 'agi', 'terrorblade': 'agi', 'arc_warden': 'agi',
+            'monkey_king': 'agi', 'pangolier': 'agi', 'hoodwink': 'agi', 'kez': 'agi',
+            # Intelligence
+            'bane': 'int', 'crystal_maiden': 'int', 'puck': 'int', 'storm_spirit': 'int', 'zuus': 'int',
+            'lina': 'int', 'lion': 'int', 'shadow_shaman': 'int', 'witch_doctor': 'int', 'lich': 'int',
+            'enigma': 'int', 'tinker': 'int', 'necrolyte': 'int', 'warlock': 'int', 'queenofpain': 'int',
+            'death_prophet': 'int', 'pugna': 'int', 'dazzle': 'int', 'leshrac': 'int', 'dark_seer': 'int',
+            'enchantress': 'int', 'jakiro': 'int', 'batrider': 'int', 'chen': 'int',
+            'ancient_apparition': 'int', 'silencer': 'int', 'obsidian_destroyer': 'int',
+            'shadow_demon': 'int', 'rubick': 'int', 'disruptor': 'int', 'keeper_of_the_light': 'int',
+            'skywrath_mage': 'int', 'oracle': 'int', 'winter_wyvern': 'int', 'grimstroke': 'int',
+            'ringmaster': 'int',
+            # Universal
+            'dark_willow': 'uni', 'snapfire': 'uni', 'void_spirit': 'uni', 'marci': 'uni',
+            'muerta': 'uni', 'techies': 'uni', 'wisp': 'uni', 'visage': 'uni', 'medusa': 'uni',
+            'invoker': 'uni', 'venomancer': 'uni', 'faceless_void': 'uni', 'windrunner': 'uni',
+            'beastmaster': 'uni', 'brewmaster': 'uni'
+        }
+
+        installed_map = self._get_installed_dict()
+        
+        cards = []
+        for h in sorted_heroes:
+            ln = h.lower().replace("'", "")
+            valve_name = exceptions.get(ln, ln.replace(' ', '_').replace('-', '_'))
+            img_url = f"https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/{valve_name}.png"
+            attr = attr_map.get(valve_name, 'uni')
+            
+            # Count available and installed skins for this hero
+            h_lower = h.lower()
+            skin_count = 0
+            inst_count = 0
+            for cat_id in ["heroes", "hero-items", "herofx", "hero-sounds"]:
+                for m in self._mods_data.get(cat_id, []):
+                    if (m.hero and h_lower in m.hero.lower()) or h_lower in m.name.lower():
+                        skin_count += 1
+                        if self.isModInstalled(m.name, m.category_id):
+                            inst_count += 1
+
+            cards.append({
+                "name": h,
+                "imageUrl": img_url,
+                "valveName": valve_name,
+                "attr": attr,
+                "skinCount": skin_count,
+                "installedCount": inst_count
+            })
+            
+        return json.dumps(cards, ensure_ascii=False)
+
+    @Slot(str, result=str)
+    def getCategoryPreviewImage(self, category_id: str) -> str:
+        """Returns the preview image URL of a mod in a given category."""
+        mods = self._mods_data.get(category_id, [])
+        if mods:
+            # Pick a stable mod based on category_id length to avoid flickering in QML
+            index = len(category_id) % len(mods)
+            mod = mods[index]
+            serialized = self._serialize_mod(mod)
+            return serialized.get("previewUrl", "")
+        return ""
 
     @Slot(str, result=str)
     def getHeroMods(self, hero_name: str) -> str:
@@ -727,15 +1064,48 @@ class SkinChangerApp(QObject):
         label = self._translations.get(key, key)
         return translate_category(label, self._ui_language, key)
 
+    # --- Dashboard Data Slots ---
+
+    @Slot(result=int)
+    def getTotalSkinsCount(self) -> int:
+        """Returns the total number of skins/mods available across all categories."""
+        total = 0
+        for mods in self._mods_data.values():
+            total += len(mods)
+        return total
+
+    @Slot(result=str)
+    def getRecentlyInstalled(self) -> str:
+        """Returns the 8 most recently installed mods for the dashboard."""
+        manifest = self._get_installed_dict()
+        items = list(manifest.values())
+        # Sort by installedAt descending if available
+        items.sort(key=lambda x: x.get("installedAt", ""), reverse=True)
+        recent = items[:8]
+        for item in recent:
+            item["isInstalled"] = True
+            item["isFavorite"] = self.isFavorite(item.get("name", ""), item.get("categoryId", ""))
+        return json.dumps(recent, ensure_ascii=False)
+
     # --- Global Search ---
 
     @Slot(str, result=str)
     def searchMods(self, query: str) -> str:
-        """Search every category by name/hero/tags. Returns a JSON array."""
+        """Search every category and creator skins by name/hero/tags. Returns a JSON array."""
         flat = []
         for mods in self._mods_data.values():
             for m in mods:
                 flat.append(self._serialize_mod(m))
+
+        # Include custom creator mods
+        for creator in self._creators_service.get_all_creators():
+            c_name = creator.get("name", "Custom")
+            for cm in creator.get("mods", []):
+                cm_dict = dict(cm)
+                cm_dict["isInstalled"] = self.isModInstalled(cm_dict.get("name", ""), cm_dict.get("categoryId", "custom_creator"))
+                cm_dict["isFavorite"] = self.isFavorite(cm_dict.get("name", ""), cm_dict.get("categoryId", "custom_creator"))
+                flat.append(cm_dict)
+
         results = filter_mods(flat, query, category_label=self.translate, limit=60)
         return json.dumps(results, ensure_ascii=False)
 
@@ -814,6 +1184,55 @@ class SkinChangerApp(QObject):
         self.installedModsChanged.emit()
         self.totalSavingsChanged.emit()
         self.batchFinished.emit(success, summary)
+
+    @Slot()
+    def syncAllMods(self):
+        """Re-installs all currently installed mods to sync with the latest versions from the API."""
+        manifest = self._get_installed_dict()
+        if not manifest:
+            self.errorOccurred.emit("No installed mods to sync.")
+            return
+
+        to_install = []
+        for key in manifest.keys():
+            try:
+                cat, name = key.split("::", 1)
+            except ValueError:
+                continue
+            
+            category_mods = self._mods_data.get(cat, [])
+            for m in category_mods:
+                if m.name == name:
+                    to_install.append(self._serialize_mod(m))
+                    break
+
+        if to_install:
+            self.installBatch(json.dumps(to_install))
+        else:
+            self.successOccurred.emit("All mods are already in sync.")
+
+    @Slot()
+    def randomizeLoadout(self):
+        """Picks a random skin for each hero and queues them for installation."""
+        to_install = []
+        import random
+        hero_mods = self._mods_data.get("heroes", [])
+        
+        mods_by_hero = {}
+        for m in hero_mods:
+            if m.hero:
+                h = m.hero.lower()
+                if h not in mods_by_hero:
+                    mods_by_hero[h] = []
+                mods_by_hero[h].append(m)
+        
+        for h, mods in mods_by_hero.items():
+            if mods:
+                chosen = random.choice(mods)
+                to_install.append(self._serialize_mod(chosen))
+            
+        if to_install:
+            self.installBatch(json.dumps(to_install))
 
     @Slot(str, str, result=bool)
     def isModInstalled(self, name: str, category_id: str) -> bool:
@@ -920,6 +1339,21 @@ class SkinChangerApp(QObject):
     def setDotaPath(self, path: str):
         self.dotaPath = path
 
+    @Slot(result=str)
+    def browseBackgroundImage(self) -> str:
+        start_dir = os.path.expanduser("~")
+        path, _ = QFileDialog.getOpenFileName(
+            None,
+            "Select Background Image",
+            start_dir,
+            "Images (*.png *.jpg *.jpeg)"
+        )
+        if path:
+            self.bgImagePath = path
+            self.successOccurred.emit("Background image updated!")
+            return path
+        return ""
+
     @Slot()
     def openPakFolder(self):
         if self._dota_path:
@@ -981,23 +1415,24 @@ class SkinChangerApp(QObject):
             logger.error(f"Failed to save favorites: {e}")
 
     def _load_settings(self):
-        try:
-            if os.path.exists(self._settings_path):
+        if os.path.exists(self._settings_path):
+            try:
                 with open(self._settings_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    self._dota_path = data.get("dotaPath", "")
-                    self._install_language = data.get("installLanguage", "both")
-                    self._discord_client_id = data.get("discordClientId", DEFAULT_CLIENT_ID)
-                    self._theme_mode = data.get("themeMode", "cyberpunk")
-                    self._accent_hue = data.get("accentHue", "cyan")
-                    self._launch_options = data.get("launchOptions", "")
-                    self._ui_language = normalize_lang(data.get("uiLanguage", "en"))
+                    s = json.load(f)
+                    self._dota_path = s.get("dotaPath", "")
+                    self._install_language = s.get("installLanguage", "both")
+                    self._ui_language = normalize_lang(s.get("uiLanguage", "en"))
+                    self._theme_mode = s.get("themeMode", "cyberpunk")
+                    self._accent_hue = s.get("accentHue", "cyan")
+                    self._bg_image_path = s.get("bgImagePath", "")
+                    self._launch_options = s.get("launchOptions", "")
+                    self._discord_client_id = s.get("discordClientId", DEFAULT_CLIENT_ID)
                     
                     # Update discord client ID upon loading
                     from core.discord_rpc import discord_rpc
                     discord_rpc.set_client_id(self._discord_client_id)
-        except Exception as e:
-            logger.error(f"Failed to load settings: {e}")
+            except Exception as e:
+                logger.error(f"Failed to load settings: {e}")
 
     def _save_settings(self):
         try:
@@ -1009,6 +1444,7 @@ class SkinChangerApp(QObject):
                     "discordClientId": self._discord_client_id,
                     "themeMode": self._theme_mode,
                     "accentHue": self._accent_hue,
+                    "bgImagePath": self._bg_image_path,
                     "launchOptions": self._launch_options,
                     "uiLanguage": self._ui_language
                 }, f, indent=2)
@@ -1212,9 +1648,26 @@ class SkinChangerApp(QObject):
 
     @Slot(result=bool)
     def launchDota(self) -> bool:
+        # 1. Ensure gameinfo is patched right before launch to apply mods
+        logger.info("Ensuring mod hooks are active before launching for VAC bypass...")
+        self.patchGameinfo()
+
+        # 2. Launch the game
         ok, msg = launch_dota_game(self._dota_path, custom_args=self._launch_options)
         if ok:
             self.successOccurred.emit("Launching Dota 2 via Steam...")
+            
+            # 3. VAC Bypass
+            # Revert the gameinfo file on disk after Dota 2 has loaded it into memory.
+            # This allows periodic VAC checks to see a clean file while mods remain active.
+            def delayed_restore():
+                try:
+                    logger.info("Executing VAC bypass: restoring gameinfo.gi...")
+                    self.restoreGameinfo()
+                except Exception as e:
+                    logger.error(f"VAC bypass restore failed: {e}")
+                    
+            QTimer.singleShot(25000, delayed_restore)
         else:
             self.errorOccurred.emit(msg)
         return ok

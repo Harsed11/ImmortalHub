@@ -1529,3 +1529,82 @@ body {
   color: #10B981;
 }
 
+/* --- RESPONSIVE MEDIA QUERIES (Scalability for 4:3 / 1:1 and mobile) --- */
+
+/* For smaller screens and 4:3 ratios (up to 1200px) */
+@media (max-width: 1200px) {
+  .hero-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .hero-heading {
+    font-size: 3.5rem;
+  }
+  .main-content {
+    padding: 48px;
+  }
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* For tablets and 1:1 ratios (up to 992px) */
+@media (max-width: 992px) {
+  .layout-container {
+    flex-direction: column;
+  }
+  .sidebar-container {
+    width: 100%;
+    min-width: unset;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 24px;
+    z-index: 50;
+  }
+  .sidebar-footer {
+    display: none; /* Hide footer items on small sidebar */
+  }
+  .hero-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .hero-actions {
+    justify-content: center;
+  }
+  .hero-stats {
+    justify-content: center;
+  }
+  .console-grid {
+    grid-template-columns: 1fr;
+  }
+  .loadout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* For mobile phones (up to 768px) */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 32px 20px;
+  }
+  .hero-heading {
+    font-size: 2.5rem;
+  }
+  .bento-grid, .footer-grid, .feature-grid {
+    grid-template-columns: 1fr;
+  }
+  .glass-panel {
+    padding: 24px;
+  }
+  .sound-toggle-btn {
+    top: 12px;
+    right: 12px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+}

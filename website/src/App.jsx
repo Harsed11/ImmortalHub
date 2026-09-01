@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import AntigravityParticles from './components/AntigravityParticles';
 import LineSidebar from './components/LineSidebar';
 import BorderGlow from './components/BorderGlow';
+import CustomCursor from './components/CustomCursor';
+import LiveStats from './components/LiveStats';
+import ScrollReveal from './components/ScrollReveal';
 import { playSound, toggleMute } from './utils/audio';
 import aegisNeonImg from './assets/aegis_neon.jpg';
 import heroesBannerImg from './assets/heroes_banner.jpg';
@@ -218,6 +221,7 @@ function App() {
 
   return (
     <div className="app-wrapper">
+      <CustomCursor />
       {/* Dense Antigravity Stardust Particle Field */}
       <AntigravityParticles />
 
@@ -278,7 +282,8 @@ function App() {
         {/* Main Content Sections */}
         <main className="main-content">
           {/* Hero Section */}
-          <section id="overview" className="hero-section">
+          <ScrollReveal delay={0.1}>
+            <section id="overview" className="hero-section">
             <div className="hero-grid">
               {/* Left Column: Copy & Actions */}
               <div className="hero-left-col fade-in-up">
@@ -367,7 +372,10 @@ function App() {
                 </TiltCard>
               </div>
             </div>
+            
+            <LiveStats />
           </section>
+          </ScrollReveal>
 
           {/* Marquee Ticker */}
           <div className="marquee-wrapper">
@@ -395,6 +403,7 @@ function App() {
           </div>
 
           {/* Panoramic Visual Showcase Section */}
+          <ScrollReveal delay={0.15}>
           <section id="showcase" className="showcase-section">
             <div className="section-header">
               <span className="section-badge">COSMETICS CATALOG</span>
@@ -473,8 +482,10 @@ function App() {
               </div>
             </div>
           </section>
+          </ScrollReveal>
 
           {/* Cloud Loadout Builder Section */}
+          <ScrollReveal delay={0.15}>
           <section id="loadouts" className="loadouts-section">
             <div className="section-header">
               <span className="section-badge">CLOUD PRESETS</span>
@@ -553,21 +564,35 @@ function App() {
                   >
                     {copiedCode ? '✓ CODE COPIED' : '📋 COPY LOADOUT CODE'}
                   </button>
-                  <button
-                    className="btn-open-app"
-                    onClick={() => {
-                      playSound('click');
-                      setShowDownloadModal(true);
-                    }}
-                  >
-                    ⚡ GET IMMORTALHUB (.EXE)
-                  </button>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button
+                      className="btn-open-app"
+                      onClick={() => {
+                        playSound('click');
+                        setShowDownloadModal(true);
+                      }}
+                    >
+                      ⚡ GET IMMORTALHUB (.EXE)
+                    </button>
+                    <button
+                      className="btn-open-app"
+                      style={{ background: 'rgba(168, 85, 247, 0.2)', borderColor: 'var(--neon-violet)', color: '#E9D5FF' }}
+                      onClick={() => {
+                        playSound('click');
+                        window.location.href = `immortalhub://loadout/IH-${selectedHero.substring(0, 3).toUpperCase()}-ARC9X`;
+                      }}
+                    >
+                      🚀 LAUNCH IN APP
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
+          </ScrollReveal>
 
           {/* Features Section using React Bits BorderGlow */}
+          <ScrollReveal delay={0.15}>
           <section id="features" className="features-section">
             <div className="section-header">
               <span className="section-badge">CORE CAPABILITIES</span>
@@ -717,8 +742,10 @@ function App() {
               </TiltCard>
             </div>
           </section>
+          </ScrollReveal>
 
           {/* Interactive Live VPK Terminal Console */}
+          <ScrollReveal delay={0.15}>
           <section id="console" className="terminal-section">
             <div className="section-header">
               <span className="section-badge">INTERACTIVE CONSOLE</span>
@@ -769,8 +796,10 @@ function App() {
               </div>
             </div>
           </section>
+          </ScrollReveal>
 
           {/* Interactive FAQ Accordion */}
+          <ScrollReveal delay={0.15}>
           <section id="faq" className="faq-section">
             <div className="section-header">
               <span className="section-badge">KNOWLEDGE BASE</span>
@@ -818,6 +847,7 @@ function App() {
               ))}
             </div>
           </section>
+          </ScrollReveal>
 
           {/* Bottom Call to Action Banner */}
           <section className="cta-banner">

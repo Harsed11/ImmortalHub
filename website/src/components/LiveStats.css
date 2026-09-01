@@ -1,0 +1,46 @@
+.live-stats-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(14, 15, 24, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 16px;
+  padding: 24px 32px;
+  margin-top: 32px;
+  backdrop-filter: blur(10px);
+  width: 100%;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .live-stats-container {
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+  }
+}

@@ -8,10 +8,13 @@ Item {
     id: heroesView
 
     property string selectedHero: ""
+    property var selectedHeroData: null
     property string searchQuery: ""
-    property string filterMode: "all" // "all", "installed", "favorites"
+    property string selectedAttr: "all"  // "all", "str", "agi", "int", "uni", "installed"
+    property string selectedSlot: "all"  // "all", "set", "weapon", "fx", "audio"
     property var heroMods: []
-    property var allHeroModsCache: []
+    property var heroCards: []
+    property var filteredHeroCards: []
 
     signal modClicked(var mod)
     signal modInstall(var mod)
@@ -25,17 +28,50 @@ Item {
     Connections {
         target: app
         function onModsLoaded() { loadData() }
-        function onInstalledModsChanged() { filterMods() }
+        function onInstalledModsChanged() {
+            loadHeroCards()
+            filterMods()
+        }
         function onFavoritesChanged() { filterMods() }
     }
 
     function loadData() {
-        var raw = app.getModsForCategory("heroes")
+        loadHeroCards()
+        filterMods()
+    }
+
+    function loadHeroCards() {
         try {
-            allHeroModsCache = JSON.parse(raw)
+            heroCards = JSON.parse(app.getHeroCards())
         } catch(e) {
-            allHeroModsCache = []
+            heroCards = []
         }
+        filterHeroCards()
+    }
+
+    function filterHeroCards() {
+        var result = heroCards
+        if (selectedAttr !== "all") {
+            if (selectedAttr === "installed") {
+                result = result.filter(function(c) { return c.installedCount > 0 })
+            } else {
+                result = result.filter(function(c) { return c.attr === selectedAttr })
+            }
+        }
+        if (searchQuery.trim() !== "") {
+            var q = searchQuery.toLowerCase().trim()
+            result = result.filter(function(c) {
+                return c.name.toLowerCase().indexOf(q) !== -1
+            })
+        }
+        filteredHeroCards = result
+    }
+
+    function selectHero(heroCard) {
+        selectedHero = heroCard.name
+        selectedHeroData = heroCard
+        searchQuery = ""
+        selectedSlot = "all"
         filterMods()
     }
 
@@ -49,18 +85,19 @@ Item {
                 baseList = []
             }
         } else {
-            baseList = allHeroModsCache
+            baseList = []
         }
 
         var result = baseList
 
-        if (filterMode === "installed") {
+        if (selectedSlot !== "all") {
             result = result.filter(function(m) {
-                return app.isModInstalled(m.name, m.categoryId)
-            })
-        } else if (filterMode === "favorites") {
-            result = result.filter(function(m) {
-                return app.isFavorite(m.name, m.categoryId)
+                var s = (m.slot || "").toLowerCase()
+                if (selectedSlot === "set") return s === "set" || (m.rarity && m.rarity === "arcana")
+                if (selectedSlot === "weapon") return s === "weapon"
+                if (selectedSlot === "fx") return s === "fx"
+                if (selectedSlot === "audio") return s === "audio"
+                return true
             })
         }
 
@@ -74,146 +111,162 @@ Item {
         heroMods = result
     }
 
-    onSelectedHeroChanged: filterMods()
-    onSearchQueryChanged: filterMods()
-    onFilterModeChanged: filterMods()
+    function getAttrColor(attr) {
+        if (attr === "str") return SkinTheme.attrStr
+        if (attr === "agi") return SkinTheme.attrAgi
+        if (attr === "int") return SkinTheme.attrInt
+        return SkinTheme.attrUni
+    }
+
+    function getAttrLabel(attr) {
+        if (attr === "str") return "STRENGTH"
+        if (attr === "agi") return "AGILITY"
+        if (attr === "int") return "INTELLIGENCE"
+        return "UNIVERSAL"
+    }
+
+    onSelectedHeroChanged: {
+        filterHeroCards()
+        filterMods()
+    }
+    onSearchQueryChanged: {
+        filterHeroCards()
+        filterMods()
+    }
+    onSelectedAttrChanged: filterHeroCards()
+    onSelectedSlotChanged: filterMods()
+    
+    onVisibleChanged: {
+        if (visible) {
+            selectedHero = ""
+            selectedHeroData = null
+        }
+    }
 
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
 
-        // Top Control Header — Minimalist
+        // ═══════════════════════════════════════════
+        // TOP CONTROL HEADER
+        // ═══════════════════════════════════════════
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 60
+            Layout.preferredHeight: 64
             color: SkinTheme.bgHeader
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: SkinTheme.borderMuted
+                color: SkinTheme.borderSubtle
             }
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
-                spacing: 16
+                anchors.leftMargin: SkinTheme.spacingLG
+                anchors.rightMargin: SkinTheme.spacingLG
+                spacing: SkinTheme.spacingMD
 
-                // Title
-                ColumnLayout {
-                    spacing: 2
+                // Back Button (when hero is open)
+                Rectangle {
+                    visible: selectedHero !== ""
+                    width: 34
+                    height: 34
+                    radius: SkinTheme.radiusMedium
+                    color: backMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard
+                    border.color: SkinTheme.borderMuted
+                    border.width: 1
+
+                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
                     Text {
-                        text: selectedHero === "" ? "HERO SKINS" : selectedHero.toUpperCase()
-                        color: SkinTheme.textPrimary
+                        anchors.centerIn: parent
+                        text: "←"
                         font.family: SkinTheme.fontFamily
-                        font.pixelSize: SkinTheme.fontSizeTitle
+                        font.pixelSize: 16
+                        color: SkinTheme.accentCyan
                         font.bold: true
-                        font.letterSpacing: 1.0
+                    }
+
+                    MouseArea {
+                        id: backMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            heroesView.selectedHero = ""
+                            heroesView.selectedHeroData = null
+                        }
+                    }
+                }
+
+                // Breadcrumb & Title
+                ColumnLayout {
+                    spacing: 2
+                    RowLayout {
+                        spacing: 8
+                        Text {
+                            text: selectedHero === "" ? "HERO BROWSER" : "HEROES"
+                            color: selectedHero === "" ? SkinTheme.textPrimary : SkinTheme.textMuted
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeTitle
+                            font.bold: true
+                            font.letterSpacing: 0.5
+                        }
+
+                        Text {
+                            visible: selectedHero !== ""
+                            text: "›"
+                            color: SkinTheme.textMuted
+                            font.pixelSize: SkinTheme.fontSizeTitle
+                        }
+
+                        Text {
+                            visible: selectedHero !== ""
+                            text: selectedHero.toUpperCase()
+                            color: selectedHeroData ? getAttrColor(selectedHeroData.attr) : SkinTheme.accentCyan
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeTitle
+                            font.bold: true
+                            font.letterSpacing: 0.5
+                        }
                     }
 
                     Text {
-                        text: heroMods.length + " skins available"
-                        color: SkinTheme.textMuted
-                        font.family: SkinTheme.fontMono
-                        font.pixelSize: 10
-                        font.letterSpacing: 0.5
+                        text: selectedHero === ""
+                              ? filteredHeroCards.length + " heroes • Select a hero to customize skins and loadouts"
+                              : heroMods.length + " custom sets, weapons, and particle effects available"
+                        color: SkinTheme.textSecondary
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
                     }
                 }
 
                 Item { Layout.fillWidth: true }
 
-                // Filter Segments
+                // Search Input Field
                 Rectangle {
-                    height: 32
-                    radius: SkinTheme.radiusSmall
-                    color: SkinTheme.bgInput
-                    border.color: SkinTheme.borderMuted
-                    border.width: 1
-                    implicitWidth: segRow.implicitWidth + 6
-
-                    RowLayout {
-                        id: segRow
-                        anchors.centerIn: parent
-                        spacing: 2
-
-                        Repeater {
-                            model: [
-                                { id: "all",       label: "ALL" },
-                                { id: "installed", label: "INSTALLED" },
-                                { id: "favorites", label: "★ STARRED" }
-                            ]
-
-                            delegate: Rectangle {
-                                height: 26
-                                radius: SkinTheme.radiusSmall
-                                implicitWidth: segText.implicitWidth + 16
-                                color: heroesView.filterMode === modelData.id
-                                       ? SkinTheme.accentCyan
-                                       : (segMouse.containsMouse ? SkinTheme.bgCardHover : "transparent")
-
-                                Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
-
-                                Text {
-                                    id: segText
-                                    anchors.centerIn: parent
-                                    text: modelData.label
-                                    color: heroesView.filterMode === modelData.id ? "#060810" : SkinTheme.textSecondary
-                                    font.family: SkinTheme.fontMono
-                                    font.pixelSize: 9
-                                    font.bold: true
-                                    font.letterSpacing: 0.8
-                                }
-
-                                MouseArea {
-                                    id: segMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: heroesView.filterMode = modelData.id
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Search Bar — Cyberpunk style
-                Rectangle {
-                    width: 260
+                    width: 220
                     height: 34
-                    radius: SkinTheme.radiusSmall
+                    radius: SkinTheme.radiusMedium
                     color: SkinTheme.bgInput
                     border.color: searchInput.activeFocus ? SkinTheme.accentCyan : SkinTheme.borderMuted
                     border.width: 1
 
                     Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
 
-                    // Focus glow
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: parent.width + 4
-                        height: parent.height + 4
-                        radius: parent.radius + 2
-                        color: "transparent"
-                        border.color: SkinTheme.accentCyan
-                        border.width: 1
-                        opacity: searchInput.activeFocus ? 0.2 : 0
-                        Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
-                    }
-
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 10
-                        spacing: 8
+                        anchors.leftMargin: 10
+                        anchors.rightMargin: 8
+                        spacing: 6
 
                         Text {
-                            text: "⌕"
-                            font.pixelSize: 14
+                            text: "\uE721"
+                            font.family: "Segoe MDL2 Assets"
+                            font.pixelSize: 11
                             color: searchInput.activeFocus ? SkinTheme.accentCyan : SkinTheme.textMuted
-                            Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
                         }
 
                         TextInput {
@@ -221,7 +274,7 @@ Item {
                             Layout.fillWidth: true
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: SkinTheme.fontSizeBody
                             clip: true
                             selectByMouse: true
                             text: heroesView.searchQuery
@@ -229,16 +282,17 @@ Item {
                             onTextChanged: heroesView.searchQuery = text
 
                             Text {
-                                text: "Search mods, heroes..."
+                                text: selectedHero === "" ? "Search heroes..." : "Search skins..."
                                 color: SkinTheme.textMuted
-                                font.pixelSize: 12
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeBody
                                 visible: !searchInput.text && !searchInput.activeFocus
                             }
                         }
 
                         Rectangle {
-                            width: 20
-                            height: 20
+                            width: 18
+                            height: 18
                             radius: SkinTheme.radiusSmall
                             color: SkinTheme.bgCardHover
                             visible: searchInput.text !== ""
@@ -258,104 +312,283 @@ Item {
                         }
                     }
                 }
+
+                // Randomize Button
+                Rectangle {
+                    visible: selectedHero === ""
+                    height: 34
+                    radius: SkinTheme.radiusMedium
+                    implicitWidth: randomRow.implicitWidth + 20
+                    color: randomMouse.containsMouse ? SkinTheme.accentVioletHover : SkinTheme.accentViolet
+
+                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                    RowLayout {
+                        id: randomRow
+                        anchors.centerIn: parent
+                        spacing: 6
+                        Text { text: "🎲"; font.pixelSize: 11; color: "#FFFFFF" }
+                        Text {
+                            text: "RANDOMIZE"
+                            color: "#FFFFFF"
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeSmall
+                            font.bold: true
+                            font.letterSpacing: 0.5
+                        }
+                    }
+
+                    MouseArea {
+                        id: randomMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: app.randomizeLoadout()
+                    }
+                }
             }
         }
 
-        // Hero Filter Chips Bar
+        // ═══════════════════════════════════════════
+        // ATTRIBUTE FILTER TABS (When browsing all heroes)
+        // ═══════════════════════════════════════════
         Rectangle {
+            visible: selectedHero === ""
             Layout.fillWidth: true
-            Layout.preferredHeight: 44
+            Layout.preferredHeight: 46
             color: SkinTheme.bgDark
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: SkinTheme.borderMuted
+                color: SkinTheme.borderSubtle
             }
 
-            ListView {
-                id: heroChipsView
+            RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 16
-                anchors.rightMargin: 16
-                orientation: ListView.Horizontal
-                spacing: 6
-                clip: true
+                anchors.leftMargin: SkinTheme.spacingLG
+                anchors.rightMargin: SkinTheme.spacingLG
+                spacing: 8
 
-                model: ["All Heroes"].concat(app.heroesList)
+                Repeater {
+                    model: [
+                        { id: "all",       label: "ALL HEROES",    color: SkinTheme.textPrimary, icon: "⚔️" },
+                        { id: "str",       label: "STRENGTH",      color: SkinTheme.attrStr,     icon: "🔴" },
+                        { id: "agi",       label: "AGILITY",       color: SkinTheme.attrAgi,     icon: "🟢" },
+                        { id: "int",       label: "INTELLIGENCE",  color: SkinTheme.attrInt,     icon: "🔵" },
+                        { id: "uni",       label: "UNIVERSAL",     color: SkinTheme.attrUni,     icon: "🟣" },
+                        { id: "installed", label: "ACTIVE LOADOUT",color: SkinTheme.accentEmerald,icon: "⚡" }
+                    ]
 
-                delegate: Rectangle {
-                    height: 28
-                    y: 8
-                    radius: SkinTheme.radiusSmall
-                    implicitWidth: chipText.implicitWidth + 20
-                    color: (selectedHero === "" && modelData === "All Heroes") || selectedHero === modelData
-                           ? SkinTheme.accentViolet
-                           : (chipMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard)
-                    border.color: (selectedHero === "" && modelData === "All Heroes") || selectedHero === modelData
-                                  ? SkinTheme.accentVioletHover
-                                  : SkinTheme.borderMuted
-                    border.width: 1
+                    delegate: Rectangle {
+                        height: 30
+                        radius: SkinTheme.radiusPill
+                        implicitWidth: attrTabRow.implicitWidth + 24
+                        color: selectedAttr === modelData.id
+                               ? modelData.color
+                               : (attrTabMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard)
+                        border.color: selectedAttr === modelData.id ? modelData.color : SkinTheme.borderMuted
+                        border.width: 1
 
-                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+                        Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
-                    Text {
-                        id: chipText
-                        anchors.centerIn: parent
-                        text: modelData
-                        color: (selectedHero === "" && modelData === "All Heroes") || selectedHero === modelData
-                               ? "#ffffff"
-                               : (chipMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
-                        font.family: SkinTheme.fontFamily
-                        font.pixelSize: 11
-                        font.bold: (selectedHero === "" && modelData === "All Heroes") || selectedHero === modelData
-                    }
+                        RowLayout {
+                            id: attrTabRow
+                            anchors.centerIn: parent
+                            spacing: 6
 
-                    MouseArea {
-                        id: chipMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (modelData === "All Heroes") {
-                                selectedHero = ""
-                            } else {
-                                selectedHero = modelData
+                            Text {
+                                text: modelData.icon
+                                font.pixelSize: 10
                             }
+
+                            Text {
+                                text: modelData.label
+                                color: selectedAttr === modelData.id ? "#08080E" : SkinTheme.textSecondary
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeSmall
+                                font.bold: selectedAttr === modelData.id
+                            }
+                        }
+
+                        MouseArea {
+                            id: attrTabMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: selectedAttr = modelData.id
                         }
                     }
                 }
             }
         }
 
-        // Mod Cards Grid
+        // ═══════════════════════════════════════════
+        // HERO SELECTION GRID (Portrait Cards)
+        // ═══════════════════════════════════════════
         GridView {
-            id: grid
+            id: heroesGrid
+            visible: heroesView.selectedHero === ""
             Layout.fillWidth: true
             Layout.fillHeight: true
-            cellWidth: Math.max(300, Math.floor(width / Math.max(1, Math.floor(width / 340))))
-            cellHeight: cellWidth * 0.5625 + 16
-            model: heroMods
+            cellWidth: Math.max(150, Math.floor(width / Math.max(1, Math.floor(width / 165))))
+            cellHeight: cellWidth * 1.35
+            model: filteredHeroCards
             displayMarginBeginning: 20
             displayMarginEnd: 20
             clip: true
 
             ScrollBar.vertical: NeonScrollBar {}
 
-            // Featured Banner
-            header: Item {
-                width: grid.width
-                height: 220
-                visible: true
+            delegate: Item {
+                width: heroesGrid.cellWidth
+                height: heroesGrid.cellHeight
 
                 Rectangle {
+                    id: heroCardBox
                     anchors.fill: parent
-                    anchors.leftMargin: 20
-                    anchors.rightMargin: 20
-                    anchors.topMargin: 20
-                    anchors.bottomMargin: 10
+                    anchors.margins: 6
                     radius: SkinTheme.radiusLarge
+                    color: SkinTheme.bgCard
+                    border.color: heroMouse.containsMouse
+                                  ? getAttrColor(modelData.attr)
+                                  : (modelData.installedCount > 0 ? SkinTheme.accentEmeraldDark : SkinTheme.borderMuted)
+                    border.width: 1
+                    clip: true
+
+                    scale: heroMouse.containsMouse ? 1.04 : 1.0
+                    Behavior on scale { NumberAnimation { duration: SkinTheme.animFast; easing.type: Easing.OutCubic } }
+                    Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                    // Hero Portrait Image
+                    Image {
+                        anchors.fill: parent
+                        source: modelData.imageUrl ? modelData.imageUrl : ""
+                        fillMode: Image.PreserveAspectCrop
+                        opacity: heroMouse.containsMouse ? 1.0 : 0.78
+                        asynchronous: true
+                        
+                        Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
+                    }
+
+                    // Top Attribute & Skin Count Header
+                    Rectangle {
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        height: 32
+                        gradient: Gradient {
+                            GradientStop { position: 0.0; color: "#D008080E" }
+                            GradientStop { position: 1.0; color: "transparent" }
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 8
+                            anchors.rightMargin: 8
+
+                            // Attribute dot
+                            Rectangle {
+                                width: 8
+                                height: 8
+                                radius: 4
+                                color: getAttrColor(modelData.attr)
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            // Skin count badge
+                            Text {
+                                text: modelData.skinCount + " skins"
+                                color: SkinTheme.textSecondary
+                                font.family: SkinTheme.fontMono
+                                font.pixelSize: 8
+                                font.bold: true
+                            }
+                        }
+                    }
+
+                    // Bottom Vignette
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        height: 56
+                        gradient: Gradient {
+                            GradientStop { position: 0.0; color: "transparent" }
+                            GradientStop { position: 0.4; color: "#A008080E" }
+                            GradientStop { position: 1.0; color: "#F008080E" }
+                        }
+                    }
+
+                    // Active loadout tag
+                    Rectangle {
+                        anchors.bottom: heroNameText.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottomMargin: 4
+                        height: 16
+                        radius: SkinTheme.radiusSmall
+                        implicitWidth: activeModText.implicitWidth + 10
+                        color: "#D008080E"
+                        border.color: SkinTheme.accentEmerald
+                        border.width: 1
+                        visible: modelData.installedCount > 0
+
+                        Text {
+                            id: activeModText
+                            anchors.centerIn: parent
+                            text: "● " + modelData.installedCount + " ACTIVE"
+                            color: SkinTheme.accentEmerald
+                            font.family: SkinTheme.fontMono
+                            font.pixelSize: 7
+                            font.bold: true
+                        }
+                    }
+
+                    // Hero Name
+                    Text {
+                        id: heroNameText
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 8
+                        horizontalAlignment: Text.AlignHCenter
+                        text: modelData.name
+                        color: heroMouse.containsMouse ? getAttrColor(modelData.attr) : SkinTheme.textPrimary
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeBody
+                        font.bold: true
+                        elide: Text.ElideRight
+                    }
+
+                    MouseArea {
+                        id: heroMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: heroesView.selectHero(modelData)
+                    }
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════
+        // HERO SHOWCASE STUDIO (When Hero is Selected)
+        // ═══════════════════════════════════════════
+        Item {
+            visible: selectedHero !== ""
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 0
+
+                // ── Hero Stage Banner ──
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 130
                     color: SkinTheme.bgCard
                     border.color: SkinTheme.borderMuted
                     border.width: 1
@@ -364,248 +597,265 @@ Item {
                     Image {
                         anchors.fill: parent
                         source: "../../assets/banner_dota2_arcana.jpg"
-                        fillMode: Image.Stretch
-                        opacity: 0.95
+                        fillMode: Image.PreserveAspectCrop
+                        opacity: 0.4
                         asynchronous: true
                     }
 
-                    // Cyberpunk gradient overlay (darker on left for text legibility)
                     Rectangle {
                         anchors.fill: parent
                         gradient: Gradient {
                             orientation: Gradient.Horizontal
-                            GradientStop { position: 0.0; color: "#F0080C14" }
-                            GradientStop { position: 0.36; color: "#C0080C14" }
-                            GradientStop { position: 0.72; color: "#35080C14" }
-                            GradientStop { position: 1.0; color: "#05080C14" }
+                            GradientStop { position: 0.0; color: "#FA08080E" }
+                            GradientStop { position: 0.4; color: "#D008080E" }
+                            GradientStop { position: 1.0; color: "#5008080E" }
                         }
                     }
 
-                    // Neon left accent
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        width: 3
-                        gradient: Gradient {
-                            GradientStop { position: 0.0; color: SkinTheme.accentCyan }
-                            GradientStop { position: 1.0; color: SkinTheme.accentViolet }
-                        }
-                        opacity: 0.85
-                    }
-
-                    ColumnLayout {
+                    RowLayout {
                         anchors.fill: parent
-                        anchors.margins: 28
-                        spacing: 6
+                        anchors.margins: 18
+                        spacing: 16
 
-                        // Mode / Category badge
+                        // Large Hero Avatar
                         Rectangle {
-                            height: 22
-                            radius: 3
-                            implicitWidth: badgeText.implicitWidth + 14
-                            color: SkinTheme.accentCyanGlow
-                            border.color: SkinTheme.accentCyan
-                            border.width: 1
+                            Layout.preferredWidth: 96
+                            Layout.preferredHeight: 96
+                            radius: SkinTheme.radiusLarge
+                            color: SkinTheme.bgVoid
+                            border.color: selectedHeroData ? getAttrColor(selectedHeroData.attr) : SkinTheme.accentCyan
+                            border.width: 2
+                            clip: true
 
-                            Text {
-                                id: badgeText
-                                anchors.centerIn: parent
-                                text: {
-                                    if (heroesView.selectedHero !== "") return "HERO • " + heroesView.selectedHero.toUpperCase()
-                                    if (heroesView.searchQuery !== "") return "SEARCH RESULTS"
-                                    return "DOTA 2 ARCANA COLLECTION"
-                                }
-                                color: SkinTheme.accentCyan
-                                font.family: SkinTheme.fontDisplay
-                                font.pixelSize: 10
-                                font.bold: true
-                                font.letterSpacing: 1.5
+                            Image {
+                                anchors.fill: parent
+                                source: selectedHeroData ? selectedHeroData.imageUrl : ""
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
                             }
                         }
 
-                        // Main Header Title
-                        Text {
-                            id: headerTitleText
-                            text: {
-                                if (heroesView.selectedHero !== "") return heroesView.selectedHero.toUpperCase() + " SKINS"
-                                if (heroesView.searchQuery !== "") return "RESULTS: \"" + heroesView.searchQuery.toUpperCase() + "\""
-                                return "CUSTOM HERO SKINS"
-                            }
-                            color: "#ffffff"
-                            font.family: SkinTheme.fontDisplay
-                            font.pixelSize: 22
-                            font.bold: true
-                            font.letterSpacing: 1.5
-                        }
-
-                        // Subtitle / Info
-                        Text {
-                            text: {
-                                if (heroesView.selectedHero !== "") return heroMods.length + " custom Arcana sets & items available for " + heroesView.selectedHero
-                                if (heroesView.searchQuery !== "") return heroMods.length + " skins matching your search"
-                                return "Exclusive community-made Arcana, Immortals and Persona sets"
-                            }
-                            color: SkinTheme.textSecondary
-                            font.family: SkinTheme.fontFamily
-                            font.pixelSize: 14
-                            elide: Text.ElideRight
+                        // Hero Info
+                        ColumnLayout {
                             Layout.fillWidth: true
-                        }
-
-                        Item { Layout.fillHeight: true }
-
-                        // Quick Reset Button (when filtered)
-                        Rectangle {
-                            height: 26
-                            radius: SkinTheme.radiusSmall
-                            color: resetBannerMouse.containsMouse ? SkinTheme.accentCyanGlow : "transparent"
-                            border.color: SkinTheme.accentCyan
-                            border.width: 1
-                            implicitWidth: resetBannerLabel.implicitWidth + 18
-                            visible: heroesView.selectedHero !== "" || heroesView.searchQuery !== ""
+                            spacing: 4
 
                             RowLayout {
-                                anchors.centerIn: parent
-                                spacing: 6
+                                spacing: 8
                                 Text {
-                                    id: resetBannerLabel
-                                    text: "✕ SHOW ALL HEROES"
-                                    color: SkinTheme.accentCyan
+                                    text: selectedHero.toUpperCase()
+                                    color: SkinTheme.textPrimary
+                                    font.family: SkinTheme.fontDisplay
+                                    font.pixelSize: SkinTheme.fontSizeHeader
+                                    font.bold: true
+                                    font.letterSpacing: 1.0
+                                }
+
+                                Rectangle {
+                                    height: 20
+                                    radius: SkinTheme.radiusSmall
+                                    implicitWidth: attrPillTxt.implicitWidth + 12
+                                    color: selectedHeroData ? getAttrColor(selectedHeroData.attr) : SkinTheme.accentCyan
+                                    opacity: 0.9
+
+                                    Text {
+                                        id: attrPillTxt
+                                        anchors.centerIn: parent
+                                        text: selectedHeroData ? getAttrLabel(selectedHeroData.attr) : "HERO"
+                                        color: "#FFFFFF"
+                                        font.family: SkinTheme.fontMono
+                                        font.pixelSize: 8
+                                        font.bold: true
+                                    }
+                                }
+                            }
+
+                            Text {
+                                text: heroMods.length + " custom sets, weapons, effects and audio lines available"
+                                color: SkinTheme.textSecondary
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeSmall
+                            }
+
+                            RowLayout {
+                                spacing: 12
+                                Layout.topMargin: 4
+
+                                // Equipped count
+                                Text {
+                                    text: "Active in Loadout: " + (selectedHeroData ? selectedHeroData.installedCount : 0)
+                                    color: SkinTheme.accentEmerald
                                     font.family: SkinTheme.fontMono
-                                    font.pixelSize: 10
+                                    font.pixelSize: SkinTheme.fontSizeSmall
                                     font.bold: true
                                 }
                             }
+                        }
+                    }
+                }
 
-                            MouseArea {
-                                id: resetBannerMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    heroesView.selectedHero = ""
-                                    heroesView.searchQuery = ""
+                // ── Slot Filter Chips Bar ──
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 44
+                    color: SkinTheme.bgDark
+
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        width: parent.width
+                        height: 1
+                        color: SkinTheme.borderSubtle
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: SkinTheme.spacingLG
+                        anchors.rightMargin: SkinTheme.spacingLG
+                        spacing: 8
+
+                        Repeater {
+                            model: [
+                                { id: "all",    label: "ALL ITEMS" },
+                                { id: "set",    label: "👑 SETS & ARCANA" },
+                                { id: "weapon", label: "⚔️ WEAPONS" },
+                                { id: "fx",     label: "✨ PARTICLES & FX" },
+                                { id: "audio",  label: "🎙️ SOUNDS & VOICE" }
+                            ]
+
+                            delegate: Rectangle {
+                                height: 28
+                                radius: SkinTheme.radiusSmall
+                                implicitWidth: slotTxt.implicitWidth + 18
+                                color: selectedSlot === modelData.id
+                                       ? SkinTheme.accentCyan
+                                       : (slotMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard)
+                                border.color: selectedSlot === modelData.id ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                                border.width: 1
+
+                                Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                                Text {
+                                    id: slotTxt
+                                    anchors.centerIn: parent
+                                    text: modelData.label
+                                    color: selectedSlot === modelData.id ? "#08080E" : SkinTheme.textSecondary
+                                    font.family: SkinTheme.fontFamily
+                                    font.pixelSize: SkinTheme.fontSizeSmall
+                                    font.bold: selectedSlot === modelData.id
+                                }
+
+                                MouseArea {
+                                    id: slotMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: selectedSlot = modelData.id
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            add: Transition {
-                NumberAnimation { property: "opacity"; from: 0; to: 1.0; duration: 250; easing.type: Easing.OutCubic }
-            }
+                // ── Hero Skin Cards Grid ──
+                GridView {
+                    id: heroSkinGrid
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    cellWidth: Math.max(300, Math.floor(width / Math.max(1, Math.floor(width / 340))))
+                    cellHeight: cellWidth * 0.58 + 16
+                    model: heroMods
+                    displayMarginBeginning: 20
+                    displayMarginEnd: 20
+                    clip: true
 
-            delegate: Item {
-                id: cardDelegate
-                width: grid.cellWidth
-                height: grid.cellHeight
+                    ScrollBar.vertical: NeonScrollBar {}
 
-                // Staggered cascade entrance (capped delay so far-down
-                // rows don't wait forever). Re-runs when scrolled back in.
-                opacity: 0
-                scale: 0.95
-                SequentialAnimation on opacity {
-                    running: cardDelegate.visible
-                    PauseAnimation { duration: (index % 18) * 30 }
-                    NumberAnimation { to: 1; duration: 300; easing.type: Easing.OutCubic }
-                }
-                SequentialAnimation on scale {
-                    running: cardDelegate.visible
-                    PauseAnimation { duration: (index % 18) * 30 }
-                    NumberAnimation { to: 1; duration: 320; easing.type: Easing.OutBack }
-                }
+                    delegate: Item {
+                        width: heroSkinGrid.cellWidth
+                        height: heroSkinGrid.cellHeight
 
-                SkinModCard {
-                    anchors.centerIn: parent
-                    modData: modelData
+                        SkinModCard {
+                            anchors.centerIn: parent
+                            modData: modelData
 
-                    onClicked: heroesView.modClicked(modelData)
-                    onInstallRequested: heroesView.modInstall(modelData)
-                    onUninstallRequested: heroesView.modUninstall(modelData)
-                    onAddToCartRequested: heroesView.modAddToCart(modelData)
+                            onClicked: heroesView.modClicked(modelData)
+                            onInstallRequested: heroesView.modInstall(modelData)
+                            onUninstallRequested: heroesView.modUninstall(modelData)
+                            onAddToCartRequested: heroesView.modAddToCart(modelData)
+                        }
+                    }
                 }
             }
+        }
 
-                // Empty State
-                Item {
-                    anchors.centerIn: parent
-                    visible: heroMods.length === 0
+        // ═══════════════════════════════════════════
+        // EMPTY STATE
+        // ═══════════════════════════════════════════
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: (heroesView.selectedHero === "" && filteredHeroCards.length === 0) ||
+                     (heroesView.selectedHero !== "" && heroMods.length === 0)
 
-                    ColumnLayout {
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 12
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "⊘"
+                    color: SkinTheme.textMuted
+                    font.pixelSize: 32
+                }
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "NO HEROES OR SKINS FOUND"
+                    color: SkinTheme.textPrimary
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeTitle
+                    font.bold: true
+                }
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "Try clearing your search query or selecting another attribute tab"
+                    color: SkinTheme.textSecondary
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeBody
+                }
+
+                Rectangle {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.topMargin: 8
+                    height: 32
+                    radius: SkinTheme.radiusMedium
+                    implicitWidth: resetText.implicitWidth + 24
+                    color: resetMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan
+
+                    Text {
+                        id: resetText
                         anchors.centerIn: parent
-                        spacing: 12
+                        text: "RESET FILTERS"
+                        color: "#08080E"
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
+                        font.bold: true
+                    }
 
-                        Rectangle {
-                            Layout.alignment: Qt.AlignHCenter
-                            width: 48
-                            height: 48
-                            radius: SkinTheme.radiusSmall
-                            color: "transparent"
-                            border.color: SkinTheme.borderMuted
-                            border.width: 1
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "⊘"
-                                color: SkinTheme.textMuted
-                                font.pixelSize: 20
-                            }
-                        }
-
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "NO RESULTS FOUND"
-                            color: SkinTheme.textPrimary
-                            font.family: SkinTheme.fontMono
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.letterSpacing: 1.5
-                        }
-
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "Try changing your search term or filter mode"
-                            color: SkinTheme.textMuted
-                            font.pixelSize: 12
-                        }
-
-                        Rectangle {
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.topMargin: 8
-                            height: 30
-                            radius: SkinTheme.radiusSmall
-                            implicitWidth: resetText.implicitWidth + 20
-                            color: resetMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
-                            border.color: SkinTheme.accentCyan
-                            border.width: 1
-
-                            Text {
-                                id: resetText
-                                anchors.centerIn: parent
-                                text: "RESET FILTERS"
-                                color: SkinTheme.accentCyan
-                                font.family: SkinTheme.fontMono
-                                font.pixelSize: 10
-                                font.bold: true
-                                font.letterSpacing: 0.8
-                            }
-
-                            MouseArea {
-                                id: resetMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    heroesView.selectedHero = ""
-                                    heroesView.searchQuery = ""
-                                    heroesView.filterMode = "all"
-                                }
-                            }
+                    MouseArea {
+                        id: resetMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            heroesView.searchQuery = ""
+                            heroesView.selectedAttr = "all"
+                            heroesView.selectedSlot = "all"
                         }
                     }
                 }
             }
         }
     }
+}

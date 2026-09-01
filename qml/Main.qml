@@ -14,7 +14,7 @@ ApplicationWindow {
     minimumWidth: 1040
     minimumHeight: 680
     title: "ImmortalHub — Dota 2 Skin Changer"
-    color: "#04060B"
+    color: SkinTheme.bgVoid
     flags: Qt.Window | Qt.FramelessWindowHint
 
     // Intercept window close to hide to tray
@@ -24,56 +24,23 @@ ApplicationWindow {
         toast.show("Minimized to system tray. Right-click the icon to quit.", "info")
     }
 
-    // Deep cyberpunk background gradient
+    // Subtle background gradient
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0.0; color: "#080C18" }
-            GradientStop { position: 1.0; color: "#04060B" }
+            GradientStop { position: 0.0; color: SkinTheme.bgDark }
+            GradientStop { position: 1.0; color: SkinTheme.bgVoid }
         }
         z: -100
     }
 
-    // Living aurora background — drifting neon blobs with cursor parallax
+    // Subtle aurora background
     AuroraBackground {
         anchors.fill: parent
         z: -98
     }
 
-
-
-    // Animated scanning line sweep
-    Rectangle {
-        id: globalScanLine
-        width: parent.width
-        height: 1
-        color: SkinTheme.accentCyan
-        opacity: 0.04
-        z: -97
-
-        SequentialAnimation on y {
-            running: true
-            loops: Animation.Infinite
-            NumberAnimation { to: root.height; duration: 6000; easing.type: Easing.Linear }
-            NumberAnimation { to: 0; duration: 0 }
-        }
-    }
-
-    // Scan line glow trail
-    Rectangle {
-        width: parent.width
-        height: 40
-        y: globalScanLine.y - 20
-        z: -97
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: "transparent" }
-            GradientStop { position: 0.5; color: SkinTheme.accentCyanGlow }
-            GradientStop { position: 1.0; color: "transparent" }
-        }
-        opacity: 0.08
-    }
-
-    property string currentTab: "heroes"
+    property string currentTab: "dashboard"
     property var cart: []
     property var selectedDetailMod: null
     property bool isInstallingQueue: false
@@ -126,7 +93,7 @@ ApplicationWindow {
 
     Component.onCompleted: {
         SkinTheme.setTheme(app ? app.themeMode : "cyberpunk")
-        SkinTheme.applyAccentHue(app ? app.accentHue : "cyan")
+        SkinTheme.applyAccentHue(app ? app.accentHue : "immortal")
         app.loadAll()
         appStartupAnim.start()
     }
@@ -180,7 +147,16 @@ ApplicationWindow {
                 for (var i = 0; i < drop.urls.length; i++) {
                     var u = drop.urls[i].toString()
                     if (u.toLowerCase().endsWith(".vpk") || u.toLowerCase().endsWith(".zip")) {
-                        app.importCustomMod(u)
+                        if (root.currentTab === "creators" && creatorsViewInstance.selectedCreatorId !== "") {
+                            var cleanLocal = u.replace("file:///", "").replace("file://", "")
+                            addModModalInstance.openForCreator(
+                                creatorsViewInstance.selectedCreatorId,
+                                creatorsViewInstance.selectedCreatorData ? creatorsViewInstance.selectedCreatorData.name : "Custom",
+                                cleanLocal
+                            )
+                        } else {
+                            app.importCustomMod(u)
+                        }
                     } else {
                         toast.show("Only .vpk and .zip mod files are supported.", "error")
                     }
@@ -189,29 +165,15 @@ ApplicationWindow {
         }
     }
 
-    // Drop Overlay Indicator
+    // Drop Overlay
     Rectangle {
         anchors.fill: parent
-        color: "#EE040610"
+        color: "#EE08080E"
         border.color: SkinTheme.accentCyan
-        border.width: 1
+        border.width: 2
+        radius: 0
         visible: root.isDraggingFile
         z: 8001
-
-        // Scanning lines on drop overlay
-        Column {
-            anchors.fill: parent
-            opacity: 0.03
-            Repeater {
-                model: Math.floor(parent.height / 4)
-                Rectangle {
-                    width: parent.width
-                    height: 1
-                    color: SkinTheme.accentCyan
-                    visible: index % 2 === 0
-                }
-            }
-        }
 
         ColumnLayout {
             anchors.centerIn: parent
@@ -219,18 +181,18 @@ ApplicationWindow {
 
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                width: 48
-                height: 48
-                radius: SkinTheme.radiusMedium
+                width: 56
+                height: 56
+                radius: SkinTheme.radiusLarge
                 color: "transparent"
                 border.color: SkinTheme.accentCyan
-                border.width: 1
+                border.width: 2
 
                 Text {
                     anchors.centerIn: parent
                     text: "+"
                     color: SkinTheme.accentCyan
-                    font.pixelSize: 24
+                    font.pixelSize: 28
                     font.weight: Font.Light
                 }
             }
@@ -239,8 +201,8 @@ ApplicationWindow {
                 Layout.alignment: Qt.AlignHCenter
                 text: "DROP .VPK OR .ZIP TO INSTALL"
                 color: SkinTheme.textPrimary
-                font.family: SkinTheme.fontMono
-                font.pixelSize: 13
+                font.family: SkinTheme.fontFamily
+                font.pixelSize: SkinTheme.fontSizeBody
                 font.bold: true
                 font.letterSpacing: 2.0
             }
@@ -249,16 +211,16 @@ ApplicationWindow {
                 Layout.alignment: Qt.AlignHCenter
                 text: "Files will be placed into your Dota 2 game directory"
                 color: SkinTheme.textMuted
-                font.pixelSize: 11
+                font.pixelSize: SkinTheme.fontSizeSmall
             }
         }
     }
 
-    // Outer Border for Frameless Window
+    // Window border
     Rectangle {
         anchors.fill: parent
         color: "transparent"
-        border.color: SkinTheme.borderMuted
+        border.color: SkinTheme.borderSubtle
         border.width: 1
         z: 999
         enabled: false
@@ -306,6 +268,15 @@ ApplicationWindow {
         color: SkinTheme.bgVoid
         opacity: 0.0
 
+        Image {
+            anchors.fill: parent
+            source: app.bgImagePath !== "" ? "file:///" + app.bgImagePath : ""
+            fillMode: Image.PreserveAspectCrop
+            visible: app.bgImagePath !== ""
+            asynchronous: true
+            opacity: 0.3
+        }
+
         ColumnLayout {
             anchors.fill: parent
             spacing: 0
@@ -341,6 +312,14 @@ ApplicationWindow {
                     Layout.fillHeight: true
 
                 // Views
+                DashboardView {
+                    anchors.fill: parent
+                    visible: currentTab === "dashboard"
+                    onNavigateToHeroes: { root.currentTab = "heroes"; sidebar.currentTab = "heroes" }
+                    onNavigateToInstalled: { root.currentTab = "installed"; sidebar.currentTab = "installed" }
+                    onModClicked: function(m) { root.selectedDetailMod = m }
+                }
+
                 HeroesView {
                     anchors.fill: parent
                     visible: currentTab === "heroes"
@@ -353,6 +332,16 @@ ApplicationWindow {
                 FavoritesView {
                     anchors.fill: parent
                     visible: currentTab === "favorites"
+                    onModClicked: function(m) { root.selectedDetailMod = m }
+                    onModInstall: function(m) { root.safeInstallMod(m) }
+                    onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
+                    onModAddToCart: function(m) { root.addToCart(m) }
+                }
+
+                CreatorsView {
+                    id: creatorsViewInstance
+                    anchors.fill: parent
+                    visible: currentTab === "creators"
                     onModClicked: function(m) { root.selectedDetailMod = m }
                     onModInstall: function(m) { root.safeInstallMod(m) }
                     onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
@@ -507,27 +496,22 @@ ApplicationWindow {
         id: toast
     }
 
-    // Loading Splash — Cyberpunk Terminal
+    // Add Creator Modal
+    AddCreatorModal {
+        id: addCreatorModalInstance
+    }
+
+    // Add Creator Mod Modal
+    AddCreatorModModal {
+        id: addModModalInstance
+    }
+
+    // Loading Splash — Minimal Premium
     Rectangle {
         anchors.fill: parent
         color: SkinTheme.bgVoid
         visible: app.isLoading
         z: 9000
-
-        // Scanning lines on splash
-        Column {
-            anchors.fill: parent
-            opacity: 0.03
-            Repeater {
-                model: Math.floor(root.height / 3)
-                Rectangle {
-                    width: root.width
-                    height: 1
-                    color: "#FFFFFF"
-                    visible: index % 2 === 0
-                }
-            }
-        }
 
         ColumnLayout {
             anchors.centerIn: parent
@@ -535,17 +519,17 @@ ApplicationWindow {
 
             AegisIcon {
                 Layout.alignment: Qt.AlignHCenter
-                width: 72
-                height: 72
+                width: 64
+                height: 64
             }
 
             Text {
                 Layout.alignment: Qt.AlignHCenter
-                text: "INITIALIZING SYSTEMS..."
-                color: SkinTheme.accentCyan
-                font.family: SkinTheme.fontMono
-                font.pixelSize: 12
-                font.bold: true
+                text: "LOADING..."
+                color: SkinTheme.textSecondary
+                font.family: SkinTheme.fontFamily
+                font.pixelSize: SkinTheme.fontSizeBody
+                font.weight: Font.Medium
                 font.letterSpacing: 3.0
 
                 SequentialAnimation on opacity {
@@ -553,30 +537,6 @@ ApplicationWindow {
                     loops: Animation.Infinite
                     NumberAnimation { to: 0.3; duration: 800; easing.type: Easing.InOutSine }
                     NumberAnimation { to: 1.0; duration: 800; easing.type: Easing.InOutSine }
-                }
-            }
-
-            // Progress dots
-            Row {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 6
-
-                Repeater {
-                    model: 3
-                    Rectangle {
-                        width: 4
-                        height: 4
-                        radius: 2
-                        color: SkinTheme.accentCyan
-
-                        SequentialAnimation on opacity {
-                            running: app.isLoading
-                            loops: Animation.Infinite
-                            PauseAnimation { duration: index * 200 }
-                            NumberAnimation { to: 0.2; duration: 400 }
-                            NumberAnimation { to: 1.0; duration: 400 }
-                        }
-                    }
                 }
             }
         }
@@ -620,7 +580,7 @@ ApplicationWindow {
                 anchors.bottom: parent.bottom
                 width: 2
                 height: 8
-                color: SkinTheme.accentCyan
+                color: SkinTheme.textMuted
                 opacity: 0.3
             }
             Rectangle {
@@ -628,7 +588,7 @@ ApplicationWindow {
                 anchors.bottom: parent.bottom
                 width: 8
                 height: 2
-                color: SkinTheme.accentCyan
+                color: SkinTheme.textMuted
                 opacity: 0.3
             }
         }

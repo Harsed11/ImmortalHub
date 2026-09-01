@@ -46,42 +46,45 @@ Item {
         anchors.fill: parent
         spacing: 0
 
-        // Header Bar
+        // ═══════════════════════════════════════════
+        // HEADER BAR
+        // ═══════════════════════════════════════════
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 68
+            Layout.preferredHeight: 64
             color: SkinTheme.bgHeader
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: SkinTheme.borderMuted
+                color: SkinTheme.borderSubtle
             }
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
-                spacing: 16
+                anchors.leftMargin: SkinTheme.spacingLG
+                anchors.rightMargin: SkinTheme.spacingLG
+                spacing: SkinTheme.spacingMD
 
                 ColumnLayout {
-                    spacing: 3
+                    spacing: 2
                     RowLayout {
                         spacing: 8
                         Text {
-                            text: "INSTALLED MODS & ACTIVE SKINS"
+                            text: "INSTALLED MODS"
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
                             font.pixelSize: SkinTheme.fontSizeTitle
                             font.bold: true
+                            font.letterSpacing: 0.5
                         }
 
                         Rectangle {
                             height: 20
-                            radius: 10
+                            radius: SkinTheme.radiusPill
                             implicitWidth: instCountBadge.implicitWidth + 14
-                            color: installedList.length > 0 ? "#122e23" : "#24181b"
+                            color: installedList.length > 0 ? SkinTheme.accentEmeraldGlow : SkinTheme.bgCard
                             border.color: installedList.length > 0 ? SkinTheme.accentEmerald : SkinTheme.borderMuted
                             border.width: 1
 
@@ -90,42 +93,45 @@ Item {
                                 anchors.centerIn: parent
                                 text: installedList.length + " ACTIVE"
                                 color: installedList.length > 0 ? SkinTheme.accentEmerald : SkinTheme.textMuted
-                                font.family: SkinTheme.fontFamily
-                                font.pixelSize: 9
+                                font.family: SkinTheme.fontMono
+                                font.pixelSize: 8
                                 font.bold: true
-                                font.letterSpacing: 0.5
                             }
                         }
                     }
 
                     Text {
-                        text: "Manage active custom skins, sound packs, terrain, and visual effects inside Dota 2."
-                        color: SkinTheme.textMuted
-                        font.pixelSize: 11
+                        text: "Active custom skins, terrain, sound packs, and effects deployed in Dota 2"
+                        color: SkinTheme.textSecondary
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
                     }
                 }
 
                 Item { Layout.fillWidth: true }
 
-                // Search Input
+                // Search Filter Input
                 Rectangle {
                     width: 220
-                    height: 36
+                    height: 34
                     radius: SkinTheme.radiusMedium
                     color: SkinTheme.bgInput
                     border.color: searchInstInput.activeFocus ? SkinTheme.accentCyan : SkinTheme.borderMuted
                     border.width: 1
 
+                    Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
+
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 10
                         anchors.rightMargin: 8
-                        spacing: 8
+                        spacing: 6
 
                         Text {
-                            text: "⌕"
+                            text: "\uE721"
+                            font.family: "Segoe MDL2 Assets"
                             font.pixelSize: 11
-                            color: SkinTheme.textMuted
+                            color: searchInstInput.activeFocus ? SkinTheme.accentCyan : SkinTheme.textMuted
                         }
 
                         TextInput {
@@ -133,7 +139,7 @@ Item {
                             Layout.fillWidth: true
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: SkinTheme.fontSizeBody
                             clip: true
                             selectByMouse: true
                             text: installedView.searchQuery
@@ -141,9 +147,10 @@ Item {
                             onTextChanged: installedView.searchQuery = text
 
                             Text {
-                                text: "Filter installed..."
+                                text: "Filter active mods..."
                                 color: SkinTheme.textMuted
-                                font.pixelSize: 12
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeBody
                                 visible: !searchInstInput.text && !searchInstInput.activeFocus
                             }
                         }
@@ -151,13 +158,13 @@ Item {
                         Rectangle {
                             width: 18
                             height: 18
-                            radius: 9
+                            radius: SkinTheme.radiusSmall
                             color: SkinTheme.bgCardHover
                             visible: searchInstInput.text !== ""
 
                             Text {
                                 anchors.centerIn: parent
-                                text: "вњ•"
+                                text: "✕"
                                 color: SkinTheme.textSecondary
                                 font.pixelSize: 9
                             }
@@ -171,28 +178,62 @@ Item {
                     }
                 }
 
-                // Clean Reset / Uninstall All Button
+                // Sync All Button
                 Rectangle {
-                    height: 36
+                    height: 34
                     radius: SkinTheme.radiusMedium
-                    implicitWidth: uninstAllText.implicitWidth + 28
-                    color: uninstAllMouse.containsMouse ? "#42161b" : "#281216"
-                    border.color: SkinTheme.accentCrimson
-                    border.width: 1
+                    implicitWidth: syncText.implicitWidth + 20
+                    color: syncMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan
+
+                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                    RowLayout {
+                        id: syncText
+                        anchors.centerIn: parent
+                        spacing: 6
+                        Text { text: "🔄"; font.pixelSize: 11; color: "#FFFFFF" }
+                        Text {
+                            text: "SYNC ALL"
+                            color: "#FFFFFF"
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeSmall
+                            font.bold: true
+                            font.letterSpacing: 0.5
+                        }
+                    }
+
+                    MouseArea {
+                        id: syncMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: app.syncAllMods()
+                    }
+                }
+
+                // Uninstall All Button
+                Rectangle {
+                    height: 34
+                    radius: SkinTheme.radiusMedium
+                    implicitWidth: uninstAllText.implicitWidth + 20
+                    color: uninstAllMouse.containsMouse ? SkinTheme.accentCrimsonHover : SkinTheme.accentCrimson
                     visible: installedList.length > 0
+
+                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
                     RowLayout {
                         id: uninstAllText
                         anchors.centerIn: parent
                         spacing: 6
 
-                        Text { text: "✕"; font.pixelSize: 11 }
+                        Text { text: "✕"; font.pixelSize: 10; color: "#FFFFFF" }
                         Text {
-                            text: "Uninstall All"
-                            color: SkinTheme.accentCrimsonHover
+                            text: "UNINSTALL ALL"
+                            color: "#FFFFFF"
                             font.family: SkinTheme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: SkinTheme.fontSizeSmall
                             font.bold: true
+                            font.letterSpacing: 0.5
                         }
                     }
 
@@ -207,15 +248,17 @@ Item {
             }
         }
 
-        // List of Installed Mods
+        // ═══════════════════════════════════════════
+        // LIST OF INSTALLED MODS
+        // ═══════════════════════════════════════════
         ListView {
             id: installedListView
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.margins: 16
+            Layout.margins: SkinTheme.spacingLG
             model: filteredList
             clip: true
-            spacing: 8
+            spacing: SkinTheme.spacingSM
 
             ScrollBar.vertical: NeonScrollBar {}
 
@@ -223,10 +266,11 @@ Item {
                 width: installedListView.width
                 height: 72
                 radius: SkinTheme.radiusLarge
-                color: SkinTheme.bgCard
-                border.color: rowMouse.containsMouse ? SkinTheme.borderActive : SkinTheme.borderMuted
+                color: rowMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard
+                border.color: rowMouse.containsMouse ? SkinTheme.borderLight : SkinTheme.borderMuted
                 border.width: 1
 
+                Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
                 Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
 
                 MouseArea {
@@ -241,10 +285,10 @@ Item {
                     anchors.rightMargin: 16
                     spacing: 14
 
-                    // Thumbnail
+                    // Thumbnail Preview
                     Rectangle {
                         width: 64
-                        height: 52
+                        height: 50
                         radius: SkinTheme.radiusSmall
                         color: SkinTheme.bgDark
                         clip: true
@@ -265,7 +309,7 @@ Item {
                         }
                     }
 
-                    // Metadata
+                    // Metadata Labels
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 3
@@ -276,16 +320,16 @@ Item {
                                 text: modelData.name
                                 color: SkinTheme.textPrimary
                                 font.family: SkinTheme.fontFamily
-                                font.pixelSize: 13
-                                font.bold: true
+                                font.pixelSize: SkinTheme.fontSizeBody
+                                font.weight: Font.DemiBold
                             }
 
                             Rectangle {
                                 height: 18
-                                radius: 4
-                                implicitWidth: itemCatText.implicitWidth + 8
-                                color: "#172338"
-                                border.color: SkinTheme.borderMuted
+                                radius: SkinTheme.radiusSmall
+                                implicitWidth: itemCatText.implicitWidth + 10
+                                color: SkinTheme.accentCyanGlow
+                                border.color: SkinTheme.accentCyan
                                 border.width: 1
 
                                 Text {
@@ -293,17 +337,17 @@ Item {
                                     anchors.centerIn: parent
                                     text: app.translate(modelData.categoryId)
                                     color: SkinTheme.accentCyan
-                                    font.family: SkinTheme.fontFamily
-                                    font.pixelSize: 9
+                                    font.family: SkinTheme.fontMono
+                                    font.pixelSize: 8
                                     font.bold: true
                                 }
                             }
 
                             Rectangle {
                                 height: 18
-                                radius: 4
-                                implicitWidth: 50
-                                color: "#16382b"
+                                radius: SkinTheme.radiusSmall
+                                implicitWidth: 48
+                                color: SkinTheme.accentEmeraldGlow
                                 border.color: SkinTheme.accentEmerald
                                 border.width: 1
 
@@ -311,7 +355,7 @@ Item {
                                     anchors.centerIn: parent
                                     text: "ACTIVE"
                                     color: SkinTheme.accentEmerald
-                                    font.family: SkinTheme.fontFamily
+                                    font.family: SkinTheme.fontMono
                                     font.pixelSize: 8
                                     font.bold: true
                                 }
@@ -320,31 +364,31 @@ Item {
 
                         Text {
                             text: (modelData.hero ? "Hero: " + modelData.hero + " • " : "") +
-                                  "Installed on: " + (modelData.installedAt || "Recent")
-                            color: SkinTheme.textMuted
+                                  "Installed: " + (modelData.installedAt || "Recent")
+                            color: SkinTheme.textSecondary
                             font.family: SkinTheme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: SkinTheme.fontSizeSmall
                         }
                     }
 
-                    // Uninstall Button
+                    // Single Item Uninstall Button
                     Rectangle {
-                        width: 100
-                        height: 34
+                        width: 90
+                        height: 32
                         radius: SkinTheme.radiusSmall
-                        color: itemUninstMouse.containsMouse ? "#4a1b22" : "#281216"
-                        border.color: SkinTheme.accentCrimson
-                        border.width: 1
+                        color: itemUninstMouse.containsMouse ? SkinTheme.accentCrimsonHover : SkinTheme.accentCrimson
+
+                        Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
                         RowLayout {
                             anchors.centerIn: parent
-                            spacing: 6
-                            Text { text: "✕"; font.pixelSize: 10 }
+                            spacing: 4
+                            Text { text: "✕"; font.pixelSize: 9; color: "#FFFFFF" }
                             Text {
-                                text: "Uninstall"
-                                color: SkinTheme.accentCrimsonHover
+                                text: "UNINSTALL"
+                                color: "#FFFFFF"
                                 font.family: SkinTheme.fontFamily
-                                font.pixelSize: 11
+                                font.pixelSize: SkinTheme.fontSizeSmall
                                 font.bold: true
                             }
                         }
@@ -360,7 +404,9 @@ Item {
                 }
             }
 
-            // Empty State
+            // ═══════════════════════════════════════════
+            // EMPTY STATE
+            // ═══════════════════════════════════════════
             Item {
                 anchors.centerIn: parent
                 visible: filteredList.length === 0
@@ -373,32 +419,35 @@ Item {
                         Layout.alignment: Qt.AlignHCenter
                         width: 48
                         height: 48
-                        opacity: 0.5
+                        opacity: 0.4
                     }
 
                     Text {
                         Layout.alignment: Qt.AlignHCenter
                         text: installedList.length === 0
-                              ? "No skins currently installed"
-                              : "No installed mods matching your search"
+                              ? "NO ACTIVE MODS INSTALLED"
+                              : "NO MODS MATCHING YOUR SEARCH"
                         color: SkinTheme.textPrimary
                         font.family: SkinTheme.fontFamily
-                        font.pixelSize: 15
+                        font.pixelSize: SkinTheme.fontSizeTitle
                         font.bold: true
                     }
 
                     Text {
                         Layout.alignment: Qt.AlignHCenter
-                        text: "Browse hero skins, visual effects, and sound packs to install mods!"
-                        color: SkinTheme.textMuted
-                        font.pixelSize: 12
+                        text: "Explore heroes, terrains, and sound packs to install your first skins!"
+                        color: SkinTheme.textSecondary
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeBody
                     }
                 }
             }
         }
     }
 
-    // Confirmation Modal for Uninstall All
+    // ═══════════════════════════════════════════
+    // CONFIRMATION MODAL (Uninstall All)
+    // ═══════════════════════════════════════════
     Rectangle {
         anchors.fill: parent
         color: SkinTheme.bgModalOverlay
@@ -411,7 +460,7 @@ Item {
         }
 
         Rectangle {
-            width: 400
+            width: 420
             height: 200
             radius: SkinTheme.radiusLarge
             anchors.centerIn: parent
@@ -427,16 +476,16 @@ Item {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 20
-                spacing: 14
+                spacing: 12
 
                 RowLayout {
                     spacing: 10
-                    Text { text: "⚠"; font.pixelSize: 22 }
+                    Text { text: "⚠"; font.pixelSize: 20; color: SkinTheme.accentCrimson }
                     Text {
                         text: "Uninstall All Mods?"
                         color: SkinTheme.textPrimary
                         font.family: SkinTheme.fontFamily
-                        font.pixelSize: 16
+                        font.pixelSize: SkinTheme.fontSizeTitle
                         font.bold: true
                     }
                 }
@@ -445,7 +494,7 @@ Item {
                     text: "This will remove all " + installedList.length + " active mods from your Dota 2 game directory. This action cannot be undone."
                     color: SkinTheme.textSecondary
                     font.family: SkinTheme.fontFamily
-                    font.pixelSize: 12
+                    font.pixelSize: SkinTheme.fontSizeBody
                     wrapMode: Text.Wrap
                     Layout.fillWidth: true
                 }
@@ -459,7 +508,7 @@ Item {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 36
-                        radius: SkinTheme.radiusSmall
+                        radius: SkinTheme.radiusMedium
                         color: cancelUninstMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard
                         border.color: SkinTheme.borderMuted
                         border.width: 1
@@ -469,7 +518,7 @@ Item {
                             text: "Cancel"
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: SkinTheme.fontSizeBody
                             font.bold: true
                         }
 
@@ -485,15 +534,15 @@ Item {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 36
-                        radius: SkinTheme.radiusSmall
+                        radius: SkinTheme.radiusMedium
                         color: confirmUninstMouse.containsMouse ? SkinTheme.accentCrimsonHover : SkinTheme.accentCrimson
 
                         Text {
                             anchors.centerIn: parent
                             text: "Yes, Uninstall All"
-                            color: "#ffffff"
+                            color: "#FFFFFF"
                             font.family: SkinTheme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: SkinTheme.fontSizeBody
                             font.bold: true
                         }
 
@@ -513,4 +562,3 @@ Item {
         }
     }
 }
-

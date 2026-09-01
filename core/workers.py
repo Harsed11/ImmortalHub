@@ -77,13 +77,22 @@ class InstallWorker(QThread):
             logger.info(f"Downloading mod '{name}' from {file_url}")
 
             try:
-                req = urllib.request.Request(
-                    file_url,
-                    headers={"User-Agent": "Dota2SkinChangerPro/2.0"}
-                )
+                data = None
+                local_path = mod.get("filePath", "")
+                if not local_path and (file_url.startswith("file:///") or file_url.startswith("file://")):
+                    local_path = urllib.parse.unquote(file_url.replace("file:///", "").replace("file://", ""))
 
-                with urllib.request.urlopen(req, timeout=60) as resp:
-                    data = resp.read()
+                if local_path and os.path.exists(local_path):
+                    logger.info(f"Loading local mod '{name}' from {local_path}")
+                    with open(local_path, "rb") as f_in:
+                        data = f_in.read()
+                else:
+                    req = urllib.request.Request(
+                        file_url,
+                        headers={"User-Agent": "Dota2SkinChangerPro/2.0"}
+                    )
+                    with urllib.request.urlopen(req, timeout=60) as resp:
+                        data = resp.read()
 
                 created_files = []
                 clean_name = os.path.basename(file_name)

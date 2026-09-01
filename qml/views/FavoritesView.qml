@@ -51,51 +51,65 @@ Item {
         anchors.fill: parent
         spacing: 0
 
-        // Header Bar
+        // ═══════════════════════════════════════════
+        // HEADER BAR
+        // ═══════════════════════════════════════════
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 60
+            Layout.preferredHeight: 64
             color: SkinTheme.bgHeader
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: SkinTheme.borderMuted
+                color: SkinTheme.borderSubtle
             }
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
-                spacing: 16
+                anchors.leftMargin: SkinTheme.spacingLG
+                anchors.rightMargin: SkinTheme.spacingLG
+                spacing: SkinTheme.spacingMD
 
                 ColumnLayout {
-                    spacing: 3
+                    spacing: 2
                     RowLayout {
                         spacing: 8
                         Text {
-                            text: "в… FAVORITES"
+                            text: "FAVORITES"
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
                             font.pixelSize: SkinTheme.fontSizeTitle
                             font.bold: true
-                            font.letterSpacing: 1.0
+                            font.letterSpacing: 0.5
                         }
 
-                        Text {
-                            text: "// " + favoritesList.length + " starred"
-                            color: SkinTheme.textMuted
-                            font.family: SkinTheme.fontMono
-                            font.pixelSize: 10
-                            font.letterSpacing: 0.5
+                        Rectangle {
+                            height: 20
+                            radius: SkinTheme.radiusPill
+                            implicitWidth: favCountBadge.implicitWidth + 14
+                            color: favoritesList.length > 0 ? SkinTheme.accentAmberGlow : SkinTheme.bgCard
+                            border.color: favoritesList.length > 0 ? SkinTheme.accentAmber : SkinTheme.borderMuted
+                            border.width: 1
+
+                            Text {
+                                id: favCountBadge
+                                anchors.centerIn: parent
+                                text: favoritesList.length + " STARRED"
+                                color: favoritesList.length > 0 ? SkinTheme.accentAmber : SkinTheme.textMuted
+                                font.family: SkinTheme.fontMono
+                                font.pixelSize: 8
+                                font.bold: true
+                            }
                         }
                     }
 
                     Text {
-                        text: "Quickly access and batch-install your personal favorite hero skins and mods."
-                        color: SkinTheme.textMuted
-                        font.pixelSize: 11
+                        text: "Your curated list of preferred custom skins and items for quick access"
+                        color: SkinTheme.textSecondary
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
                     }
                 }
 
@@ -103,23 +117,26 @@ Item {
 
                 // Search Input
                 Rectangle {
-                    width: 240
-                    height: 36
+                    width: 220
+                    height: 34
                     radius: SkinTheme.radiusMedium
                     color: SkinTheme.bgInput
                     border.color: searchFavInput.activeFocus ? SkinTheme.accentCyan : SkinTheme.borderMuted
                     border.width: 1
 
+                    Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
+
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 10
                         anchors.rightMargin: 8
-                        spacing: 8
+                        spacing: 6
 
                         Text {
-                            text: "⌕"
+                            text: "\uE721"
+                            font.family: "Segoe MDL2 Assets"
                             font.pixelSize: 11
-                            color: SkinTheme.textMuted
+                            color: searchFavInput.activeFocus ? SkinTheme.accentCyan : SkinTheme.textMuted
                         }
 
                         TextInput {
@@ -127,7 +144,7 @@ Item {
                             Layout.fillWidth: true
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: SkinTheme.fontSizeBody
                             clip: true
                             selectByMouse: true
                             text: favoritesView.searchQuery
@@ -137,7 +154,8 @@ Item {
                             Text {
                                 text: "Filter favorites..."
                                 color: SkinTheme.textMuted
-                                font.pixelSize: 12
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeBody
                                 visible: !searchFavInput.text && !searchFavInput.activeFocus
                             }
                         }
@@ -145,13 +163,13 @@ Item {
                         Rectangle {
                             width: 18
                             height: 18
-                            radius: 9
+                            radius: SkinTheme.radiusSmall
                             color: SkinTheme.bgCardHover
                             visible: searchFavInput.text !== ""
 
                             Text {
                                 anchors.centerIn: parent
-                                text: "вњ•"
+                                text: "✕"
                                 color: SkinTheme.textSecondary
                                 font.pixelSize: 9
                             }
@@ -167,93 +185,77 @@ Item {
             }
         }
 
-        // Mod Cards Grid
-        ScrollView {
+        // ═══════════════════════════════════════════
+        // MOD CARDS GRID
+        // ═══════════════════════════════════════════
+        GridView {
+            id: favGrid
             Layout.fillWidth: true
             Layout.fillHeight: true
+            cellWidth: Math.max(300, Math.floor(width / Math.max(1, Math.floor(width / 340))))
+            cellHeight: cellWidth * 0.58 + 16
+            model: filteredList
+            displayMarginBeginning: 20
+            displayMarginEnd: 20
             clip: true
 
             ScrollBar.vertical: NeonScrollBar {}
 
-            GridView {
-                id: favGrid
-                width: parent.width
-                cellWidth: Math.max(220, Math.floor(width / Math.max(1, Math.floor(width / 240))))
-                cellHeight: 270
-                model: filteredList
-                displayMarginBeginning: 20
-                displayMarginEnd: 20
+            delegate: Item {
+                width: favGrid.cellWidth
+                height: favGrid.cellHeight
 
-                delegate: Item {
-                    id: favCardDelegate
-                    width: favGrid.cellWidth
-                    height: favGrid.cellHeight
+                SkinModCard {
+                    anchors.centerIn: parent
+                    modData: modelData
 
-                    // Staggered cascade entrance
-                    opacity: 0
-                    scale: 0.95
-                    SequentialAnimation on opacity {
-                        running: favCardDelegate.visible
-                        PauseAnimation { duration: (index % 18) * 30 }
-                        NumberAnimation { to: 1; duration: 300; easing.type: Easing.OutCubic }
-                    }
-                    SequentialAnimation on scale {
-                        running: favCardDelegate.visible
-                        PauseAnimation { duration: (index % 18) * 30 }
-                        NumberAnimation { to: 1; duration: 320; easing.type: Easing.OutBack }
-                    }
+                    onClicked: favoritesView.modClicked(modelData)
+                    onInstallRequested: favoritesView.modInstall(modelData)
+                    onUninstallRequested: favoritesView.modUninstall(modelData)
+                    onAddToCartRequested: favoritesView.modAddToCart(modelData)
+                }
+            }
+        }
 
-                    SkinModCard {
-                        anchors.centerIn: parent
-                        width: favGrid.cellWidth - 12
-                        modData: modelData
+        // ═══════════════════════════════════════════
+        // EMPTY STATE
+        // ═══════════════════════════════════════════
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: filteredList.length === 0
 
-                        onClicked: favoritesView.modClicked(modelData)
-                        onInstallRequested: favoritesView.modInstall(modelData)
-                        onUninstallRequested: favoritesView.modUninstall(modelData)
-                        onAddToCartRequested: favoritesView.modAddToCart(modelData)
-                    }
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 12
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "★"
+                    font.pixelSize: 36
+                    color: SkinTheme.accentAmber
+                    opacity: 0.6
                 }
 
-                // Empty State
-                Item {
-                    anchors.centerIn: parent
-                    visible: filteredList.length === 0
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: favoritesList.length === 0
+                          ? "NO FAVORITE SKINS YET"
+                          : "NO FAVORITES MATCHING SEARCH"
+                    color: SkinTheme.textPrimary
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeTitle
+                    font.bold: true
+                }
 
-                    ColumnLayout {
-                        anchors.centerIn: parent
-                        spacing: 12
-
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "★"
-                            font.pixelSize: 32
-                            color: SkinTheme.accentCyan
-                            opacity: 0.5
-                        }
-
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: favoritesList.length === 0
-                                  ? "NO FAVORITES YET"
-                                  : "NO MATCHES FOUND"
-                            color: SkinTheme.textPrimary
-                            font.family: SkinTheme.fontMono
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.letterSpacing: 1.5
-                        }
-
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "Click в… on any mod card to save it here"
-                            color: SkinTheme.textMuted
-                            font.pixelSize: 12
-                        }
-                    }
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "Click the star icon ★ on any skin card to add it to your favorites"
+                    color: SkinTheme.textSecondary
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeBody
                 }
             }
         }
     }
 }
-

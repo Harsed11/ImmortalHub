@@ -25,33 +25,24 @@ Rectangle {
 
     Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
 
-    // Backdrop click -> close
+    // Dismiss on backdrop click
     MouseArea {
         anchors.fill: parent
         onClicked: drawer.closeRequested()
     }
 
-    // Slide-in Panel from Right
+    // Slide-in Drawer from Right
     Rectangle {
         id: panel
         width: Math.min(420, parent.width * 0.85)
         height: parent.height
         anchors.right: parent.right
         color: SkinTheme.bgSidebar
-        border.color: SkinTheme.borderMuted
+        border.color: SkinTheme.borderSubtle
         border.width: 1
 
         x: isOpen ? parent.width - width : parent.width
         Behavior on x { NumberAnimation { duration: SkinTheme.animNormal; easing.type: Easing.OutCubic } }
-
-        // Left neon edge
-        Rectangle {
-            anchors.left: parent.left
-            width: 1
-            height: parent.height
-            color: SkinTheme.accentCyan
-            opacity: 0.3
-        }
 
         MouseArea {
             anchors.fill: parent
@@ -62,17 +53,17 @@ Rectangle {
             anchors.fill: parent
             spacing: 0
 
-            // Header Bar
+            // ── Drawer Header ──
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 52
+                Layout.preferredHeight: 56
                 color: SkinTheme.bgDark
 
                 Rectangle {
                     anchors.bottom: parent.bottom
                     width: parent.width
                     height: 1
-                    color: SkinTheme.borderMuted
+                    color: SkinTheme.borderSubtle
                 }
 
                 RowLayout {
@@ -82,17 +73,17 @@ Rectangle {
                     spacing: 10
 
                     Text {
-                        text: "BATCH QUEUE"
+                        text: "INSTALL QUEUE"
                         color: SkinTheme.textPrimary
-                        font.family: SkinTheme.fontMono
-                        font.pixelSize: 12
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeTitle
                         font.bold: true
-                        font.letterSpacing: 1.5
+                        font.letterSpacing: 0.5
                     }
 
                     Rectangle {
                         height: 20
-                        radius: 4
+                        radius: SkinTheme.radiusPill
                         implicitWidth: cartCountPill.implicitWidth + 12
                         color: cartList.length > 0 ? SkinTheme.accentCyanGlow : SkinTheme.bgCard
                         border.color: cartList.length > 0 ? SkinTheme.accentCyan : SkinTheme.borderMuted
@@ -104,28 +95,26 @@ Rectangle {
                             text: cartList.length + ""
                             color: cartList.length > 0 ? SkinTheme.accentCyan : SkinTheme.textMuted
                             font.family: SkinTheme.fontMono
-                            font.pixelSize: 10
+                            font.pixelSize: 9
                             font.bold: true
                         }
                     }
 
                     Item { Layout.fillWidth: true }
 
+                    // Close Button
                     Rectangle {
                         width: 30
                         height: 30
                         radius: SkinTheme.radiusSmall
                         color: closeBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
-                        border.color: closeBtnMouse.containsMouse ? SkinTheme.accentCrimson : SkinTheme.borderMuted
+                        border.color: SkinTheme.borderMuted
                         border.width: 1
-
-                        Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
 
                         Text {
                             anchors.centerIn: parent
-                            text: "\uE8BB"
-                            color: closeBtnMouse.containsMouse ? SkinTheme.accentCrimson : SkinTheme.textMuted
-                            font.family: "Segoe MDL2 Assets"
+                            text: "✕"
+                            color: closeBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textMuted
                             font.pixelSize: 11
                         }
 
@@ -140,10 +129,10 @@ Rectangle {
                 }
             }
 
-            // Install Progress
+            // ── Install Progress Banner ──
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 72
+                Layout.preferredHeight: 68
                 color: SkinTheme.bgCard
                 visible: isInstalling
                 border.color: SkinTheme.accentCyan
@@ -152,17 +141,16 @@ Rectangle {
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: 12
-                    spacing: 8
+                    spacing: 6
 
                     RowLayout {
                         Layout.fillWidth: true
                         Text {
                             text: installStatus || "INSTALLING..."
                             color: SkinTheme.accentCyan
-                            font.family: SkinTheme.fontMono
-                            font.pixelSize: 10
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeSmall
                             font.bold: true
-                            font.letterSpacing: 0.5
                             elide: Text.ElideRight
                             Layout.fillWidth: true
                         }
@@ -170,12 +158,12 @@ Rectangle {
                             text: installPercent + "%"
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontMono
-                            font.pixelSize: 12
+                            font.pixelSize: SkinTheme.fontSizeBody
                             font.bold: true
                         }
                     }
 
-                    // Progress Bar — neon gradient
+                    // Progress Bar
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 6
@@ -186,31 +174,14 @@ Rectangle {
                             height: parent.height
                             radius: 3
                             width: Math.max(6, parent.width * (installPercent / 100))
-                            gradient: Gradient {
-                                orientation: Gradient.Horizontal
-                                GradientStop { position: 0.0; color: SkinTheme.accentCyan }
-                                GradientStop { position: 1.0; color: SkinTheme.accentViolet }
-                            }
+                            color: SkinTheme.accentCyan
                             Behavior on width { NumberAnimation { duration: 150 } }
-
-                            // Glow effect
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: parent.radius
-                                gradient: Gradient {
-                                    orientation: Gradient.Horizontal
-                                    GradientStop { position: 0.0; color: SkinTheme.accentCyan }
-                                    GradientStop { position: 1.0; color: SkinTheme.accentViolet }
-                                }
-                                opacity: 0.4
-                                anchors.margins: -2
-                            }
                         }
                     }
                 }
             }
 
-            // Queued Items List
+            // ── Queued Items List ──
             ListView {
                 id: cartListView
                 Layout.fillWidth: true
@@ -221,25 +192,18 @@ Rectangle {
                 displayMarginBeginning: 10
                 displayMarginEnd: 10
 
-                ScrollBar.vertical: ScrollBar {
-                    width: 4
-                    policy: ScrollBar.AsNeeded
-                    contentItem: Rectangle {
-                        radius: 2
-                        color: SkinTheme.accentCyan
-                        opacity: 0.3
-                    }
-                }
+                ScrollBar.vertical: NeonScrollBar {}
 
                 delegate: Rectangle {
                     width: cartListView.width - 24
                     height: 56
                     anchors.horizontalCenter: parent.horizontalCenter
-                    radius: SkinTheme.radiusSmall
-                    color: SkinTheme.bgCard
-                    border.color: itemRowMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                    radius: SkinTheme.radiusMedium
+                    color: itemRowMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard
+                    border.color: itemRowMouse.containsMouse ? SkinTheme.borderLight : SkinTheme.borderMuted
                     border.width: 1
 
+                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
                     Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
 
                     MouseArea {
@@ -261,30 +225,25 @@ Rectangle {
                             radius: SkinTheme.radiusSmall
                             color: SkinTheme.bgDark
                             clip: true
-                            border.color: SkinTheme.borderMuted
-                            border.width: 1
 
                             Image {
                                 anchors.fill: parent
                                 source: modelData.previewUrl || ""
                                 fillMode: Image.PreserveAspectCrop
-                                sourceSize.width: 100
-                                sourceSize.height: 70
                                 asynchronous: true
-                                cache: true
                             }
                         }
 
                         // Info
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 3
+                            spacing: 2
 
                             Text {
                                 text: modelData.name
                                 color: SkinTheme.textPrimary
                                 font.family: SkinTheme.fontFamily
-                                font.pixelSize: 12
+                                font.pixelSize: SkinTheme.fontSizeBody
                                 font.bold: true
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
@@ -292,10 +251,9 @@ Rectangle {
 
                             Text {
                                 text: app.translate(modelData.categoryId) + (modelData.hero ? " • " + modelData.hero : "")
-                                color: SkinTheme.textMuted
-                                font.family: SkinTheme.fontMono
-                                font.pixelSize: 9
-                                font.letterSpacing: 0.5
+                                color: SkinTheme.textSecondary
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeSmall
                                 elide: Text.ElideRight
                             }
                         }
@@ -305,17 +263,14 @@ Rectangle {
                             width: 26
                             height: 26
                             radius: SkinTheme.radiusSmall
-                            color: delMouse.containsMouse ? SkinTheme.accentCrimson : "transparent"
+                            color: delMouse.containsMouse ? SkinTheme.accentCrimsonHover : "transparent"
                             border.color: delMouse.containsMouse ? "transparent" : SkinTheme.borderMuted
                             border.width: 1
 
-                            Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
-
                             Text {
                                 anchors.centerIn: parent
-                                text: "\uE8BB"
-                                color: delMouse.containsMouse ? "#ffffff" : SkinTheme.textMuted
-                                font.family: "Segoe MDL2 Assets"
+                                text: "✕"
+                                color: delMouse.containsMouse ? "#FFFFFF" : SkinTheme.textMuted
                                 font.pixelSize: 10
                             }
 
@@ -337,46 +292,46 @@ Rectangle {
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 12
+                        spacing: 10
 
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "⊘"
-                            font.pixelSize: 32
+                            text: "⚡"
+                            font.pixelSize: 28
                             color: SkinTheme.textMuted
                         }
 
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "QUEUE EMPTY"
+                            text: "QUEUE IS EMPTY"
                             color: SkinTheme.textPrimary
-                            font.family: SkinTheme.fontMono
-                            font.pixelSize: 13
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeBody
                             font.bold: true
-                            font.letterSpacing: 1.5
                         }
 
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "Click '+' on any mod card to add items"
-                            color: SkinTheme.textMuted
-                            font.pixelSize: 11
+                            text: "Click '+' on any skin card to add to queue"
+                            color: SkinTheme.textSecondary
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeSmall
                         }
                     }
                 }
             }
 
-            // Footer Actions
+            // ── Footer Action Buttons ──
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 110
+                Layout.preferredHeight: 106
                 color: SkinTheme.bgDark
 
                 Rectangle {
                     anchors.top: parent.top
                     width: parent.width
                     height: 1
-                    color: SkinTheme.borderMuted
+                    color: SkinTheme.borderSubtle
                 }
 
                 ColumnLayout {
@@ -384,56 +339,35 @@ Rectangle {
                     anchors.margins: 14
                     spacing: 8
 
-                    // Install All Button — neon gradient
+                    // Install All Button
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 42
+                        Layout.preferredHeight: 40
                         radius: SkinTheme.radiusMedium
                         enabled: cartList.length > 0 && !isInstalling
+                        color: (cartList.length > 0 && !isInstalling)
+                               ? (instAllMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan)
+                               : SkinTheme.bgCard
 
-                        gradient: (cartList.length > 0 && !isInstalling) ? instGrad : null
-                        color: (cartList.length > 0 && !isInstalling) ? "transparent" : SkinTheme.borderMuted
+                        Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
-                        Gradient {
-                            id: instGrad
-                            orientation: Gradient.Horizontal
-                            GradientStop { position: 0.0; color: instAllMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan }
-                            GradientStop { position: 1.0; color: instAllMouse.containsMouse ? SkinTheme.accentVioletHover : SkinTheme.accentViolet }
-                        }
-
-                        // Glow behind button
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: parent.width + 6
-                            height: parent.height + 6
-                            radius: parent.radius + 3
-                            color: "transparent"
-                            border.color: SkinTheme.accentCyan
-                            border.width: 1
-                            opacity: (cartList.length > 0 && instAllMouse.containsMouse) ? 0.3 : 0
-                            Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
-                        }
-
-                        Row {
+                        RowLayout {
                             anchors.centerIn: parent
                             spacing: 6
 
                             Text {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: "\uE945"
-                                color: (cartList.length > 0 && !isInstalling) ? "#060810" : SkinTheme.textMuted
-                                font.family: "Segoe MDL2 Assets"
-                                font.pixelSize: 12
+                                text: "⚡"
+                                color: (cartList.length > 0 && !isInstalling) ? "#FFFFFF" : SkinTheme.textMuted
+                                font.pixelSize: 11
                             }
 
                             Text {
-                                anchors.verticalCenter: parent.verticalCenter
                                 text: isInstalling ? "INSTALLING..." : "INSTALL ALL (" + cartList.length + ")"
-                                color: (cartList.length > 0 && !isInstalling) ? "#060810" : SkinTheme.textMuted
-                                font.family: SkinTheme.fontMono
-                                font.pixelSize: 12
+                                color: (cartList.length > 0 && !isInstalling) ? "#FFFFFF" : SkinTheme.textMuted
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeBody
                                 font.bold: true
-                                font.letterSpacing: 1.0
+                                font.letterSpacing: 0.5
                             }
                         }
 
@@ -460,10 +394,9 @@ Rectangle {
                             anchors.centerIn: parent
                             text: "CLEAR QUEUE"
                             color: SkinTheme.textMuted
-                            font.family: SkinTheme.fontMono
-                            font.pixelSize: 10
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeSmall
                             font.bold: true
-                            font.letterSpacing: 1.0
                         }
 
                         MouseArea {

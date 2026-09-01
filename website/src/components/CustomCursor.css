@@ -1,0 +1,80 @@
+body {
+  /* Hide the default cursor to rely on the custom one */
+  cursor: none !important;
+}
+
+/* Ensure interactive elements also hide default cursor */
+a, button, input, textarea, select, .clickable {
+  cursor: none !important;
+}
+
+.custom-cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  background-color: var(--neon-cyan);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  opacity: 0;
+  /* Only transition visual states, NOT layout/transforms (avoids lag) */
+  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              height 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              background-color 0.2s, 
+              opacity 0.3s;
+  box-shadow: 0 0 10px var(--neon-cyan);
+  will-change: transform; /* Hardware acceleration */
+}
+
+.custom-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99998;
+  opacity: 0;
+  /* Only transition visual states, NOT layout/transforms */
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              height 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.3s, 
+              background-color 0.3s,
+              opacity 0.3s;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+  will-change: transform; /* Hardware acceleration */
+}
+
+/* Visibility State */
+.custom-cursor-dot.visible,
+.custom-cursor-ring.visible {
+  opacity: 1;
+}
+
+/* Hover State */
+.custom-cursor-dot.hovering {
+  width: 10px;
+  height: 10px;
+  background-color: var(--neon-violet);
+  box-shadow: 0 0 15px var(--neon-violet);
+}
+
+.custom-cursor-ring.hovering {
+  width: 48px;
+  height: 48px;
+  border-color: rgba(168, 85, 247, 0.6);
+  background-color: rgba(168, 85, 247, 0.05);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+}
+
+/* Click State */
+.custom-cursor-ring.clicking {
+  width: 20px;
+  height: 20px;
+  border-color: var(--neon-cyan);
+  background-color: rgba(0, 240, 255, 0.2);
+}

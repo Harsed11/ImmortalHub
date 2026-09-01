@@ -5,7 +5,7 @@ import "../theme"
 
 Rectangle {
     id: titleBar
-    height: 38
+    height: 44
     color: SkinTheme.bgDark
     z: 100
 
@@ -16,52 +16,39 @@ Rectangle {
     signal playDotaClicked()
     signal searchClicked()
 
-    // Bottom subtle border
+    // Bottom border
     Rectangle {
         anchors.bottom: parent.bottom
         width: parent.width
         height: 1
-        color: SkinTheme.borderMuted
+        color: SkinTheme.borderSubtle
     }
 
-    // Top neon accent line — animated gradient sweep
+    // Subtle top accent line
     Rectangle {
-        id: topNeonLine
         anchors.top: parent.top
         width: parent.width
         height: 1
-
-        // Animated gradient sweep position
-        property real sweepPos: 0.0
-
-        NumberAnimation on sweepPos {
-            from: 0.0; to: 1.0
-            duration: 3000
-            loops: Animation.Infinite
-            easing.type: Easing.Linear
-        }
-
         gradient: Gradient {
             orientation: Gradient.Horizontal
             GradientStop { position: 0.0; color: "transparent" }
-            GradientStop { position: Math.max(0.01, topNeonLine.sweepPos - 0.15); color: "transparent" }
-            GradientStop { position: topNeonLine.sweepPos; color: SkinTheme.accentCyan }
-            GradientStop { position: Math.min(0.99, topNeonLine.sweepPos + 0.15); color: SkinTheme.accentViolet }
-            GradientStop { position: Math.min(1.0, topNeonLine.sweepPos + 0.3); color: "transparent" }
+            GradientStop { position: 0.2; color: SkinTheme.accentCyan }
+            GradientStop { position: 0.8; color: SkinTheme.accentCyan }
             GradientStop { position: 1.0; color: "transparent" }
         }
+        opacity: 0.3
     }
 
-    // Subtle glow under the neon line
+    // Soft glow under accent line
     Rectangle {
         anchors.top: parent.top
         width: parent.width
-        height: 6
+        height: 8
         gradient: Gradient {
             GradientStop { position: 0.0; color: SkinTheme.accentCyanGlow }
             GradientStop { position: 1.0; color: "transparent" }
         }
-        opacity: 0.3
+        opacity: 0.5
     }
 
     // Drag area
@@ -87,144 +74,111 @@ Rectangle {
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 14
+        anchors.leftMargin: 16
         anchors.rightMargin: 0
-        spacing: 10
+        spacing: 0
 
-        // Brand Logo & Title — Clean Minimal with Neon Glow
+        // ── Brand Logo ──
         RowLayout {
-            spacing: 8
+            spacing: 10
 
             AegisIcon {
-                width: 20
-                height: 20
+                width: 22
+                height: 22
             }
 
-            Item {
-                implicitWidth: titleText.implicitWidth
-                implicitHeight: titleText.implicitHeight
-
-                // Subtle Cyan Ambient Glow under Title Text
-                Text {
-                    anchors.centerIn: parent
-                    text: titleText.text
-                    textFormat: Text.RichText
-                    font: titleText.font
-                    color: SkinTheme.accentCyan
-                    opacity: 0.4
-                }
-
-                Text {
-                    id: titleText
-                    anchors.centerIn: parent
-                    text: "IMMORTAL<font color='" + SkinTheme.accentCyan + "'>HUB</font>"
-                    textFormat: Text.RichText
-                    color: SkinTheme.textPrimary
-                    font.family: SkinTheme.fontDisplay
-                    font.pixelSize: 12
-                    font.bold: true
-                    font.letterSpacing: 2.0
-                }
+            Text {
+                text: "IMMORTAL"
+                color: SkinTheme.textPrimary
+                font.family: SkinTheme.fontDisplay
+                font.pixelSize: 14
+                font.bold: true
+                font.letterSpacing: 2.0
+            }
+            Text {
+                text: "HUB"
+                color: SkinTheme.accentCyan
+                font.family: SkinTheme.fontDisplay
+                font.pixelSize: 14
+                font.bold: true
+                font.letterSpacing: 2.0
             }
 
+            // Version badge
             Rectangle {
-                height: 16
-                radius: 3
-                implicitWidth: alphaBadgeText.implicitWidth + 8
-                color: SkinTheme.accentCyanGlow
-                border.color: SkinTheme.accentCyan
+                height: 18
+                radius: SkinTheme.radiusSmall
+                implicitWidth: verText.implicitWidth + 10
+                color: SkinTheme.bgSurface
+                border.color: SkinTheme.borderMuted
                 border.width: 1
 
-                // Outer neon glow
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: parent.width + 4
-                    height: parent.height + 4
-                    radius: parent.radius + 1
-                    color: "transparent"
-                    border.color: SkinTheme.accentCyan
-                    border.width: 1
-                    opacity: 0.3
-                }
-
                 Text {
-                    id: alphaBadgeText
+                    id: verText
                     anchors.centerIn: parent
-                    text: "ALPHA"
-                    color: SkinTheme.accentCyan
+                    text: app ? app.appVersion : "v0.0"
+                    color: SkinTheme.textMuted
                     font.family: SkinTheme.fontMono
                     font.pixelSize: 8
                     font.bold: true
-                    font.letterSpacing: 0.8
                 }
             }
         }
 
-        // Spacer
         Item { Layout.fillWidth: true }
 
-        // Launch Dota 2 Button
+        // ── Search Button (Ctrl+K) ──
         Rectangle {
             Layout.alignment: Qt.AlignVCenter
-            Layout.rightMargin: 6
-            height: 24
-            radius: SkinTheme.radiusSmall
-            implicitWidth: playDotaLabel.implicitWidth + 20
-            color: playDotaMouse.containsMouse ? SkinTheme.accentEmeraldHover : SkinTheme.accentEmerald
-            border.color: "transparent"
-
-            Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
-
-            RowLayout {
-                anchors.centerIn: parent
-                spacing: 5
-
-                Text {
-                    id: playDotaLabel
-                    text: app.uiLanguage.length && app.t("tb.play")
-                    color: "#060810"
-                    font.family: SkinTheme.fontMono
-                    font.pixelSize: 10
-                    font.bold: true
-                    font.letterSpacing: 0.8
-                }
-            }
-
-            MouseArea {
-                id: playDotaMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: titleBar.playDotaClicked()
-            }
-        }
-
-        // Search Button (Ctrl+K)
-        Rectangle {
-            Layout.alignment: Qt.AlignVCenter
-            Layout.rightMargin: 6
-            height: 24
-            radius: SkinTheme.radiusSmall
-            implicitWidth: searchBtnLabel.implicitWidth + 20
-            color: searchBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
-            border.color: searchBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.borderMuted
+            Layout.rightMargin: 8
+            height: 30
+            width: 200
+            radius: SkinTheme.radiusMedium
+            color: searchBtnMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgInput
+            border.color: searchBtnMouse.containsMouse ? SkinTheme.borderActive : SkinTheme.borderMuted
             border.width: 1
 
             Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
             Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
 
             RowLayout {
-                anchors.centerIn: parent
-                spacing: 5
+                anchors.fill: parent
+                anchors.leftMargin: 10
+                anchors.rightMargin: 10
+                spacing: 8
 
                 Text {
-                    id: searchBtnLabel
-                    text: app.uiLanguage.length && app.t("tb.search")
-                    color: searchBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.textSecondary
-                    font.family: SkinTheme.fontMono
-                    font.pixelSize: 10
-                    font.bold: true
-                    font.letterSpacing: 0.8
+                    text: "\uE721"
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 12
+                    color: SkinTheme.textMuted
+                }
+
+                Text {
+                    text: "Search..."
+                    color: SkinTheme.textMuted
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeSmall
+                    Layout.fillWidth: true
+                }
+
+                Rectangle {
+                    width: shortcutText.implicitWidth + 8
+                    height: 18
+                    radius: 4
+                    color: SkinTheme.bgCard
+                    border.color: SkinTheme.borderMuted
+                    border.width: 1
+
+                    Text {
+                        id: shortcutText
+                        anchors.centerIn: parent
+                        text: "Ctrl K"
+                        color: SkinTheme.textMuted
+                        font.family: SkinTheme.fontMono
+                        font.pixelSize: 8
+                        font.bold: true
+                    }
                 }
             }
 
@@ -237,32 +191,40 @@ Rectangle {
             }
         }
 
-        // Presets Button
+        // ── Presets Button ──
         Rectangle {
             Layout.alignment: Qt.AlignVCenter
-            Layout.rightMargin: 6
-            height: 24
-            radius: SkinTheme.radiusSmall
-            implicitWidth: presetsBtnLabel.implicitWidth + 20
+            Layout.rightMargin: 8
+            height: 30
+            radius: SkinTheme.radiusMedium
+            implicitWidth: presetsBtnRow.implicitWidth + 20
             color: presetsBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
-            border.color: presetsBtnMouse.containsMouse ? SkinTheme.accentViolet : SkinTheme.borderMuted
+            border.color: presetsBtnMouse.containsMouse ? SkinTheme.borderActive : SkinTheme.borderMuted
             border.width: 1
 
             Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
             Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
 
             RowLayout {
+                id: presetsBtnRow
                 anchors.centerIn: parent
-                spacing: 5
+                spacing: 6
 
                 Text {
-                    id: presetsBtnLabel
+                    text: "\uE8F1"
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 11
+                    color: presetsBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary
+                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+                }
+
+                Text {
                     text: app.uiLanguage.length && app.t("tb.presets")
-                    color: presetsBtnMouse.containsMouse ? SkinTheme.accentViolet : SkinTheme.textSecondary
-                    font.family: SkinTheme.fontMono
-                    font.pixelSize: 10
-                    font.bold: true
-                    font.letterSpacing: 0.8
+                    color: presetsBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeSmall
+                    font.weight: Font.Medium
+                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
                 }
             }
 
@@ -275,57 +237,40 @@ Rectangle {
             }
         }
 
-        // Integrated TitleBar Queue Button
+        // ── Queue Button ──
         Rectangle {
             Layout.alignment: Qt.AlignVCenter
-            Layout.rightMargin: 10
-            height: 24
-            radius: SkinTheme.radiusSmall
-            implicitWidth: titleQueueRow.implicitWidth + 20
+            Layout.rightMargin: 8
+            height: 30
+            radius: SkinTheme.radiusMedium
+            implicitWidth: queueBtnRow.implicitWidth + 20
             color: queueCount > 0
                    ? (queueBtnMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan)
                    : (queueBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent")
-            border.color: queueCount > 0 ? "transparent" : (queueBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.borderMuted)
+            border.color: queueCount > 0 ? "transparent" : (queueBtnMouse.containsMouse ? SkinTheme.borderActive : SkinTheme.borderMuted)
             border.width: 1
 
             Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
-            Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
 
-            // Glow when queue has items
-            Rectangle {
+            RowLayout {
+                id: queueBtnRow
                 anchors.centerIn: parent
-                width: parent.width + 4
-                height: parent.height + 4
-                radius: parent.radius + 2
-                color: "transparent"
-                border.color: SkinTheme.accentCyan
-                border.width: 1
-                opacity: queueCount > 0 ? 0.3 : 0
-                Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
-            }
-
-            Row {
-                id: titleQueueRow
-                anchors.centerIn: parent
-                spacing: 5
+                spacing: 6
 
                 Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "\uE945"
-                    color: queueCount > 0 ? "#060810" : (queueBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.textSecondary)
+                    text: "\uE896"
                     font.family: "Segoe MDL2 Assets"
                     font.pixelSize: 11
+                    color: queueCount > 0 ? "#FFFFFF" : (queueBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
                 }
 
                 Text {
-                    id: titleQueueLabel
-                    anchors.verticalCenter: parent.verticalCenter
                     text: queueCount > 0 ? "QUEUE  " + queueCount : "QUEUE"
-                    color: queueCount > 0 ? "#060810" : (queueBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.textSecondary)
-                    font.family: SkinTheme.fontMono
-                    font.pixelSize: 10
-                    font.bold: true
-                    font.letterSpacing: 1.0
+                    color: queueCount > 0 ? "#FFFFFF" : (queueBtnMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeSmall
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 0.5
                 }
             }
 
@@ -338,50 +283,77 @@ Rectangle {
             }
         }
 
-        // Window Control Buttons — Neon Hover
+        // ── Play Dota 2 Button ──
+        Rectangle {
+            Layout.alignment: Qt.AlignVCenter
+            Layout.rightMargin: 12
+            height: 30
+            radius: SkinTheme.radiusMedium
+            implicitWidth: playRow.implicitWidth + 20
+            color: playDotaMouse.containsMouse ? SkinTheme.accentEmeraldHover : SkinTheme.accentEmerald
+
+            Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+
+            RowLayout {
+                id: playRow
+                anchors.centerIn: parent
+                spacing: 6
+
+                Text {
+                    text: "▶"
+                    color: "#FFFFFF"
+                    font.pixelSize: 10
+                }
+
+                Text {
+                    text: "PLAY"
+                    color: "#FFFFFF"
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeSmall
+                    font.weight: Font.Bold
+                    font.letterSpacing: 1.0
+                }
+            }
+
+            MouseArea {
+                id: playDotaMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: titleBar.playDotaClicked()
+            }
+        }
+
+        // ── Window Controls ──
         RowLayout {
             spacing: 0
 
             Repeater {
                 model: [
-                    { sym: "\uE921", action: "min", label: "Minimize" },
-                    { sym: "\uE922", action: "max", label: "Maximize" },
-                    { sym: "\uE8BB", action: "close", label: "Close" }
+                    { sym: "\uE921", action: "min" },
+                    { sym: "\uE922", action: "max" },
+                    { sym: "\uE8BB", action: "close" }
                 ]
 
                 delegate: Rectangle {
-                    width: 42
-                    height: 38
+                    width: 44
+                    height: 44
                     color: {
                         if (!wcMouse.containsMouse) return "transparent"
-                        if (modelData.action === "close") return SkinTheme.accentCrimson
+                        if (modelData.action === "close") return "#E23B3B"
                         return SkinTheme.bgCardHover
                     }
 
                     Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
-                    // Neon glow on hover
-                    Rectangle {
-                        anchors.bottom: parent.bottom
-                        width: parent.width
-                        height: 2
-                        color: {
-                            if (modelData.action === "close") return SkinTheme.accentCrimson
-                            return SkinTheme.accentCyan
-                        }
-                        opacity: wcMouse.containsMouse ? 0.6 : 0
-                        Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
-                    }
-
                     Text {
                         anchors.centerIn: parent
                         text: modelData.action === "max" && rootWindow && rootWindow.visibility === Window.Maximized ? "\uE923" : modelData.sym
-                        color: {
-                            if (wcMouse.containsMouse) return "#ffffff"
-                            return SkinTheme.textMuted
-                        }
+                        color: wcMouse.containsMouse ? "#FFFFFF" : SkinTheme.textMuted
                         font.family: "Segoe MDL2 Assets"
                         font.pixelSize: 10
+
+                        Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
                     }
 
                     MouseArea {

@@ -1,4 +1,4 @@
-﻿import QtQuick 2.15
+import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import "../theme"
@@ -69,72 +69,75 @@ Item {
         anchors.fill: parent
         spacing: 0
 
-        // Header Bar with FPS Pro Banner
+        // ═══════════════════════════════════════════
+        // HEADER BAR
+        // ═══════════════════════════════════════════
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 74
+            Layout.preferredHeight: 64
             color: SkinTheme.bgHeader
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: SkinTheme.borderMuted
+                color: SkinTheme.borderSubtle
             }
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
-                spacing: 16
+                anchors.leftMargin: SkinTheme.spacingLG
+                anchors.rightMargin: SkinTheme.spacingLG
+                spacing: SkinTheme.spacingMD
 
                 ColumnLayout {
-                    spacing: 3
+                    spacing: 2
                     RowLayout {
                         spacing: 8
                         Text {
-                            text: "⚡ FPS Boost & Game Tweaks"
+                            text: "FPS BOOST & TWEAKS"
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
                             font.pixelSize: SkinTheme.fontSizeTitle
                             font.bold: true
+                            font.letterSpacing: 0.5
                         }
 
                         Rectangle {
                             height: 20
-                            radius: 10
+                            radius: SkinTheme.radiusPill
                             implicitWidth: fpsBadge.implicitWidth + 14
-                            color: "#122e23"
-                            border.color: SkinTheme.accentEmerald
+                            color: SkinTheme.accentAmberGlow
+                            border.color: SkinTheme.accentAmber
                             border.width: 1
 
                             Text {
                                 id: fpsBadge
                                 anchors.centerIn: parent
-                                text: "PRO PERFORMANCE"
-                                color: SkinTheme.accentEmerald
-                                font.family: SkinTheme.fontFamily
-                                font.pixelSize: 9
+                                text: "PERFORMANCE"
+                                color: SkinTheme.accentAmber
+                                font.family: SkinTheme.fontMono
+                                font.pixelSize: 8
                                 font.bold: true
-                                font.letterSpacing: 0.6
                             }
                         }
                     }
 
                     Text {
-                        text: "Simplified trees (vision & FPS), minimal flat terrains, particle reduction, and performance shaders."
-                        color: SkinTheme.textMuted
-                        font.pixelSize: 11
+                        text: "Simplified trees, minimal flat terrains, particle reduction, and shader tweaks"
+                        color: SkinTheme.textSecondary
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
                     }
                 }
 
                 Item { Layout.fillWidth: true }
 
-                // Quick Filter Segmented Buttons (All / Installed / Favorites)
+                // Filter Pills
                 Rectangle {
-                    height: 36
+                    height: 34
                     radius: SkinTheme.radiusMedium
-                    color: SkinTheme.bgInput
+                    color: SkinTheme.bgCard
                     border.color: SkinTheme.borderMuted
                     border.width: 1
                     implicitWidth: segFpsRow.implicitWidth + 8
@@ -146,28 +149,33 @@ Item {
 
                         Repeater {
                             model: [
-                                { id: "all",       label: "All" },
-                                { id: "installed", label: "Installed" },
-                                { id: "favorites", label: "в­ђ Starred" }
+                                { id: "all",       label: "ALL" },
+                                { id: "installed", label: "INSTALLED" },
+                                { id: "favorites", label: "★ STARRED" }
                             ]
 
                             delegate: Rectangle {
-                                height: 28
+                                height: 26
                                 radius: SkinTheme.radiusSmall
-                                implicitWidth: segFpsText.implicitWidth + 18
-                                color: fpsBoostView.filterMode === modelData.id ? SkinTheme.accentCyan : "transparent"
+                                implicitWidth: segFpsText.implicitWidth + 16
+                                color: fpsBoostView.filterMode === modelData.id
+                                       ? SkinTheme.accentCyan
+                                       : (segFpsMouse.containsMouse ? SkinTheme.bgCardHover : "transparent")
+
+                                Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
                                 Text {
                                     id: segFpsText
                                     anchors.centerIn: parent
                                     text: modelData.label
-                                    color: fpsBoostView.filterMode === modelData.id ? "#0a0d14" : SkinTheme.textSecondary
+                                    color: fpsBoostView.filterMode === modelData.id ? "#FFFFFF" : SkinTheme.textSecondary
                                     font.family: SkinTheme.fontFamily
-                                    font.pixelSize: 11
-                                    font.bold: fpsBoostView.filterMode === modelData.id
+                                    font.pixelSize: SkinTheme.fontSizeSmall
+                                    font.bold: true
                                 }
 
                                 MouseArea {
+                                    id: segFpsMouse
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
@@ -181,22 +189,25 @@ Item {
                 // Search Input
                 Rectangle {
                     width: 220
-                    height: 36
+                    height: 34
                     radius: SkinTheme.radiusMedium
                     color: SkinTheme.bgInput
                     border.color: searchFpsInput.activeFocus ? SkinTheme.accentCyan : SkinTheme.borderMuted
                     border.width: 1
 
+                    Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
+
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 10
                         anchors.rightMargin: 8
-                        spacing: 8
+                        spacing: 6
 
                         Text {
-                            text: "⌕"
+                            text: "\uE721"
+                            font.family: "Segoe MDL2 Assets"
                             font.pixelSize: 11
-                            color: SkinTheme.textMuted
+                            color: searchFpsInput.activeFocus ? SkinTheme.accentCyan : SkinTheme.textMuted
                         }
 
                         TextInput {
@@ -204,7 +215,7 @@ Item {
                             Layout.fillWidth: true
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: SkinTheme.fontSizeBody
                             clip: true
                             selectByMouse: true
                             text: fpsBoostView.searchQuery
@@ -214,7 +225,8 @@ Item {
                             Text {
                                 text: "Search tweaks..."
                                 color: SkinTheme.textMuted
-                                font.pixelSize: 12
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeBody
                                 visible: !searchFpsInput.text && !searchFpsInput.activeFocus
                             }
                         }
@@ -222,13 +234,13 @@ Item {
                         Rectangle {
                             width: 18
                             height: 18
-                            radius: 9
+                            radius: SkinTheme.radiusSmall
                             color: SkinTheme.bgCardHover
                             visible: searchFpsInput.text !== ""
 
                             Text {
                                 anchors.centerIn: parent
-                                text: "вњ•"
+                                text: "✕"
                                 color: SkinTheme.textSecondary
                                 font.pixelSize: 9
                             }
@@ -244,33 +256,35 @@ Item {
             }
         }
 
-        // Subcategory Tabs Bar
+        // ═══════════════════════════════════════════
+        // SUBCATEGORY TABS BAR
+        // ═══════════════════════════════════════════
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 48
+            Layout.preferredHeight: 46
             color: SkinTheme.bgDark
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: SkinTheme.borderMuted
+                color: SkinTheme.borderSubtle
             }
 
             ListView {
                 id: tabsList
                 anchors.fill: parent
-                anchors.leftMargin: 16
-                anchors.rightMargin: 16
+                anchors.leftMargin: SkinTheme.spacingLG
+                anchors.rightMargin: SkinTheme.spacingLG
                 orientation: ListView.Horizontal
                 spacing: 8
                 clip: true
                 model: [
-                    { id: "trees", label: "🌲 Simplified Trees (Vision & FPS)" },
+                    { id: "trees", label: "🌲 Simplified Trees" },
                     { id: "shaders", label: "🎨 Shaders & Outline" },
-                    { id: "terrains", label: "🏝 Flat & Minified Terrains" },
+                    { id: "terrains", label: "🏝 Flat Terrains" },
                     { id: "optimization", label: "⚙ Optimization Configs" },
-                    { id: "tools", label: "⚙ Game Tools" }
+                    { id: "tools", label: "🛠 Game Tools" }
                 ]
 
                 delegate: Rectangle {
@@ -290,11 +304,9 @@ Item {
                         id: tabLabel
                         anchors.centerIn: parent
                         text: modelData.label
-                        color: activeCategoryId === modelData.id
-                               ? "#000000"
-                               : (tabMouse.containsMouse ? SkinTheme.textPrimary : SkinTheme.textSecondary)
+                        color: activeCategoryId === modelData.id ? "#FFFFFF" : SkinTheme.textSecondary
                         font.family: SkinTheme.fontFamily
-                        font.pixelSize: 11
+                        font.pixelSize: SkinTheme.fontSizeSmall
                         font.bold: activeCategoryId === modelData.id
                     }
 
@@ -309,74 +321,74 @@ Item {
             }
         }
 
-        // Mod Cards Grid
-        ScrollView {
+        // ═══════════════════════════════════════════
+        // MOD CARDS GRID
+        // ═══════════════════════════════════════════
+        GridView {
+            id: fpsGrid
             Layout.fillWidth: true
             Layout.fillHeight: true
+            cellWidth: Math.max(300, Math.floor(width / Math.max(1, Math.floor(width / 340))))
+            cellHeight: cellWidth * 0.58 + 16
+            model: currentMods
+            displayMarginBeginning: 20
+            displayMarginEnd: 20
             clip: true
 
             ScrollBar.vertical: NeonScrollBar {}
 
-            GridView {
-                id: fpsGrid
-                width: parent.width
-                cellWidth: Math.max(220, Math.floor(width / Math.max(1, Math.floor(width / 240))))
-                cellHeight: 270
-                model: currentMods
-                displayMarginBeginning: 20
-                displayMarginEnd: 20
+            delegate: Item {
+                width: fpsGrid.cellWidth
+                height: fpsGrid.cellHeight
 
-                delegate: Item {
-                    width: fpsGrid.cellWidth
-                    height: fpsGrid.cellHeight
+                SkinModCard {
+                    anchors.centerIn: parent
+                    modData: modelData
 
-                    SkinModCard {
-                        anchors.centerIn: parent
-                        width: fpsGrid.cellWidth - 12
-                        modData: modelData
+                    onClicked: fpsBoostView.modClicked(modelData)
+                    onInstallRequested: fpsBoostView.modInstall(modelData)
+                    onUninstallRequested: fpsBoostView.modUninstall(modelData)
+                    onAddToCartRequested: fpsBoostView.modAddToCart(modelData)
+                }
+            }
+        }
 
-                        onClicked: fpsBoostView.modClicked(modelData)
-                        onInstallRequested: fpsBoostView.modInstall(modelData)
-                        onUninstallRequested: fpsBoostView.modUninstall(modelData)
-                        onAddToCartRequested: fpsBoostView.modAddToCart(modelData)
-                    }
+        // ═══════════════════════════════════════════
+        // EMPTY STATE
+        // ═══════════════════════════════════════════
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: currentMods.length === 0
+
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 12
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "⚡"
+                    font.pixelSize: 32
+                    color: SkinTheme.textMuted
                 }
 
-                // Empty State
-                Item {
-                    anchors.centerIn: parent
-                    visible: currentMods.length === 0
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "NO TWEAKS FOUND"
+                    color: SkinTheme.textPrimary
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeTitle
+                    font.bold: true
+                }
 
-                    ColumnLayout {
-                        anchors.centerIn: parent
-                        spacing: 12
-
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "⚡"
-                            font.pixelSize: 42
-                            opacity: 0.6
-                        }
-
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "No tweaks found in this category"
-                            color: SkinTheme.textPrimary
-                            font.family: SkinTheme.fontFamily
-                            font.pixelSize: 15
-                            font.bold: true
-                        }
-
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "Try selecting another optimization tab or clearing search."
-                            color: SkinTheme.textMuted
-                            font.pixelSize: 12
-                        }
-                    }
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "Try selecting another category or clearing your search filter"
+                    color: SkinTheme.textSecondary
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeBody
                 }
             }
         }
     }
 }
-

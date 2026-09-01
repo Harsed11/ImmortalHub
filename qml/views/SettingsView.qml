@@ -257,11 +257,12 @@ Item {
 
                         Repeater {
                             model: [
-                                { id: "cyan", color: "#00F0FF", name: "Cyan" },
-                                { id: "violet", color: "#BF00FF", name: "Violet" },
-                                { id: "emerald", color: "#00FF88", name: "Emerald" },
-                                { id: "amber", color: "#FFAA00", name: "Amber" },
-                                { id: "crimson", color: "#FF0055", name: "Crimson" }
+                                { id: "immortal", color: "#E23B3B", name: "Immortal" },
+                                { id: "cyan", color: "#06B6D4", name: "Cyan" },
+                                { id: "violet", color: "#9333EA", name: "Violet" },
+                                { id: "emerald", color: "#22C55E", name: "Emerald" },
+                                { id: "amber", color: "#F59E0B", name: "Amber" },
+                                { id: "crimson", color: "#EF4444", name: "Crimson" }
                             ]
 
                             ColumnLayout {
@@ -315,6 +316,119 @@ Item {
                         }
 
                         Item { Layout.fillWidth: true }
+                    }
+                }
+            }
+
+            // 0.7 Custom Background Section
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: bgCol.implicitHeight + 40
+                radius: SkinTheme.radiusXLarge
+                color: SkinTheme.bgCard
+                border.color: SkinTheme.borderMuted
+                border.width: 1
+
+                ColumnLayout {
+                    id: bgCol
+                    anchors.fill: parent
+                    anchors.margins: 20
+                    spacing: 16
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 10
+
+                        Text {
+                            text: "🖼️"
+                            font.pixelSize: 18
+                        }
+
+                        Text {
+                            text: "Custom Background"
+                            color: SkinTheme.textPrimary
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeTitle
+                            font.bold: true
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Text {
+                            text: "Set a custom image as the app background"
+                            color: SkinTheme.textMuted
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeSmall
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 16
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: (typeof app !== "undefined" && app && app.bgImagePath) ? app.bgImagePath : "Default Dark Background"
+                            color: (typeof app !== "undefined" && app && app.bgImagePath) ? SkinTheme.textPrimary : SkinTheme.textMuted
+                            font.family: SkinTheme.fontMono
+                            font.pixelSize: SkinTheme.fontSizeSmall
+                            elide: Text.ElideMiddle
+                        }
+
+                        // Select Button
+                        Rectangle {
+                            width: 140
+                            height: 36
+                            radius: SkinTheme.radiusMedium
+                            color: SkinTheme.bgInput
+                            border.color: bgMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                            border.width: 1
+
+                            Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "BROWSE IMAGE"
+                                color: bgMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.textPrimary
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeSmall
+                                font.bold: true
+                            }
+
+                            MouseArea {
+                                id: bgMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: if (app) app.browseBackgroundImage()
+                            }
+                        }
+
+                        // Clear Button
+                        Rectangle {
+                            visible: (typeof app !== "undefined" && app && app.bgImagePath !== "")
+                            width: 40
+                            height: 36
+                            radius: SkinTheme.radiusMedium
+                            color: SkinTheme.bgInput
+                            border.color: bgClearMouse.containsMouse ? SkinTheme.accentCrimson : SkinTheme.borderMuted
+                            border.width: 1
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "✕"
+                                color: bgClearMouse.containsMouse ? SkinTheme.accentCrimson : SkinTheme.textPrimary
+                                font.pixelSize: 14
+                            }
+
+                            MouseArea {
+                                id: bgClearMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: if (app) app.bgImagePath = ""
+                            }
+                        }
                     }
                 }
             }
@@ -1295,7 +1409,7 @@ Item {
                                 Text { text: "🔄"; font.pixelSize: 11 }
                                 Text {
                                     text: "Check for Updates"
-                                    color: SkinTheme.bgDarkest
+                                    color: SkinTheme.bgVoid
                                     font.family: SkinTheme.fontFamily
                                     font.pixelSize: 11
                                     font.bold: true
