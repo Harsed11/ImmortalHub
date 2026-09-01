@@ -212,6 +212,68 @@ ApplicationWindow {
         enabled: false
     }
 
+    // ═══════════════════════════════════════════
+    // FRAMELESS WINDOW RESIZE HANDLES
+    // ═══════════════════════════════════════════
+    Item {
+        id: windowResizeHandles
+        anchors.fill: parent
+        z: 9999
+        enabled: root.visibility !== Window.Maximized
+
+        // Edges (6px)
+        MouseArea {
+            anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top
+            height: 6
+            cursorShape: Qt.SizeVerCursor
+            onPressed: if (typeof root.startSystemResize === "function") root.startSystemResize(Qt.TopEdge)
+        }
+        MouseArea {
+            anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
+            height: 6
+            cursorShape: Qt.SizeVerCursor
+            onPressed: if (typeof root.startSystemResize === "function") root.startSystemResize(Qt.BottomEdge)
+        }
+        MouseArea {
+            anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
+            width: 6
+            cursorShape: Qt.SizeHorCursor
+            onPressed: if (typeof root.startSystemResize === "function") root.startSystemResize(Qt.LeftEdge)
+        }
+        MouseArea {
+            anchors.right: parent.right; anchors.top: parent.top; anchors.bottom: parent.bottom
+            width: 6
+            cursorShape: Qt.SizeHorCursor
+            onPressed: if (typeof root.startSystemResize === "function") root.startSystemResize(Qt.RightEdge)
+        }
+
+        // Corners (12x12px)
+        MouseArea {
+            anchors.left: parent.left; anchors.top: parent.top
+            width: 12; height: 12
+            cursorShape: Qt.SizeFDiagCursor
+            onPressed: if (typeof root.startSystemResize === "function") root.startSystemResize(Qt.TopEdge | Qt.LeftEdge)
+        }
+        MouseArea {
+            anchors.right: parent.right; anchors.top: parent.top
+            width: 12; height: 12
+            cursorShape: Qt.SizeBDiagCursor
+            onPressed: if (typeof root.startSystemResize === "function") root.startSystemResize(Qt.TopEdge | Qt.RightEdge)
+        }
+        MouseArea {
+            anchors.left: parent.left; anchors.bottom: parent.bottom
+            width: 12; height: 12
+            cursorShape: Qt.SizeBDiagCursor
+            onPressed: if (typeof root.startSystemResize === "function") root.startSystemResize(Qt.BottomEdge | Qt.LeftEdge)
+        }
+        MouseArea {
+            anchors.right: parent.right; anchors.bottom: parent.bottom
+            width: 12; height: 12
+            cursorShape: Qt.SizeFDiagCursor
+            onPressed: if (typeof root.startSystemResize === "function") root.startSystemResize(Qt.BottomEdge | Qt.RightEdge)
+        }
+    }
+
     ParallelAnimation {
         id: appStartupAnim
         NumberAnimation {

@@ -20,6 +20,7 @@ Item {
     }
 
     function loadInstalled() {
+        if (typeof app === "undefined" || !app) return
         var raw = app.getInstalledMods()
         try {
             installedList = JSON.parse(raw)
@@ -33,11 +34,18 @@ Item {
         if (searchQuery.trim() !== "") {
             var q = searchQuery.toLowerCase().trim()
             filteredList = installedList.filter(function(m) {
-                return m.name.toLowerCase().indexOf(q) !== -1 || (m.hero && m.hero.toLowerCase().indexOf(q) !== -1)
+                return (m.name && m.name.toLowerCase().indexOf(q) !== -1) ||
+                       (m.hero && m.hero.toLowerCase().indexOf(q) !== -1) ||
+                       (m.categoryId && m.categoryId.toLowerCase().indexOf(q) !== -1)
             })
         } else {
             filteredList = installedList
         }
+    }
+
+    function getCategoryName(catId) {
+        if (!catId) return ""
+        return (typeof app !== "undefined" && app && app.translate) ? app.translate(catId) : catId
     }
 
     onSearchQueryChanged: filterInstalled()
@@ -47,11 +55,11 @@ Item {
         spacing: 0
 
         // ═══════════════════════════════════════════
-        // HEADER BAR
+        // TOP CONTROL BAR
         // ═══════════════════════════════════════════
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 64
+            Layout.preferredHeight: 52
             color: SkinTheme.bgHeader
 
             Rectangle {
@@ -67,44 +75,36 @@ Item {
                 anchors.rightMargin: SkinTheme.spacingLG
                 spacing: SkinTheme.spacingMD
 
-                ColumnLayout {
-                    spacing: 2
-                    RowLayout {
-                        spacing: 8
-                        Text {
-                            text: "INSTALLED MODS"
-                            color: SkinTheme.textPrimary
-                            font.family: SkinTheme.fontFamily
-                            font.pixelSize: SkinTheme.fontSizeTitle
-                            font.bold: true
-                            font.letterSpacing: 0.5
-                        }
-
-                        Rectangle {
-                            height: 20
-                            radius: SkinTheme.radiusPill
-                            implicitWidth: instCountBadge.implicitWidth + 14
-                            color: installedList.length > 0 ? SkinTheme.accentEmeraldGlow : SkinTheme.bgCard
-                            border.color: installedList.length > 0 ? SkinTheme.accentEmerald : SkinTheme.borderMuted
-                            border.width: 1
-
-                            Text {
-                                id: instCountBadge
-                                anchors.centerIn: parent
-                                text: installedList.length + " ACTIVE"
-                                color: installedList.length > 0 ? SkinTheme.accentEmerald : SkinTheme.textMuted
-                                font.family: SkinTheme.fontMono
-                                font.pixelSize: 8
-                                font.bold: true
-                            }
-                        }
-                    }
+                // Section Title & Badge
+                RowLayout {
+                    spacing: 8
 
                     Text {
-                        text: "Active custom skins, terrain, sound packs, and effects deployed in Dota 2"
-                        color: SkinTheme.textSecondary
+                        text: "ACTIVE LOADOUT"
+                        color: SkinTheme.textPrimary
                         font.family: SkinTheme.fontFamily
-                        font.pixelSize: SkinTheme.fontSizeSmall
+                        font.pixelSize: SkinTheme.fontSizeTitle
+                        font.bold: true
+                        font.letterSpacing: 0.5
+                    }
+
+                    Rectangle {
+                        height: 20
+                        radius: SkinTheme.radiusPill
+                        implicitWidth: instCountBadge.implicitWidth + 12
+                        color: installedList.length > 0 ? SkinTheme.accentEmeraldGlow : SkinTheme.bgCard
+                        border.color: installedList.length > 0 ? SkinTheme.accentEmerald : SkinTheme.borderMuted
+                        border.width: 1
+
+                        Text {
+                            id: instCountBadge
+                            anchors.centerIn: parent
+                            text: installedList.length + " EQUIPPED"
+                            color: installedList.length > 0 ? SkinTheme.accentEmerald : SkinTheme.textMuted
+                            font.family: SkinTheme.fontMono
+                            font.pixelSize: 8
+                            font.bold: true
+                        }
                     }
                 }
 
@@ -112,8 +112,8 @@ Item {
 
                 // Search Filter Input
                 Rectangle {
-                    width: 220
-                    height: 34
+                    width: 200
+                    height: 32
                     radius: SkinTheme.radiusMedium
                     color: SkinTheme.bgInput
                     border.color: searchInstInput.activeFocus ? SkinTheme.accentCyan : SkinTheme.borderMuted
@@ -123,8 +123,8 @@ Item {
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 8
+                        anchors.leftMargin: 8
+                        anchors.rightMargin: 6
                         spacing: 6
 
                         Text {
@@ -147,7 +147,7 @@ Item {
                             onTextChanged: installedView.searchQuery = text
 
                             Text {
-                                text: "Filter active mods..."
+                                text: "Filter loadout..."
                                 color: SkinTheme.textMuted
                                 font.family: SkinTheme.fontFamily
                                 font.pixelSize: SkinTheme.fontSizeBody
@@ -156,8 +156,8 @@ Item {
                         }
 
                         Rectangle {
-                            width: 18
-                            height: 18
+                            width: 16
+                            height: 16
                             radius: SkinTheme.radiusSmall
                             color: SkinTheme.bgCardHover
                             visible: searchInstInput.text !== ""
@@ -166,7 +166,7 @@ Item {
                                 anchors.centerIn: parent
                                 text: "✕"
                                 color: SkinTheme.textSecondary
-                                font.pixelSize: 9
+                                font.pixelSize: 8
                             }
 
                             MouseArea {
@@ -180,9 +180,9 @@ Item {
 
                 // Sync All Button
                 Rectangle {
-                    height: 34
+                    height: 32
                     radius: SkinTheme.radiusMedium
-                    implicitWidth: syncText.implicitWidth + 20
+                    implicitWidth: syncText.implicitWidth + 18
                     color: syncMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan
 
                     Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
@@ -190,8 +190,8 @@ Item {
                     RowLayout {
                         id: syncText
                         anchors.centerIn: parent
-                        spacing: 6
-                        Text { text: "🔄"; font.pixelSize: 11; color: "#FFFFFF" }
+                        spacing: 5
+                        Text { text: "🔄"; font.pixelSize: 10; color: "#FFFFFF" }
                         Text {
                             text: "SYNC ALL"
                             color: "#FFFFFF"
@@ -207,29 +207,34 @@ Item {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: app.syncAllMods()
+                        onClicked: {
+                            if (typeof app !== "undefined" && app) {
+                                app.syncAllInstalled()
+                            }
+                        }
                     }
                 }
 
                 // Uninstall All Button
                 Rectangle {
-                    height: 34
-                    radius: SkinTheme.radiusMedium
-                    implicitWidth: uninstAllText.implicitWidth + 20
-                    color: uninstAllMouse.containsMouse ? SkinTheme.accentCrimsonHover : SkinTheme.accentCrimson
                     visible: installedList.length > 0
+                    height: 32
+                    radius: SkinTheme.radiusMedium
+                    implicitWidth: uninstAllText.implicitWidth + 18
+                    color: uninstAllMouse.containsMouse ? SkinTheme.accentCrimsonHover : "transparent"
+                    border.color: SkinTheme.accentCrimson
+                    border.width: 1
 
                     Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
                     RowLayout {
                         id: uninstAllText
                         anchors.centerIn: parent
-                        spacing: 6
-
-                        Text { text: "✕"; font.pixelSize: 10; color: "#FFFFFF" }
+                        spacing: 5
+                        Text { text: "🗑️"; font.pixelSize: 10 }
                         Text {
                             text: "UNINSTALL ALL"
-                            color: "#FFFFFF"
+                            color: uninstAllMouse.containsMouse ? "#FFFFFF" : SkinTheme.accentCrimson
                             font.family: SkinTheme.fontFamily
                             font.pixelSize: SkinTheme.fontSizeSmall
                             font.bold: true
@@ -249,7 +254,97 @@ Item {
         }
 
         // ═══════════════════════════════════════════
-        // LIST OF INSTALLED MODS
+        // TABLE COLUMN HEADERS (ONE ALIGNED LINE)
+        // ═══════════════════════════════════════════
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 36
+            color: SkinTheme.bgDark
+
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: SkinTheme.borderSubtle
+            }
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: SkinTheme.spacingLG + 12
+                anchors.rightMargin: SkinTheme.spacingLG + 16
+                spacing: 12
+
+                // Col 1: Preview Icon (60px)
+                Text {
+                    Layout.preferredWidth: 60
+                    text: "PREVIEW"
+                    color: SkinTheme.textMuted
+                    font.family: SkinTheme.fontMono
+                    font.pixelSize: 8
+                    font.bold: true
+                    font.letterSpacing: 1.0
+                }
+
+                // Col 2: Skin Name (Fill)
+                Text {
+                    Layout.fillWidth: true
+                    text: "SKIN / ITEM NAME"
+                    color: SkinTheme.textMuted
+                    font.family: SkinTheme.fontMono
+                    font.pixelSize: 8
+                    font.bold: true
+                    font.letterSpacing: 1.0
+                }
+
+                // Col 3: Hero / Category (160px)
+                Text {
+                    Layout.preferredWidth: 160
+                    text: "HERO / CATEGORY"
+                    color: SkinTheme.textMuted
+                    font.family: SkinTheme.fontMono
+                    font.pixelSize: 8
+                    font.bold: true
+                    font.letterSpacing: 1.0
+                }
+
+                // Col 4: Installed Date (120px)
+                Text {
+                    Layout.preferredWidth: 120
+                    text: "DATE ADDED"
+                    color: SkinTheme.textMuted
+                    font.family: SkinTheme.fontMono
+                    font.pixelSize: 8
+                    font.bold: true
+                    font.letterSpacing: 1.0
+                }
+
+                // Col 5: Status (90px)
+                Text {
+                    Layout.preferredWidth: 90
+                    text: "STATUS"
+                    color: SkinTheme.textMuted
+                    font.family: SkinTheme.fontMono
+                    font.pixelSize: 8
+                    font.bold: true
+                    font.letterSpacing: 1.0
+                }
+
+                // Col 6: Action (100px)
+                Text {
+                    Layout.preferredWidth: 100
+                    horizontalAlignment: Text.AlignHCenter
+                    text: "ACTION"
+                    color: SkinTheme.textMuted
+                    font.family: SkinTheme.fontMono
+                    font.pixelSize: 8
+                    font.bold: true
+                    font.letterSpacing: 1.0
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════
+        // TABLE LIST VIEW (PERFECTLY ALIGNED ROWS)
         // ═══════════════════════════════════════════
         ListView {
             id: installedListView
@@ -258,14 +353,14 @@ Item {
             Layout.margins: SkinTheme.spacingLG
             model: filteredList
             clip: true
-            spacing: SkinTheme.spacingSM
+            spacing: 6
 
             ScrollBar.vertical: NeonScrollBar {}
 
             delegate: Rectangle {
                 width: installedListView.width
-                height: 72
-                radius: SkinTheme.radiusLarge
+                height: 56
+                radius: SkinTheme.radiusMedium
                 color: rowMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard
                 border.color: rowMouse.containsMouse ? SkinTheme.borderLight : SkinTheme.borderMuted
                 border.width: 1
@@ -282,15 +377,17 @@ Item {
                 RowLayout {
                     anchors.fill: parent
                     anchors.leftMargin: 12
-                    anchors.rightMargin: 16
-                    spacing: 14
+                    anchors.rightMargin: 12
+                    spacing: 12
 
-                    // Thumbnail Preview
+                    // Col 1: Thumbnail (60px)
                     Rectangle {
-                        width: 64
-                        height: 50
+                        Layout.preferredWidth: 50
+                        Layout.preferredHeight: 38
                         radius: SkinTheme.radiusSmall
                         color: SkinTheme.bgDark
+                        border.color: SkinTheme.borderMuted
+                        border.width: 1
                         clip: true
 
                         Image {
@@ -299,94 +396,102 @@ Item {
                             fillMode: Image.PreserveAspectCrop
                             asynchronous: true
                         }
-
-                        Rectangle {
-                            anchors.fill: parent
-                            color: "transparent"
-                            border.color: SkinTheme.borderMuted
-                            border.width: 1
-                            radius: SkinTheme.radiusSmall
-                        }
                     }
 
-                    // Metadata Labels
-                    ColumnLayout {
+                    // Col 2: Skin Name (Fill)
+                    RowLayout {
                         Layout.fillWidth: true
-                        spacing: 3
+                        spacing: 8
 
-                        RowLayout {
-                            spacing: 8
-                            Text {
-                                text: modelData.name
-                                color: SkinTheme.textPrimary
-                                font.family: SkinTheme.fontFamily
-                                font.pixelSize: SkinTheme.fontSizeBody
-                                font.weight: Font.DemiBold
-                            }
-
-                            Rectangle {
-                                height: 18
-                                radius: SkinTheme.radiusSmall
-                                implicitWidth: itemCatText.implicitWidth + 10
-                                color: SkinTheme.accentCyanGlow
-                                border.color: SkinTheme.accentCyan
-                                border.width: 1
-
-                                Text {
-                                    id: itemCatText
-                                    anchors.centerIn: parent
-                                    text: (typeof app !== "undefined" && app && app.translate) ? app.translate(modelData.categoryId) : (modelData.categoryId || "")
-                                    color: SkinTheme.accentCyan
-                                    font.family: SkinTheme.fontMono
-                                    font.pixelSize: 8
-                                    font.bold: true
-                                }
-                            }
-
-                            Rectangle {
-                                height: 18
-                                radius: SkinTheme.radiusSmall
-                                implicitWidth: 48
-                                color: SkinTheme.accentEmeraldGlow
-                                border.color: SkinTheme.accentEmerald
-                                border.width: 1
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "ACTIVE"
-                                    color: SkinTheme.accentEmerald
-                                    font.family: SkinTheme.fontMono
-                                    font.pixelSize: 8
-                                    font.bold: true
-                                }
-                            }
+                        Rectangle {
+                            width: 6
+                            height: 6
+                            radius: 3
+                            color: SkinTheme.accentCyan
                         }
 
                         Text {
-                            text: (modelData.hero ? "Hero: " + modelData.hero + " • " : "") +
-                                  "Installed: " + (modelData.installedAt || "Recent")
-                            color: SkinTheme.textSecondary
+                            Layout.fillWidth: true
+                            text: modelData.name || "Custom Skin"
+                            color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
-                            font.pixelSize: SkinTheme.fontSizeSmall
+                            font.pixelSize: SkinTheme.fontSizeBody
+                            font.bold: true
+                            elide: Text.ElideRight
                         }
                     }
 
-                    // Single Item Uninstall Button
+                    // Col 3: Hero / Category Badge (160px)
                     Rectangle {
-                        width: 90
-                        height: 32
+                        Layout.preferredWidth: 150
+                        Layout.preferredHeight: 24
                         radius: SkinTheme.radiusSmall
-                        color: itemUninstMouse.containsMouse ? SkinTheme.accentCrimsonHover : SkinTheme.accentCrimson
+                        color: SkinTheme.bgDark
+                        border.color: SkinTheme.borderMuted
+                        border.width: 1
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: modelData.hero ? modelData.hero.toUpperCase() : installedView.getCategoryName(modelData.categoryId).toUpperCase()
+                            color: modelData.hero ? SkinTheme.accentCyan : SkinTheme.textSecondary
+                            font.family: SkinTheme.fontMono
+                            font.pixelSize: 8
+                            font.bold: true
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    // Col 4: Date Added (120px)
+                    Text {
+                        Layout.preferredWidth: 120
+                        text: modelData.installedAt ? modelData.installedAt : "Active"
+                        color: SkinTheme.textMuted
+                        font.family: SkinTheme.fontMono
+                        font.pixelSize: SkinTheme.fontSizeSmall
+                        elide: Text.ElideRight
+                    }
+
+                    // Col 5: Status Badge (90px)
+                    Rectangle {
+                        Layout.preferredWidth: 80
+                        Layout.preferredHeight: 22
+                        radius: SkinTheme.radiusPill
+                        color: SkinTheme.accentEmeraldGlow
+                        border.color: SkinTheme.accentEmerald
+                        border.width: 1
+
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: 4
+                            Rectangle { width: 5; height: 5; radius: 2.5; color: SkinTheme.accentEmerald }
+                            Text {
+                                text: "ACTIVE"
+                                color: SkinTheme.accentEmerald
+                                font.family: SkinTheme.fontMono
+                                font.pixelSize: 7
+                                font.bold: true
+                            }
+                        }
+                    }
+
+                    // Col 6: Uninstall Button (100px)
+                    Rectangle {
+                        Layout.preferredWidth: 96
+                        Layout.preferredHeight: 28
+                        radius: SkinTheme.radiusSmall
+                        color: itemUninstMouse.containsMouse ? SkinTheme.accentCrimsonHover : "transparent"
+                        border.color: SkinTheme.accentCrimson
+                        border.width: 1
 
                         Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
                         RowLayout {
                             anchors.centerIn: parent
                             spacing: 4
-                            Text { text: "✕"; font.pixelSize: 9; color: "#FFFFFF" }
+                            Text { text: "✕"; font.pixelSize: 8; color: itemUninstMouse.containsMouse ? "#FFFFFF" : SkinTheme.accentCrimson }
                             Text {
                                 text: "UNINSTALL"
-                                color: "#FFFFFF"
+                                color: itemUninstMouse.containsMouse ? "#FFFFFF" : SkinTheme.accentCrimson
                                 font.family: SkinTheme.fontFamily
                                 font.pixelSize: SkinTheme.fontSizeSmall
                                 font.bold: true
@@ -398,48 +503,53 @@ Item {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: app.uninstallMod(modelData.name, modelData.categoryId)
+                            onClicked: {
+                                if (typeof app !== "undefined" && app) {
+                                    app.uninstallMod(modelData.name, modelData.categoryId)
+                                }
+                            }
                         }
                     }
                 }
             }
+        }
 
-            // ═══════════════════════════════════════════
-            // EMPTY STATE
-            // ═══════════════════════════════════════════
-            Item {
+        // ═══════════════════════════════════════════
+        // EMPTY STATE
+        // ═══════════════════════════════════════════
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: filteredList.length === 0
+
+            ColumnLayout {
                 anchors.centerIn: parent
-                visible: filteredList.length === 0
+                spacing: 12
 
-                ColumnLayout {
-                    anchors.centerIn: parent
-                    spacing: 12
+                AegisIcon {
+                    Layout.alignment: Qt.AlignHCenter
+                    width: 48
+                    height: 48
+                    opacity: 0.4
+                }
 
-                    AegisIcon {
-                        Layout.alignment: Qt.AlignHCenter
-                        width: 48
-                        height: 48
-                        opacity: 0.4
-                    }
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: installedList.length === 0
+                          ? "NO ACTIVE MODS EQUIPPED"
+                          : "NO MODS MATCHING YOUR SEARCH"
+                    color: SkinTheme.textPrimary
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeTitle
+                    font.bold: true
+                }
 
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: installedList.length === 0
-                              ? "NO ACTIVE MODS INSTALLED"
-                              : "NO MODS MATCHING YOUR SEARCH"
-                        color: SkinTheme.textPrimary
-                        font.family: SkinTheme.fontFamily
-                        font.pixelSize: SkinTheme.fontSizeTitle
-                        font.bold: true
-                    }
-
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: "Explore heroes, terrains, and sound packs to install your first skins!"
-                        color: SkinTheme.textSecondary
-                        font.family: SkinTheme.fontFamily
-                        font.pixelSize: SkinTheme.fontSizeBody
-                    }
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "Explore Hero Studio, Collections, or Creators to equip skins!"
+                    color: SkinTheme.textSecondary
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeBody
                 }
             }
         }
@@ -451,59 +561,45 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: SkinTheme.bgModalOverlay
-        visible: installedView.showConfirmUninstallAll
+        visible: showConfirmUninstallAll
         z: 999
 
-        MouseArea {
-            anchors.fill: parent
-            onClicked: installedView.showConfirmUninstallAll = false
-        }
-
         Rectangle {
-            width: 420
-            height: 200
-            radius: SkinTheme.radiusLarge
             anchors.centerIn: parent
+            width: Math.min(460, parent.width - 40)
+            height: 230
+            radius: SkinTheme.radiusLarge
             color: SkinTheme.bgModal
             border.color: SkinTheme.accentCrimson
             border.width: 1
 
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {}
-            }
-
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 20
-                spacing: 12
+                anchors.margins: 24
+                spacing: 14
 
-                RowLayout {
-                    spacing: 10
-                    Text { text: "⚠"; font.pixelSize: 20; color: SkinTheme.accentCrimson }
-                    Text {
-                        text: "Uninstall All Mods?"
-                        color: SkinTheme.textPrimary
-                        font.family: SkinTheme.fontFamily
-                        font.pixelSize: SkinTheme.fontSizeTitle
-                        font.bold: true
-                    }
+                Text {
+                    text: "⚠️ UNINSTALL ALL MODS"
+                    color: SkinTheme.accentCrimson
+                    font.family: SkinTheme.fontFamily
+                    font.pixelSize: SkinTheme.fontSizeTitle
+                    font.bold: true
                 }
 
                 Text {
-                    text: "This will remove all " + installedList.length + " active mods from your Dota 2 game directory. This action cannot be undone."
+                    Layout.fillWidth: true
+                    text: "Are you sure you want to unequip all " + installedList.length + " active mods from Dota 2? Your game files will be restored to vanilla state."
                     color: SkinTheme.textSecondary
                     font.family: SkinTheme.fontFamily
                     font.pixelSize: SkinTheme.fontSizeBody
-                    wrapMode: Text.Wrap
-                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
                 }
 
                 Item { Layout.fillHeight: true }
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 10
+                    spacing: 12
 
                     Rectangle {
                         Layout.fillWidth: true
@@ -515,7 +611,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "Cancel"
+                            text: "CANCEL"
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontFamily
                             font.pixelSize: SkinTheme.fontSizeBody
@@ -539,7 +635,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "Yes, Uninstall All"
+                            text: "UNINSTALL ALL"
                             color: "#FFFFFF"
                             font.family: SkinTheme.fontFamily
                             font.pixelSize: SkinTheme.fontSizeBody
@@ -553,7 +649,9 @@ Item {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 installedView.showConfirmUninstallAll = false
-                                app.uninstallAllMods()
+                                if (typeof app !== "undefined" && app) {
+                                    app.uninstallAll()
+                                }
                             }
                         }
                     }
