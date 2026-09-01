@@ -10,6 +10,10 @@ Item {
     property var statsData: ({})
     property var recentMods: []
     property var favoriteMods: []
+    property bool dotaLinked: typeof app !== "undefined" && app ? app.dotaDetected : false
+    property int totalInstalled: typeof app !== "undefined" && app ? app.installedCount : 0
+    property bool isGiPatched: typeof app !== "undefined" && app ? app.gameinfoPatched : false
+    property int savings: typeof app !== "undefined" && app ? app.totalSavings : 0
 
     signal navigateToHeroes()
     signal navigateToInstalled()
@@ -25,11 +29,12 @@ Item {
     }
 
     function loadDashboard() {
+        if (typeof app === "undefined" || !app) return
         statsData = {
             heroes: app.heroesList ? app.heroesList.length : 0,
-            totalSkins: app.getTotalSkinsCount(),
-            installed: app.installedCount,
-            favorites: app.favoritesCount
+            totalSkins: app.getTotalSkinsCount ? app.getTotalSkinsCount() : 0,
+            installed: app.installedCount || 0,
+            favorites: app.favoritesCount || 0
         }
         loadRecent()
         loadFavorites()
@@ -259,7 +264,7 @@ Item {
                         { value: statsData.heroes || 0, label: "HEROES",    icon: "⚔️", color: SkinTheme.accentCyan, sub: "All attributes" },
                         { value: statsData.totalSkins || 0, label: "SKINS",     icon: "👑", color: SkinTheme.accentViolet, sub: "Arcana & Immortals" },
                         { value: statsData.installed || 0, label: "EQUIPPED", icon: "⚡", color: SkinTheme.accentEmerald, sub: "Active in Dota 2" },
-                        { value: "$" + app.totalSavings, label: "SAVINGS",  icon: "💰", color: SkinTheme.accentAmber, sub: "Money saved" }
+                        { value: "$" + dashboardView.savings, label: "SAVINGS",  icon: "💰", color: SkinTheme.accentAmber, sub: "Money saved" }
                     ]
 
                     delegate: Rectangle {
@@ -656,7 +661,7 @@ Item {
                             spacing: 10
                             Rectangle {
                                 width: 10; height: 10; radius: 5
-                                color: app.dotaDetected ? SkinTheme.accentEmerald : SkinTheme.accentCrimson
+                                color: dashboardView.dotaLinked ? SkinTheme.accentEmerald : SkinTheme.accentCrimson
                             }
                             ColumnLayout {
                                 spacing: 2
@@ -668,8 +673,8 @@ Item {
                                     font.bold: true
                                 }
                                 Text {
-                                    text: app.dotaDetected ? "Connected" : "Not Found"
-                                    color: app.dotaDetected ? SkinTheme.accentEmerald : SkinTheme.accentCrimson
+                                    text: dashboardView.dotaLinked ? "Connected" : "Not Found"
+                                    color: dashboardView.dotaLinked ? SkinTheme.accentEmerald : SkinTheme.accentCrimson
                                     font.family: SkinTheme.fontMono
                                     font.pixelSize: SkinTheme.fontSizeSmall
                                 }
@@ -681,7 +686,7 @@ Item {
                             spacing: 10
                             Rectangle {
                                 width: 10; height: 10; radius: 5
-                                color: app.installedCount > 0 ? SkinTheme.accentEmerald : SkinTheme.textMuted
+                                color: dashboardView.totalInstalled > 0 ? SkinTheme.accentEmerald : SkinTheme.textMuted
                             }
                             ColumnLayout {
                                 spacing: 2
@@ -693,8 +698,8 @@ Item {
                                     font.bold: true
                                 }
                                 Text {
-                                    text: app.installedCount + " mods equipped"
-                                    color: app.installedCount > 0 ? SkinTheme.accentEmerald : SkinTheme.textMuted
+                                    text: dashboardView.totalInstalled + " mods equipped"
+                                    color: dashboardView.totalInstalled > 0 ? SkinTheme.accentEmerald : SkinTheme.textMuted
                                     font.family: SkinTheme.fontMono
                                     font.pixelSize: SkinTheme.fontSizeSmall
                                 }
@@ -706,7 +711,7 @@ Item {
                             spacing: 10
                             Rectangle {
                                 width: 10; height: 10; radius: 5
-                                color: app.gameinfoPatched ? SkinTheme.accentEmerald : SkinTheme.accentAmber
+                                color: dashboardView.isGiPatched ? SkinTheme.accentEmerald : SkinTheme.accentAmber
                             }
                             ColumnLayout {
                                 spacing: 2
@@ -718,8 +723,8 @@ Item {
                                     font.bold: true
                                 }
                                 Text {
-                                    text: app.gameinfoPatched ? "Patched & Active" : "Unpatched"
-                                    color: app.gameinfoPatched ? SkinTheme.accentEmerald : SkinTheme.accentAmber
+                                    text: dashboardView.isGiPatched ? "Patched & Active" : "Unpatched"
+                                    color: dashboardView.isGiPatched ? SkinTheme.accentEmerald : SkinTheme.accentAmber
                                     font.family: SkinTheme.fontMono
                                     font.pixelSize: SkinTheme.fontSizeSmall
                                 }
@@ -739,7 +744,7 @@ Item {
                                     font.bold: true
                                 }
                                 Text {
-                                    text: "$" + app.totalSavings + ".00 USD"
+                                    text: "$" + dashboardView.savings + ".00 USD"
                                     color: SkinTheme.accentEmerald
                                     font.family: SkinTheme.fontMono
                                     font.pixelSize: SkinTheme.fontSizeSmall

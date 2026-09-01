@@ -21,6 +21,10 @@ Item {
     signal modUninstall(var mod)
     signal modAddToCart(var mod)
 
+    function tr(key) {
+        return (typeof app !== "undefined" && app && app.t) ? app.t(key) : ""
+    }
+
     Component.onCompleted: {
         loadCreators()
     }
@@ -196,7 +200,7 @@ Item {
                         spacing: 8
 
                         Text {
-                            text: selectedCreatorId === "" ? (app.uiLanguage.length && app.t("creators.title")) : (selectedCreatorData ? selectedCreatorData.name : "Creator Skins")
+                            text: selectedCreatorId === "" ? creatorsView.tr("creators.title") : (selectedCreatorData ? selectedCreatorData.name : "Creator Skins")
                             color: SkinTheme.textPrimary
                             font.family: SkinTheme.fontMono
                             font.pixelSize: 14
@@ -248,7 +252,7 @@ Item {
                     }
 
                     Text {
-                        text: selectedCreatorId === "" ? (app.uiLanguage.length && app.t("creators.subtitle")) : ((selectedCreatorData ? selectedCreatorData.description : "") || "Custom VPK mods")
+                        text: selectedCreatorId === "" ? creatorsView.tr("creators.subtitle") : ((selectedCreatorData ? selectedCreatorData.description : "") || "Custom VPK mods")
                         color: SkinTheme.textMuted
                         font.pixelSize: 11
                         elide: Text.ElideRight
@@ -272,7 +276,7 @@ Item {
                             spacing: 6
 
                             Text {
-                                text: app.uiLanguage.length && app.t("creators.add_creator")
+                                text: creatorsView.tr("creators.add_creator")
                                 color: "#050811"
                                 font.family: SkinTheme.fontMono
                                 font.pixelSize: 11
@@ -305,7 +309,7 @@ Item {
                             spacing: 6
 
                             Text {
-                                text: app.uiLanguage.length && app.t("creators.import_pack")
+                                text: creatorsView.tr("creators.import_pack")
                                 color: SkinTheme.textSecondary
                                 font.family: SkinTheme.fontMono
                                 font.pixelSize: 11
@@ -337,7 +341,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: app.uiLanguage.length && app.t("creators.add_mod")
+                            text: creatorsView.tr("creators.add_mod")
                             color: "#050811"
                             font.family: SkinTheme.fontMono
                             font.pixelSize: 11
@@ -369,7 +373,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: app.uiLanguage.length && app.t("creators.import_folder")
+                            text: creatorsView.tr("creators.import_folder")
                             color: SkinTheme.textSecondary
                             font.family: SkinTheme.fontMono
                             font.pixelSize: 11
@@ -510,7 +514,7 @@ Item {
                             }
 
                             Text {
-                                text: app.uiLanguage.length && app.t("creators.no_creators")
+                                text: creatorsView.tr("creators.no_creators")
                                 color: SkinTheme.textPrimary
                                 font.family: SkinTheme.fontMono
                                 font.pixelSize: 14
@@ -527,7 +531,7 @@ Item {
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: app.uiLanguage.length && app.t("creators.add_creator")
+                                    text: creatorsView.tr("creators.add_creator")
                                     color: "#050811"
                                     font.family: SkinTheme.fontMono
                                     font.pixelSize: 11
@@ -694,7 +698,7 @@ Item {
                                             Text {
                                                 id: countText
                                                 anchors.centerIn: parent
-                                                text: (modelData.modsCount || (modelData.mods ? modelData.mods.length : 0)) + " " + (app.uiLanguage.length && app.t("creators.mods_count")) + (modelData.installedCount > 0 ? (" • " + modelData.installedCount + " active") : "")
+                                                text: (modelData.modsCount || (modelData.mods ? modelData.mods.length : 0)) + " " + creatorsView.tr("creators.mods_count") + (modelData.installedCount > 0 ? (" • " + modelData.installedCount + " active") : "")
                                                 color: modelData.installedCount > 0 ? SkinTheme.accentEmerald : SkinTheme.textMuted
                                                 font.family: SkinTheme.fontMono
                                                 font.pixelSize: 9
@@ -1015,10 +1019,10 @@ Item {
                                 }
 
                                 Text {
-                                    text: app.uiLanguage.length && app.t("creators.no_mods")
+                                    text: creatorsView.tr("creators.no_mods")
                                     color: SkinTheme.textPrimary
                                     font.family: SkinTheme.fontMono
-                                    font.pixelSize: 13
+                                    font.pixelSize: 14
                                     font.bold: true
                                     Layout.alignment: Qt.AlignHCenter
                                 }
@@ -1035,7 +1039,7 @@ Item {
 
                                         Text {
                                             anchors.centerIn: parent
-                                            text: app.uiLanguage.length && app.t("creators.add_mod")
+                                            text: creatorsView.tr("creators.add_mod")
                                             color: "#050811"
                                             font.family: SkinTheme.fontMono
                                             font.pixelSize: 11
@@ -1063,7 +1067,7 @@ Item {
 
                                         Text {
                                             anchors.centerIn: parent
-                                            text: app.uiLanguage.length && app.t("creators.import_folder")
+                                            text: creatorsView.tr("creators.import_folder")
                                             color: SkinTheme.accentCyan
                                             font.family: SkinTheme.fontMono
                                             font.pixelSize: 11

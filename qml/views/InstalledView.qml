@@ -335,7 +335,7 @@ Item {
                                 Text {
                                     id: itemCatText
                                     anchors.centerIn: parent
-                                    text: app.translate(modelData.categoryId)
+                                    text: (typeof app !== "undefined" && app && app.translate) ? app.translate(modelData.categoryId) : (modelData.categoryId || "")
                                     color: SkinTheme.accentCyan
                                     font.family: SkinTheme.fontMono
                                     font.pixelSize: 8

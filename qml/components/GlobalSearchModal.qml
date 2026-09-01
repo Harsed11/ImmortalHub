@@ -21,6 +21,10 @@ Rectangle {
     signal modPicked(var mod)
     signal closeRequested()
 
+    function tr(key, defStr) {
+        return (typeof app !== "undefined" && app && app.t) ? app.t(key) : (defStr || "")
+    }
+
     function openWith() {
         isOpen = true
         lastQuery = ""
@@ -116,7 +120,7 @@ Rectangle {
                 TextField {
                     id: searchField
                     Layout.fillWidth: true
-                    placeholderText: app.t("search.placeholder")
+                    placeholderText: searchModal.tr("search.placeholder", "Search skins, heroes, effects...")
                     placeholderTextColor: SkinTheme.textMuted
                     font.family: SkinTheme.fontFamily
                     font.pixelSize: SkinTheme.fontSizeBody
@@ -193,8 +197,8 @@ Rectangle {
                     Text {
                         Layout.alignment: Qt.AlignHCenter
                         text: searchModal.lastQuery.trim().length < 2
-                              ? app.t("search.min_chars")
-                              : app.t("search.no_results") + " \"" + searchModal.lastQuery + "\""
+                              ? searchModal.tr("search.min_chars", "Type at least 2 characters to search")
+                              : searchModal.tr("search.no_results", "No results found for") + " \"" + searchModal.lastQuery + "\""
                         color: SkinTheme.textMuted
                         font.family: SkinTheme.fontFamily
                         font.pixelSize: SkinTheme.fontSizeBody
@@ -202,7 +206,7 @@ Rectangle {
                     Text {
                         Layout.alignment: Qt.AlignHCenter
                         visible: searchModal.lastQuery.trim().length >= 2
-                        text: app.t("search.hint")
+                        text: searchModal.tr("search.hint", "Press Enter to open, Esc to close")
                         color: SkinTheme.textDisabled
                         font.family: SkinTheme.fontMono
                         font.pixelSize: SkinTheme.fontSizeSmall
@@ -367,19 +371,19 @@ Rectangle {
                     spacing: 16
 
                     Text {
-                        text: "↑↓ " + app.t("search.navigate")
+                        text: "↑↓ " + searchModal.tr("search.navigate", "Navigate")
                         color: SkinTheme.textMuted
                         font.family: SkinTheme.fontMono
                         font.pixelSize: SkinTheme.fontSizeTiny
                     }
                     Text {
-                        text: "↵ " + app.t("search.open")
+                        text: "↵ " + searchModal.tr("search.open", "Select")
                         color: SkinTheme.textMuted
                         font.family: SkinTheme.fontMono
                         font.pixelSize: SkinTheme.fontSizeTiny
                     }
                     Text {
-                        text: "ESC " + app.t("search.close")
+                        text: "ESC " + searchModal.tr("search.close", "Close")
                         color: SkinTheme.textMuted
                         font.family: SkinTheme.fontMono
                         font.pixelSize: SkinTheme.fontSizeTiny

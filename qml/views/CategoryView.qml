@@ -19,6 +19,16 @@ Item {
     signal modUninstall(var mod)
     signal modAddToCart(var mod)
 
+    function getCategoryName(catId) {
+        if (!catId) return ""
+        return (typeof app !== "undefined" && app && app.translate) ? app.translate(catId) : catId
+    }
+
+    function getCategoryPreview(catId) {
+        if (!catId) return ""
+        return (typeof app !== "undefined" && app && app.getCategoryPreviewImage) ? app.getCategoryPreviewImage(catId) : ""
+    }
+
     onCategoryIdsChanged: {
         if (categoryIds.length > 0) {
             activeCategoryId = categoryIds.length === 1 ? categoryIds[0] : ""
@@ -164,7 +174,7 @@ Item {
 
                         Text {
                             visible: activeCategoryId !== ""
-                            text: app.translate(activeCategoryId).toUpperCase()
+                            text: categoryView.getCategoryName(activeCategoryId).toUpperCase()
                             color: SkinTheme.accentCyan
                             font.family: SkinTheme.fontFamily
                             font.pixelSize: SkinTheme.fontSizeTitle
@@ -345,7 +355,7 @@ Item {
 
                     Image {
                         anchors.fill: parent
-                        source: app.getCategoryPreviewImage(modelData)
+                        source: categoryView.getCategoryPreview(modelData)
                         fillMode: Image.PreserveAspectCrop
                         opacity: catCardMouse.containsMouse ? 0.9 : 0.6
                         asynchronous: true
@@ -369,7 +379,7 @@ Item {
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: 10
                         horizontalAlignment: Text.AlignHCenter
-                        text: app.translate(modelData)
+                        text: categoryView.getCategoryName(modelData)
                         color: catCardMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.textPrimary
                         font.family: SkinTheme.fontFamily
                         font.pixelSize: SkinTheme.fontSizeBody

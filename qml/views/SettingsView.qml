@@ -1372,7 +1372,7 @@ Item {
                             Text {
                                 id: vText
                                 anchors.centerIn: parent
-                                text: (typeof app !== "undefined" && app.appVersion) ? app.appVersion : "v1.0.0-ALPHA"
+                                text: (typeof app !== "undefined" && app && app.appVersion) ? app.appVersion : "v1.3.0"
                                 color: SkinTheme.accentCyan
                                 font.family: SkinTheme.fontMono
                                 font.pixelSize: 9
