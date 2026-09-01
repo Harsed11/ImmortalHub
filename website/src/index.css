@@ -7,4 +7,6 @@ html, body, #root {
   min-height: 100vh;
   margin: 0;
   padding: 0;
+  background-color: #000000;
+  color: #F8FAFC;
 }

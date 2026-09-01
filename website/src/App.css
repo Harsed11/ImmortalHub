@@ -1,20 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --bg-color: #08080C;
-  --panel-bg: #0D0E16;
-  --card-bg: #11121C;
-  --card-hover-bg: #161824;
-  --border-color: #1E202E;
-  --border-hover: #2E3248;
-  --text-primary: #F8FAFC;
+  --bg-color: #000000;
+  --sidebar-bg: #050508;
+  --panel-bg: #0A0A0E;
+  --card-bg: #0E0E12;
+  --card-hover-bg: #14141A;
+  --border-color: #1A1A22;
+  --border-hover: #2A2A38;
+  --text-primary: #FFFFFF;
   --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  --text-muted: #556075;
   --accent-red: #E23B3B;
   --accent-red-hover: #EF4444;
   --accent-gold: #F59E0B;
   --accent-emerald: #10B981;
-  --accent-cyan: #00F0FF;
+  --accent-white: #FFFFFF;
 }
 
 *, *::before, *::after {
@@ -45,11 +46,11 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 ::-webkit-scrollbar-track {
-  background: #08080C;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(226, 59, 59, 0.3);
+  background: #1F202B;
   border-radius: 4px;
 }
 
@@ -63,26 +64,25 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   position: relative;
   width: 100%;
   min-height: 100vh;
-  background: var(--bg-color);
+  background: #000000;
 }
 
-/* Pitch-Black Clean Background Overlay */
+/* Pitch-Black Clean Background (Pure Void Dark) */
 .ambient-background {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  overflow: hidden;
-  background: #08080C;
+  background: #000000;
 }
 
 .ambient-grid-overlay {
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(circle at 50% 30%, black 40%, transparent 90%);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(circle at 50% 30%, black 30%, transparent 85%);
 }
 
 /* Sound Toggle Floating Button */
@@ -91,7 +91,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   top: 24px;
   right: 28px;
   z-index: 100;
-  background: #0E0E18;
+  background: #0A0A0E;
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   padding: 10px 18px;
@@ -99,13 +99,12 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
   transition: all 0.25s ease;
 }
 
 .sound-toggle-btn:hover {
-  border-color: var(--accent-red);
-  box-shadow: 0 0 18px rgba(226, 59, 59, 0.35);
+  border-color: rgba(255, 255, 255, 0.4);
   transform: translateY(-2px);
 }
 
@@ -133,7 +132,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   flex-direction: column;
   justify-content: space-between;
   border-right: 1px solid var(--border-color);
-  background: #0A0A10;
+  background: #050508;
 }
 
 .sidebar-brand {
@@ -151,8 +150,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   height: 42px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(226, 59, 59, 0.5);
-  box-shadow: 0 0 14px rgba(226, 59, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.15);
   background: #000;
 }
 
@@ -160,11 +159,11 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.68rem;
   letter-spacing: 2px;
-  color: var(--accent-red);
-  background: rgba(226, 59, 59, 0.12);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
   padding: 2px 7px;
   border-radius: 4px;
-  border: 1px solid rgba(226, 59, 59, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   display: inline-block;
   margin-bottom: 4px;
 }
@@ -178,7 +177,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .accent-red-text {
   color: var(--accent-red);
-  text-shadow: 0 0 16px rgba(226, 59, 59, 0.6);
+  text-shadow: 0 0 16px rgba(226, 59, 59, 0.5);
 }
 
 .glow-crimson {
@@ -187,7 +186,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 @keyframes glowCrimson {
   0% { text-shadow: 0 0 15px rgba(226, 59, 59, 0.4); }
-  100% { text-shadow: 0 0 30px rgba(226, 59, 59, 0.95), 0 0 50px rgba(245, 158, 11, 0.4); }
+  100% { text-shadow: 0 0 30px rgba(226, 59, 59, 0.85); }
 }
 
 .sidebar-footer {
@@ -203,7 +202,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   color: var(--text-secondary);
-  background: #11121C;
+  background: #0A0A0E;
   padding: 6px 12px;
   border-radius: 20px;
   border: 1px solid var(--border-color);
@@ -219,16 +218,17 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .sidebar-repo-link {
   font-size: 0.8rem;
-  color: var(--accent-red);
+  color: #FFFFFF;
   text-decoration: none;
   display: flex;
   align-items: center;
   gap: 6px;
+  opacity: 0.8;
   transition: opacity 0.2s;
 }
 
 .sidebar-repo-link:hover {
-  opacity: 0.8;
+  opacity: 1;
   text-decoration: underline;
 }
 
@@ -244,6 +244,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   flex-direction: column;
   gap: 120px;
   max-width: 1280px;
+  background: #000000;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -269,8 +270,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: #0E0E18;
-  border: 1px solid rgba(226, 59, 59, 0.35);
+  background: #0A0A0E;
+  border: 1px solid var(--border-color);
   padding: 8px 18px;
   border-radius: 40px;
   margin-bottom: 20px;
@@ -295,7 +296,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 2px;
-  color: #F8FAFC;
+  color: #FFFFFF;
 }
 
 .pill-tag {
@@ -341,8 +342,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: var(--accent-red);
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #000000;
   font-family: 'Outfit', sans-serif;
   font-size: 1.05rem;
   font-weight: 800;
@@ -350,21 +351,21 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   border-radius: 12px;
   border: none;
   letter-spacing: 0.5px;
-  box-shadow: 0 0 25px rgba(226, 59, 59, 0.45), inset 0 0 12px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.35);
   transition: all 0.25s ease;
 }
 
 .btn-primary-action:hover {
-  background: var(--accent-red-hover);
+  background: #F1F5F9;
   transform: translateY(-2px);
-  box-shadow: 0 0 35px rgba(226, 59, 59, 0.7);
+  box-shadow: 0 0 35px rgba(255, 255, 255, 0.6);
 }
 
 .btn-secondary-action {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #0E0E18;
+  background: #0A0A0E;
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   font-family: 'Outfit', sans-serif;
@@ -377,8 +378,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .btn-secondary-action:hover {
-  border-color: var(--accent-red);
-  background: rgba(226, 59, 59, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: #14141C;
   transform: translateY(-2px);
 }
 
@@ -391,12 +392,12 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .hero-aegis-card {
   position: relative;
-  background: #0E0E18;
-  border: 1px solid rgba(226, 59, 59, 0.4);
+  background: #0A0A0E;
+  border: 1px solid var(--border-color);
   border-radius: 28px;
   overflow: hidden;
   padding: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(226, 59, 59, 0.18);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
   text-align: left;
 }
 
@@ -418,7 +419,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   object-fit: contain;
   transform: scale(1.02);
   transition: transform 0.6s ease;
-  background: #000;
+  background: #000000;
 }
 
 .hero-aegis-card:hover .hero-aegis-img {
@@ -428,7 +429,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .aegis-radial-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(226, 59, 59, 0.18) 0%, rgba(245, 158, 11, 0.1) 50%, transparent 80%);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -442,8 +443,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   gap: 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
-  color: var(--accent-red);
-  background: rgba(226, 59, 59, 0.12);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
   padding: 3px 10px;
   border-radius: 20px;
   margin-bottom: 8px;
@@ -476,14 +477,14 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   gap: 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
-  color: var(--accent-gold);
+  color: var(--text-muted);
 }
 
 /* Marquee Ticker */
 .marquee-wrapper {
   overflow: hidden;
   white-space: nowrap;
-  background: #0A0A10;
+  background: #050508;
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
   padding: 14px 0;
@@ -501,7 +502,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .marquee-content span:nth-child(odd) {
-  color: var(--accent-red);
+  color: #FFFFFF;
 }
 
 @keyframes marquee {
@@ -520,7 +521,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 2px;
-  color: var(--accent-red);
+  color: #FFFFFF;
   display: inline-block;
   margin-bottom: 8px;
 }
@@ -556,7 +557,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .gallery-tab-btn {
-  background: #0E0E18;
+  background: #0A0A0E;
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
   padding: 12px 24px;
@@ -568,31 +569,31 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .gallery-tab-btn:hover {
-  background: #141424;
+  background: #121218;
   color: var(--text-primary);
-  border-color: rgba(226, 59, 59, 0.4);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .gallery-tab-btn.active {
-  background: rgba(226, 59, 59, 0.15);
-  border-color: var(--accent-red);
-  color: #FFFFFF;
-  box-shadow: 0 0 20px rgba(226, 59, 59, 0.25);
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+  color: #000000;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 .gallery-preview-frame {
-  background: #0A0A10;
+  background: #050508;
   border: 1px solid var(--border-color);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
 }
 
 .frame-header-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #0E0E18;
+  background: #0A0A0E;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border-color);
 }
@@ -622,15 +623,15 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--accent-red);
-  background: rgba(226, 59, 59, 0.12);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
   padding: 3px 8px;
   border-radius: 4px;
 }
 
 .frame-image-container {
   position: relative;
-  background: #000;
+  background: #000000;
 }
 
 .frame-screenshot-img {
@@ -642,7 +643,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .frame-image-caption {
   padding: 18px 24px;
-  background: #0A0A10;
+  background: #050508;
   font-size: 0.95rem;
   color: var(--text-secondary);
   line-height: 1.5;
@@ -660,7 +661,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .glass-feature-card {
   height: 100%;
   border-radius: 20px;
-  background: #0E0E18;
+  background: #0A0A0E;
+  border: 1px solid var(--border-color);
 }
 
 .feature-card-body {
@@ -698,7 +700,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
   letter-spacing: 1.5px;
-  color: var(--accent-red);
+  color: #FFFFFF;
   margin-bottom: 6px;
   display: block;
 }
@@ -726,7 +728,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .faq-card {
-  background: #0E0E18;
+  background: #0A0A0E;
   border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 20px 24px;
@@ -734,13 +736,13 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .faq-card:hover {
-  border-color: rgba(226, 59, 59, 0.4);
-  background: #141424;
+  border-color: rgba(255, 255, 255, 0.25);
+  background: #101016;
 }
 
 .faq-card.open {
-  border-color: var(--accent-red);
-  box-shadow: 0 0 20px rgba(226, 59, 59, 0.15);
+  border-color: #FFFFFF;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 .faq-question-row {
@@ -754,7 +756,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .faq-toggle-icon {
   font-size: 1.3rem;
-  color: var(--accent-red);
+  color: #FFFFFF;
   font-weight: 400;
 }
 
@@ -771,19 +773,19 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
    5. CTA BANNER
 ═══════════════════════════════════════════════════════════ */
 .cta-banner {
-  background: linear-gradient(135deg, rgba(226, 59, 59, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%), #0E0E18;
-  border: 1px solid rgba(226, 59, 59, 0.4);
+  background: #0A0A0E;
+  border: 1px solid var(--border-color);
   border-radius: 24px;
   padding: 56px 48px;
   text-align: center;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
 }
 
 .cta-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   letter-spacing: 2px;
-  color: var(--accent-red);
+  color: #FFFFFF;
   margin-bottom: 12px;
   display: inline-block;
 }
@@ -847,7 +849,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .footer-link:hover {
-  color: var(--accent-red);
+  color: #FFFFFF;
 }
 
 .footer-dot {
@@ -860,7 +862,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.92);
+  background: rgba(0, 0, 0, 0.95);
   backdrop-filter: blur(14px);
   z-index: 1000;
   display: flex;
@@ -871,13 +873,13 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .modal-cyber-card {
   position: relative;
-  background: #0C0C16;
-  border: 1px solid rgba(226, 59, 59, 0.5);
+  background: #08080C;
+  border: 1px solid var(--border-color);
   border-radius: 24px;
   padding: 40px;
   max-width: 540px;
   width: 100%;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 50px rgba(226, 59, 59, 0.25);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.98);
 }
 
 .modal-close-btn {
@@ -906,8 +908,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .modal-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
-  color: var(--accent-red);
-  background: rgba(226, 59, 59, 0.15);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
   padding: 3px 10px;
   border-radius: 20px;
   display: inline-block;
@@ -939,17 +941,17 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   display: flex;
   align-items: center;
   gap: 14px;
-  background: var(--accent-red);
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #000000;
   padding: 14px 20px;
   border-radius: 12px;
   text-decoration: none;
-  box-shadow: 0 0 20px rgba(226, 59, 59, 0.4);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
   transition: all 0.2s;
 }
 
 .modal-btn-primary:hover {
-  background: var(--accent-red-hover);
+  background: #F1F5F9;
   transform: translateY(-2px);
 }
 
@@ -984,11 +986,11 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .modal-btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: var(--accent-gold);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .modal-quickstart {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.8);
   border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 16px 18px;
@@ -1020,8 +1022,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(226, 59, 59, 0.2);
-  color: var(--accent-red);
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   font-size: 0.72rem;
