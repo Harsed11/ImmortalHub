@@ -327,6 +327,14 @@ QtObject {
     readonly property color attrUni: "#A855F7"
 
     // ═══════════════════════════════════════════
+    // DOTA 2 ROLE COLORS (Pos 1-5)
+    // ═══════════════════════════════════════════
+    readonly property color roleCarry: "#F59E0B"
+    readonly property color roleMid: "#06B6D4"
+    readonly property color roleOfflane: "#10B981"
+    readonly property color roleSupport: "#8B5CF6"
+
+    // ═══════════════════════════════════════════
     // RARITY COLORS — Dota 2 signature tiers
     // ═══════════════════════════════════════════
     readonly property color rarityCommon: "#9CA3AF"

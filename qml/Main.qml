@@ -13,7 +13,7 @@ ApplicationWindow {
     height: 820
     minimumWidth: 1040
     minimumHeight: 680
-    title: "ImmortalHub — Dota 2 Skin Changer"
+    title: "ImmortalHub — Dota 2 Skin Changer & Mod Manager"
     color: SkinTheme.bgVoid
     flags: Qt.Window | Qt.FramelessWindowHint
 
@@ -21,10 +21,10 @@ ApplicationWindow {
     onClosing: function(close_event) {
         close_event.accepted = false
         root.hide()
-        toast.show("Minimized to system tray. Right-click the icon to quit.", "info")
+        toast.show("Minimized to system tray. Right-click the tray icon to quit.", "info")
     }
 
-    // Subtle background gradient
+    // Liquid Dark background gradient
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
@@ -34,7 +34,7 @@ ApplicationWindow {
         z: -100
     }
 
-    // Subtle aurora background
+    // Subtle ambient glow
     AuroraBackground {
         anchors.fill: parent
         z: -98
@@ -49,7 +49,6 @@ ApplicationWindow {
     property bool isDraggingFile: false
 
     function openSettings() {
-        sidebar.currentTab = "settings"
         currentTab = "settings"
     }
 
@@ -64,7 +63,7 @@ ApplicationWindow {
         var next = cart.slice()
         next.push(mod)
         cart = next
-        toast.show("Added '" + mod.name + "' to queue", "success")
+        toast.show("Added '" + mod.name + "' to queue (" + cart.length + ")", "success")
     }
 
     function removeFromCart(index) {
@@ -165,13 +164,12 @@ ApplicationWindow {
         }
     }
 
-    // Drop Overlay
+    // Drag Drop Overlay
     Rectangle {
         anchors.fill: parent
-        color: "#EE08080E"
+        color: "#EE06070B"
         border.color: SkinTheme.accentCyan
         border.width: 2
-        radius: 0
         visible: root.isDraggingFile
         z: 8001
 
@@ -179,22 +177,10 @@ ApplicationWindow {
             anchors.centerIn: parent
             spacing: 12
 
-            Rectangle {
+            Text {
                 Layout.alignment: Qt.AlignHCenter
-                width: 56
-                height: 56
-                radius: SkinTheme.radiusLarge
-                color: "transparent"
-                border.color: SkinTheme.accentCyan
-                border.width: 2
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "+"
-                    color: SkinTheme.accentCyan
-                    font.pixelSize: 28
-                    font.weight: Font.Light
-                }
+                text: "📦"
+                font.pixelSize: 44
             }
 
             Text {
@@ -209,7 +195,7 @@ ApplicationWindow {
 
             Text {
                 Layout.alignment: Qt.AlignHCenter
-                text: "Files will be placed into your Dota 2 game directory"
+                text: "Files will be automatically deployed to Dota 2"
                 color: SkinTheme.textMuted
                 font.pixelSize: SkinTheme.fontSizeSmall
             }
@@ -232,14 +218,14 @@ ApplicationWindow {
             target: appContainer
             property: "opacity"
             from: 0.0; to: 1.0
-            duration: 400
+            duration: 350
             easing.type: Easing.OutCubic
         }
         NumberAnimation {
             target: appContainer
             property: "scale"
-            from: 0.985; to: 1.0
-            duration: 400
+            from: 0.99; to: 1.0
+            duration: 350
             easing.type: Easing.OutCubic
         }
     }
@@ -261,7 +247,7 @@ ApplicationWindow {
         app.installMod(JSON.stringify(m), m.categoryId)
     }
 
-    // Main App Container
+    // Main App Canvas
     Rectangle {
         id: appContainer
         anchors.fill: parent
@@ -270,68 +256,53 @@ ApplicationWindow {
 
         Image {
             anchors.fill: parent
-            source: app.bgImagePath !== "" ? "file:///" + app.bgImagePath : ""
+            source: (typeof app !== "undefined" && app && app.bgImagePath) ? "file:///" + app.bgImagePath : ""
             fillMode: Image.PreserveAspectCrop
-            visible: app.bgImagePath !== ""
+            visible: typeof app !== "undefined" && app && Boolean(app.bgImagePath)
             asynchronous: true
-            opacity: 0.3
+            opacity: 0.25
         }
 
         ColumnLayout {
             anchors.fill: parent
             spacing: 0
 
-            SkinTitleBar {
-                id: titleBar
+            // ═══════════════════════════════════════════
+            // UNIFIED TOP-NAV GAMING HEADER
+            // ═══════════════════════════════════════════
+            SkinTopNav {
+                id: topNav
                 Layout.fillWidth: true
                 rootWindow: root
+                currentTab: root.currentTab
                 queueCount: root.cart.length
+                installedCount: (typeof app !== "undefined" && app) ? app.installedCount : 0
+                onTabSelected: function(tabId) { root.currentTab = tabId }
                 onQueueClicked: cartDrawer.isOpen = true
                 onPlayDotaClicked: app.launchDota()
                 onPresetsClicked: presetsModal.isOpen = true
                 onSearchClicked: searchModal.openWith()
+                onSettingsClicked: root.currentTab = "settings"
             }
 
-            RowLayout {
+            // ═══════════════════════════════════════════
+            // FULL-WIDTH VIEWS STACK (100% Canvas Width)
+            // ═══════════════════════════════════════════
+            Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: 0
 
-                SkinSidebar {
-                    id: sidebar
-                    Layout.fillHeight: true
-                    Layout.preferredWidth: sidebar.width
-                    Layout.minimumWidth: sidebar.width
-                    Layout.maximumWidth: sidebar.width
-                    currentTab: root.currentTab
-                    onTabSelected: function(tabId) { root.currentTab = tabId }
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                // Views
                 DashboardView {
                     anchors.fill: parent
-                    visible: currentTab === "dashboard"
-                    onNavigateToHeroes: { root.currentTab = "heroes"; sidebar.currentTab = "heroes" }
-                    onNavigateToInstalled: { root.currentTab = "installed"; sidebar.currentTab = "installed" }
+                    visible: root.currentTab === "dashboard"
+                    onNavigateToHeroes: root.currentTab = "heroes"
+                    onNavigateToInstalled: root.currentTab = "installed"
                     onModClicked: function(m) { root.selectedDetailMod = m }
                 }
 
                 HeroesView {
                     anchors.fill: parent
-                    visible: currentTab === "heroes"
-                    onModClicked: function(m) { root.selectedDetailMod = m }
-                    onModInstall: function(m) { root.safeInstallMod(m) }
-                    onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
-                    onModAddToCart: function(m) { root.addToCart(m) }
-                }
-
-                FavoritesView {
-                    anchors.fill: parent
-                    visible: currentTab === "favorites"
+                    visible: root.currentTab === "heroes"
                     onModClicked: function(m) { root.selectedDetailMod = m }
                     onModInstall: function(m) { root.safeInstallMod(m) }
                     onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
@@ -341,7 +312,7 @@ ApplicationWindow {
                 CreatorsView {
                     id: creatorsViewInstance
                     anchors.fill: parent
-                    visible: currentTab === "creators"
+                    visible: root.currentTab === "creators"
                     onModClicked: function(m) { root.selectedDetailMod = m }
                     onModInstall: function(m) { root.safeInstallMod(m) }
                     onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
@@ -350,38 +321,8 @@ ApplicationWindow {
 
                 CategoryView {
                     anchors.fill: parent
-                    visible: currentTab === "effects"
-                    categoryIds: ["ti-bp-effects", "shaders", "emblems", "versus-screens"]
-                    onModClicked: function(m) { root.selectedDetailMod = m }
-                    onModInstall: function(m) { root.safeInstallMod(m) }
-                    onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
-                    onModAddToCart: function(m) { root.addToCart(m) }
-                }
-
-                CategoryView {
-                    anchors.fill: parent
-                    visible: currentTab === "map"
-                    categoryIds: ["terrains", "trees", "river", "roshan", "ancient", "towers", "tormentor", "pedestal"]
-                    onModClicked: function(m) { root.selectedDetailMod = m }
-                    onModInstall: function(m) { root.safeInstallMod(m) }
-                    onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
-                    onModAddToCart: function(m) { root.addToCart(m) }
-                }
-
-                CategoryView {
-                    anchors.fill: parent
-                    visible: currentTab === "audio"
-                    categoryIds: ["announcers", "mega-kill", "music", "sounds", "hero-sounds"]
-                    onModClicked: function(m) { root.selectedDetailMod = m }
-                    onModInstall: function(m) { root.safeInstallMod(m) }
-                    onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
-                    onModAddToCart: function(m) { root.addToCart(m) }
-                }
-
-                CategoryView {
-                    anchors.fill: parent
-                    visible: currentTab === "misc"
-                    categoryIds: ["creeps", "creep-deny", "couriers", "wards", "huds", "item-effects", "item-icons", "ranks", "cursors", "fonts", "packs", "backgrounds", "other"]
+                    visible: root.currentTab === "effects"
+                    categoryIds: ["ti-bp-effects", "shaders", "emblems", "versus-screens", "terrains", "trees", "river", "roshan", "ancient", "towers", "announcers", "music", "sounds", "creeps", "couriers", "wards", "huds", "item-effects", "item-icons", "ranks", "cursors", "fonts", "packs", "backgrounds", "other"]
                     onModClicked: function(m) { root.selectedDetailMod = m }
                     onModInstall: function(m) { root.safeInstallMod(m) }
                     onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
@@ -390,7 +331,7 @@ ApplicationWindow {
 
                 FPSBoostView {
                     anchors.fill: parent
-                    visible: currentTab === "fpsboost"
+                    visible: root.currentTab === "fpsboost"
                     onModClicked: function(m) { root.selectedDetailMod = m }
                     onModInstall: function(m) { root.safeInstallMod(m) }
                     onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
@@ -399,19 +340,18 @@ ApplicationWindow {
 
                 InstalledView {
                     anchors.fill: parent
-                    visible: currentTab === "installed"
+                    visible: root.currentTab === "installed"
                 }
 
                 SettingsView {
                     anchors.fill: parent
-                    visible: currentTab === "settings"
+                    visible: root.currentTab === "settings"
                 }
             }
         }
     }
-    }
 
-    // Drag and Drop VPK & ZIP Zone
+    // Drag and Drop Zone
     SkinDropZone {
         id: dropZone
         onFilesDropped: function(urls) {
@@ -452,145 +392,46 @@ ApplicationWindow {
         }
     }
 
-    // Conflict Detector Modal
-    SkinConflictModal {
-        id: conflictModal
-        onReplaceRequested: function(oldMod, newMod) {
-            if (oldMod && oldMod.name) {
-                app.uninstallMod(oldMod.name, oldMod.categoryId)
-            }
-            if (newMod) {
-                app.installMod(JSON.stringify(newMod), newMod.categoryId)
-            }
-        }
-        onKeepBothRequested: function(newMod) {
-            if (newMod) {
-                app.installMod(JSON.stringify(newMod), newMod.categoryId)
-            }
-        }
-    }
-
     // Detail Modal
     SkinDetailModal {
         id: detailModal
         modData: root.selectedDetailMod
+        isOpen: root.selectedDetailMod !== null
         onCloseRequested: root.selectedDetailMod = null
+        onInstallRequested: function(m) { root.safeInstallMod(m) }
+        onUninstallRequested: function(m) { app.uninstallMod(m.name, m.categoryId) }
         onAddToCartRequested: function(m) { root.addToCart(m) }
     }
 
-    // Cart Drawer
+    // Conflict Modal
+    SkinConflictModal {
+        id: conflictModal
+        onReplaceRequested: function(oldM, newM) {
+            app.forceInstallMod(JSON.stringify(newM), newM.categoryId)
+            conflictModal.isOpen = false
+        }
+        onKeepBothRequested: function(newM) {
+            app.installMod(JSON.stringify(newM), newM.categoryId)
+            conflictModal.isOpen = false
+        }
+        onCloseRequested: conflictModal.isOpen = false
+    }
+
+    // Queue Cart Drawer
     SkinCartDrawer {
         id: cartDrawer
         cartList: root.cart
         isInstalling: root.isInstallingQueue
         installPercent: root.queueInstallPercent
         installStatus: root.queueInstallStatus
-        onCloseRequested: cartDrawer.isOpen = false
-        onInstallAllRequested: root.installQueue()
+        onRemoveItemRequested: function(index) { root.removeFromCart(index) }
         onClearRequested: root.clearCart()
-        onRemoveItemRequested: function(idx) { root.removeFromCart(idx) }
+        onInstallAllRequested: root.installQueue()
+        onCloseRequested: cartDrawer.isOpen = false
     }
 
-    // Toast
+    // Toast Stack
     SkinToast {
         id: toast
-    }
-
-    // Add Creator Modal
-    AddCreatorModal {
-        id: addCreatorModalInstance
-    }
-
-    // Add Creator Mod Modal
-    AddCreatorModModal {
-        id: addModModalInstance
-    }
-
-    // Loading Splash — Minimal Premium
-    Rectangle {
-        anchors.fill: parent
-        color: SkinTheme.bgVoid
-        visible: app.isLoading
-        z: 9000
-
-        ColumnLayout {
-            anchors.centerIn: parent
-            spacing: 20
-
-            AegisIcon {
-                Layout.alignment: Qt.AlignHCenter
-                width: 64
-                height: 64
-            }
-
-            Text {
-                Layout.alignment: Qt.AlignHCenter
-                text: "LOADING..."
-                color: SkinTheme.textSecondary
-                font.family: SkinTheme.fontFamily
-                font.pixelSize: SkinTheme.fontSizeBody
-                font.weight: Font.Medium
-                font.letterSpacing: 3.0
-
-                SequentialAnimation on opacity {
-                    running: app.isLoading
-                    loops: Animation.Infinite
-                    NumberAnimation { to: 0.3; duration: 800; easing.type: Easing.InOutSine }
-                    NumberAnimation { to: 1.0; duration: 800; easing.type: Easing.InOutSine }
-                }
-            }
-        }
-    }
-
-    // Resize Grip
-    MouseArea {
-        id: resizeGrip
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        width: 16
-        height: 16
-        cursorShape: Qt.SizeFDiagCursor
-        z: 1000
-
-        property point clickPos: "0,0"
-
-        onPressed: function(mouse) {
-            clickPos = Qt.point(mouse.x, mouse.y)
-        }
-
-        onPositionChanged: function(mouse) {
-            if (pressed) {
-                var deltaX = mouse.x - clickPos.x
-                var deltaY = mouse.y - clickPos.y
-                root.width = Math.max(root.minimumWidth, root.width + deltaX)
-                root.height = Math.max(root.minimumHeight, root.height + deltaY)
-            }
-        }
-
-        Rectangle {
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.margins: 3
-            width: 8
-            height: 8
-            color: "transparent"
-
-            Rectangle {
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                width: 2
-                height: 8
-                color: SkinTheme.textMuted
-                opacity: 0.3
-            }
-            Rectangle {
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                width: 8
-                height: 2
-                color: SkinTheme.textMuted
-                opacity: 0.3
-            }
-        }
     }
 }

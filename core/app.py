@@ -992,14 +992,53 @@ class SkinChangerApp(QObject):
             'beastmaster': 'uni', 'brewmaster': 'uni'
         }
 
-        installed_map = self._get_installed_dict()
-        
+        # Dota 2 Positions / Roles Map
+        role_map = {
+            # Pos 1 Carry
+            'antimage': 'carry', 'drow_ranger': 'carry', 'juggernaut': 'carry', 'morphling': 'carry',
+            'phantom_lancer': 'carry', 'razor': 'carry', 'riki': 'carry', 'sniper': 'carry',
+            'luna': 'carry', 'clinkz': 'carry', 'weaver': 'carry', 'spectre': 'carry', 'ursa': 'carry',
+            'gyrocopter': 'carry', 'lone_druid': 'carry', 'slark': 'carry', 'troll_warlord': 'carry',
+            'terrorblade': 'carry', 'arc_warden': 'carry', 'monkey_king': 'carry', 'kez': 'carry',
+            'skeleton_king': 'carry', 'life_stealer': 'carry', 'chaos_knight': 'carry', 'alchemist': 'carry',
+            'lycan': 'carry', 'medusa': 'carry', 'muerta': 'carry', 'faceless_void': 'carry', 'bloodseeker': 'carry',
+            'phantom_assassin': 'carry', 'sven': 'carry',
+            # Pos 2 Mid
+            'storm_spirit': 'mid', 'ember_spirit': 'mid', 'earth_spirit': 'mid', 'void_spirit': 'mid',
+            'invoker': 'mid', 'puck': 'mid', 'queenofpain': 'mid', 'nevermore': 'mid', 'tinker': 'mid',
+            'necrolyte': 'mid', 'leshrac': 'mid', 'obsidian_destroyer': 'mid', 'lina': 'mid', 'zuus': 'mid',
+            'meepo': 'mid', 'kunkka': 'mid', 'dragon_knight': 'mid', 'pangolier': 'mid', 'windrunner': 'mid',
+            'viper': 'mid', 'batrider': 'mid', 'visage': 'mid', 'death_prophet': 'mid', 'huskar': 'mid',
+            'templar_assassin': 'mid',
+            # Pos 3 Offlane
+            'axe': 'offlane', 'centaur': 'offlane', 'magnataur': 'offlane', 'shredder': 'offlane',
+            'bristleback': 'offlane', 'tusk': 'offlane', 'abaddon': 'offlane', 'elder_titan': 'offlane',
+            'legion_commander': 'offlane', 'abyssal_underlord': 'offlane', 'mars': 'offlane',
+            'dawnbreaker': 'offlane', 'primal_beast': 'offlane', 'slardar': 'offlane', 'tidehunter': 'offlane',
+            'doom_bringer': 'offlane', 'spirit_breaker': 'offlane', 'sand_king': 'offlane',
+            'brewmaster': 'offlane', 'dark_seer': 'offlane', 'night_stalker': 'offlane',
+            'beastmaster': 'offlane', 'enigma': 'offlane', 'tiny': 'offlane',
+            # Pos 4 / 5 Support
+            'crystal_maiden': 'support', 'lion': 'support', 'shadow_shaman': 'support',
+            'witch_doctor': 'support', 'lich': 'support', 'warlock': 'support', 'dazzle': 'support',
+            'ancient_apparition': 'support', 'silencer': 'support', 'shadow_demon': 'support',
+            'rubick': 'support', 'disruptor': 'support', 'keeper_of_the_light': 'support',
+            'skywrath_mage': 'support', 'oracle': 'support', 'winter_wyvern': 'support',
+            'grimstroke': 'support', 'ringmaster': 'support', 'bane': 'support', 'pugna': 'support',
+            'enchantress': 'support', 'jakiro': 'support', 'chen': 'support', 'dark_willow': 'support',
+            'snapfire': 'support', 'marci': 'support', 'techies': 'support', 'wisp': 'support',
+            'nyx_assassin': 'support', 'naga_siren': 'support', 'hoodwink': 'support',
+            'bounty_hunter': 'support', 'treant': 'support', 'ogre_magi': 'support',
+            'undying': 'support', 'vengefulspirit': 'support', 'pudge': 'support', 'venomancer': 'support'
+        }
+
         cards = []
         for h in sorted_heroes:
             ln = h.lower().replace("'", "")
             valve_name = exceptions.get(ln, ln.replace(' ', '_').replace('-', '_'))
             img_url = f"https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/{valve_name}.png"
             attr = attr_map.get(valve_name, 'uni')
+            role = role_map.get(valve_name, 'carry')
             
             # Count available and installed skins for this hero
             h_lower = h.lower()
@@ -1017,6 +1056,7 @@ class SkinChangerApp(QObject):
                 "imageUrl": img_url,
                 "valveName": valve_name,
                 "attr": attr,
+                "role": role,
                 "skinCount": skin_count,
                 "installedCount": inst_count
             })

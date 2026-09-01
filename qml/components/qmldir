@@ -14,3 +14,4 @@ SkeletonLoader 1.0 SkeletonLoader.qml
 SkinDropZone 1.0 SkinDropZone.qml
 SkinPresetsModal 1.0 SkinPresetsModal.qml
 SkinConflictModal 1.0 SkinConflictModal.qml
+SkinTopNav 1.0 SkinTopNav.qml

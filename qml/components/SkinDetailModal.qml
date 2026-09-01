@@ -14,11 +14,14 @@ Rectangle {
     Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
 
     property var modData: null
+    property bool isOpen: modData !== null
     property int selectedStyleIndex: 0
     property bool isAudioPlaying: Boolean(modData && modData.audioUrl && app.isPlayingAudio && app.currentAudioUrl === modData.audioUrl)
 
     signal addToCartRequested(var mod)
     signal closeRequested()
+    signal installRequested(var mod)
+    signal uninstallRequested(var mod)
 
     onModDataChanged: {
         selectedStyleIndex = 0
