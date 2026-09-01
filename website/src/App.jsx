@@ -184,11 +184,8 @@ function App() {
 
   return (
     <div className="app-wrapper">
-      {/* Clean Ambient Radial Background Gradients (Lightweight & Calm) */}
+      {/* Pitch-Black Clean Background with Minimal Subtle Warm Depth */}
       <div className="ambient-background">
-        <div className="ambient-glow top-center"></div>
-        <div className="ambient-glow right-mid"></div>
-        <div className="ambient-glow left-bot"></div>
         <div className="ambient-grid-overlay"></div>
       </div>
 
@@ -198,7 +195,7 @@ function App() {
       </button>
 
       <div className="layout-container">
-        {/* Left Sticky Sidebar */}
+        {/* Left Truly Fixed/Static Sidebar (Never disappears on scroll) */}
         <aside className="sidebar-container">
           <div
             className="sidebar-brand"
@@ -206,7 +203,6 @@ function App() {
               playSound('click');
               smoothScrollTo(0);
             }}
-            style={{ cursor: 'pointer' }}
             title="Scroll to top"
           >
             <div className="brand-header-row">
@@ -214,7 +210,7 @@ function App() {
               <div>
                 <span className="brand-badge">VPK ENGINE</span>
                 <h2 className="brand-logo">
-                  Immortal<span className="neon-text">Hub</span>
+                  IMMORTAL <span className="accent-red-text">HUB</span>
                 </h2>
               </div>
             </div>
@@ -222,9 +218,9 @@ function App() {
 
           <LineSidebar
             items={sidebarItems}
-            accentColor="#00F0FF"
-            textColor="#a0a0b0"
-            markerColor="#2a2a35"
+            accentColor="#E23B3B"
+            textColor="#94a3b8"
+            markerColor="#262838"
             active={activeSection}
             onItemClick={handleSidebarClick}
           />
@@ -263,7 +259,7 @@ function App() {
 
                 {/* Grand Centered Project Title */}
                 <h1 className="hero-grand-title fade-in-up">
-                  IMMORTAL<span className="neon-text glow-pulse">HUB</span>
+                  IMMORTAL <span className="accent-red-text glow-crimson">HUB</span>
                 </h1>
 
                 {/* Subtitle Value Proposition */}
@@ -295,12 +291,12 @@ function App() {
                   </a>
                 </div>
 
-                {/* Signature 3D Aegis of Champions Edition Card */}
+                {/* Signature 3D Aegis of Champions Edition Card (Crimson Ember Edition) */}
                 <div className="hero-aegis-centered-container fade-in-up">
                   <TiltCard>
                     <div className="hero-aegis-card">
                       <div className="aegis-image-container">
-                        <img src={aegisNeonImg} alt="ImmortalHub Neon Aegis" className="hero-aegis-img" />
+                        <img src={aegisNeonImg} alt="ImmortalHub Aegis of Champions" className="hero-aegis-img" />
                         <div className="aegis-radial-glow"></div>
                       </div>
                       <div className="aegis-card-overlay">
@@ -429,16 +425,16 @@ function App() {
                 <TiltCard>
                   <BorderGlow
                     edgeSensitivity={30}
-                    glowColor="185 100 50"
-                    backgroundColor="rgba(18, 15, 23, 0.45)"
-                    borderRadius={24}
-                    glowRadius={35}
-                    glowIntensity={1.4}
-                    colors={['#00F0FF', '#B026FF', '#00FFAA']}
+                    glowColor="0 90 55"
+                    backgroundColor="rgba(18, 18, 26, 0.95)"
+                    borderRadius={20}
+                    glowRadius={30}
+                    glowIntensity={1.3}
+                    colors={['#E23B3B', '#FF6B6B', '#10B981']}
                     className="glass-feature-card"
                   >
                     <div className="feature-card-body">
-                      <div className="feature-icon-wrapper glow-cyan">⚡</div>
+                      <div className="feature-icon-wrapper glow-red">⚡</div>
                       <span className="feature-tag">0 FPS DROP</span>
                       <h3 className="feature-heading">Zero Latency Hook</h3>
                       <p className="feature-text">
@@ -452,16 +448,16 @@ function App() {
                 <TiltCard>
                   <BorderGlow
                     edgeSensitivity={30}
-                    glowColor="280 100 50"
-                    backgroundColor="rgba(18, 15, 23, 0.45)"
-                    borderRadius={24}
-                    glowRadius={35}
-                    glowIntensity={1.4}
-                    colors={['#B026FF', '#00F0FF', '#00FFAA']}
+                    glowColor="150 90 50"
+                    backgroundColor="rgba(18, 18, 26, 0.95)"
+                    borderRadius={20}
+                    glowRadius={30}
+                    glowIntensity={1.3}
+                    colors={['#10B981', '#059669', '#E23B3B']}
                     className="glass-feature-card"
                   >
                     <div className="feature-card-body">
-                      <div className="feature-icon-wrapper glow-purple">🛡️</div>
+                      <div className="feature-icon-wrapper glow-green">🛡️</div>
                       <span className="feature-tag">100% VAC-SAFE</span>
                       <h3 className="feature-heading">Game State Sync</h3>
                       <p className="feature-text">
@@ -475,16 +471,16 @@ function App() {
                 <TiltCard>
                   <BorderGlow
                     edgeSensitivity={30}
-                    glowColor="160 100 50"
-                    backgroundColor="rgba(18, 15, 23, 0.45)"
-                    borderRadius={24}
-                    glowRadius={35}
-                    glowIntensity={1.4}
-                    colors={['#00FFAA', '#00F0FF', '#B026FF']}
+                    glowColor="35 90 50"
+                    backgroundColor="rgba(18, 18, 26, 0.95)"
+                    borderRadius={20}
+                    glowRadius={30}
+                    glowIntensity={1.3}
+                    colors={['#F59E0B', '#E23B3B', '#10B981']}
                     className="glass-feature-card"
                   >
                     <div className="feature-card-body">
-                      <div className="feature-icon-wrapper glow-green">🧹</div>
+                      <div className="feature-icon-wrapper glow-gold">🧹</div>
                       <span className="feature-tag">SMART CLEANUP</span>
                       <h3 className="feature-heading">Conflict Resolver</h3>
                       <p className="feature-text">
@@ -498,16 +494,16 @@ function App() {
                 <TiltCard>
                   <BorderGlow
                     edgeSensitivity={30}
-                    glowColor="40 100 50"
-                    backgroundColor="rgba(18, 15, 23, 0.45)"
-                    borderRadius={24}
-                    glowRadius={35}
-                    glowIntensity={1.4}
-                    colors={['#F59E0B', '#EF4444', '#00F0FF']}
+                    glowColor="0 85 50"
+                    backgroundColor="rgba(18, 18, 26, 0.95)"
+                    borderRadius={20}
+                    glowRadius={30}
+                    glowIntensity={1.3}
+                    colors={['#E23B3B', '#F59E0B', '#10B981']}
                     className="glass-feature-card"
                   >
                     <div className="feature-card-body">
-                      <div className="feature-icon-wrapper glow-gold">🔊</div>
+                      <div className="feature-icon-wrapper glow-red">🔊</div>
                       <span className="feature-tag">AUDIO PACKS</span>
                       <h3 className="feature-heading">Custom Announcers</h3>
                       <p className="feature-text">
@@ -586,7 +582,7 @@ function App() {
               </p>
               <div className="cta-buttons">
                 <button
-                  className="btn-glitch"
+                  className="btn-primary-action"
                   onClick={() => {
                     playSound('click');
                     setShowDownloadModal(true);
@@ -604,7 +600,7 @@ function App() {
           <footer className="app-footer">
             <div className="footer-left">
               <span className="footer-brand">
-                Immortal<span className="neon-text">Hub</span>
+                IMMORTAL <span className="accent-red-text">HUB</span>
               </span>
               <span className="footer-disclaimer">
                 Dota 2 and Valve are trademarks of Valve Corporation. ImmortalHub is an open-source cosmetic tool

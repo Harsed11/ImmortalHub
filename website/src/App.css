@@ -1,17 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --bg-color: #08080E;
-  --panel-bg: rgba(14, 14, 24, 0.85);
-  --border-color: #1E2032;
-  --text-primary: #F1F5F9;
+  --bg-color: #08080C;
+  --panel-bg: #0D0E16;
+  --card-bg: #11121C;
+  --card-hover-bg: #161824;
+  --border-color: #1E202E;
+  --border-hover: #2E3248;
+  --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
-  --neon-cyan: #00F0FF;
-  --neon-violet: #A855F7;
-  --neon-emerald: #10B981;
-  --neon-amber: #F59E0B;
-  --neon-rose: #F43F5E;
+  --accent-red: #E23B3B;
+  --accent-red-hover: #EF4444;
+  --accent-gold: #F59E0B;
+  --accent-emerald: #10B981;
+  --accent-cyan: #00F0FF;
 }
 
 *, *::before, *::after {
@@ -36,23 +39,23 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   cursor: pointer !important;
 }
 
-/* Custom Cyber Scrollbar */
+/* Custom Gaming Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #08080E;
+  background: #08080C;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 240, 255, 0.25);
+  background: rgba(226, 59, 59, 0.3);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--neon-cyan);
-  box-shadow: 0 0 10px var(--neon-cyan);
+  background: var(--accent-red);
+  box-shadow: 0 0 10px var(--accent-red);
 }
 
 /* App Wrapper */
@@ -60,50 +63,17 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   position: relative;
   width: 100%;
   min-height: 100vh;
-  background: #08080E;
+  background: var(--bg-color);
 }
 
-/* Calm Minimalist Ambient Background (Matching Desktop App) */
+/* Pitch-Black Clean Background Overlay */
 .ambient-background {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 1;
   overflow: hidden;
-  background: #08080E;
-}
-
-.ambient-glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(140px);
-  opacity: 0.14;
-  transition: all 1s ease;
-}
-
-.ambient-glow.top-center {
-  width: 750px;
-  height: 480px;
-  top: -140px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: radial-gradient(circle, #00F0FF 0%, #3B82F6 60%, transparent 80%);
-}
-
-.ambient-glow.right-mid {
-  width: 600px;
-  height: 600px;
-  top: 40%;
-  right: -150px;
-  background: radial-gradient(circle, #A855F7 0%, transparent 70%);
-}
-
-.ambient-glow.left-bot {
-  width: 500px;
-  height: 500px;
-  bottom: 5%;
-  left: -100px;
-  background: radial-gradient(circle, #10B981 0%, transparent 70%);
+  background: #08080C;
 }
 
 .ambient-grid-overlay {
@@ -111,8 +81,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   inset: 0;
   background-image: linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
                     linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(circle at 50% 30%, black 30%, transparent 85%);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(circle at 50% 30%, black 40%, transparent 90%);
 }
 
 /* Sound Toggle Floating Button */
@@ -121,22 +91,21 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   top: 24px;
   right: 28px;
   z-index: 100;
-  background: rgba(14, 14, 24, 0.9);
-  border: 1px solid rgba(0, 240, 255, 0.35);
+  background: #0E0E18;
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
   padding: 10px 18px;
   border-radius: 30px;
   font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
   transition: all 0.25s ease;
 }
 
 .sound-toggle-btn:hover {
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 18px rgba(0, 240, 255, 0.4);
+  border-color: var(--accent-red);
+  box-shadow: 0 0 18px rgba(226, 59, 59, 0.35);
   transform: translateY(-2px);
 }
 
@@ -147,25 +116,28 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   position: relative;
   z-index: 5;
   width: 100%;
-  max-width: 100%;
-  margin: 0;
 }
 
-/* Left Sidebar - Sticky */
+/* ═══════════════════════════════════════════════════════════
+   LEFT FIXED SIDEBAR (TRULY STATIC DOCKED ACROSS FULL SCROLL)
+═══════════════════════════════════════════════════════════ */
 .sidebar-container {
-  width: 280px;
-  min-width: 280px;
-  padding: 48px 20px 48px 16px;
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
+  width: 280px;
   height: 100vh;
+  z-index: 50;
+  padding: 44px 20px 44px 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   border-right: 1px solid var(--border-color);
-  background: linear-gradient(90deg, #0A0A12 0%, rgba(10, 10, 18, 0.8) 100%);
-  backdrop-filter: blur(16px);
+  background: #0A0A10;
+}
+
+.sidebar-brand {
+  cursor: pointer;
 }
 
 .brand-header-row {
@@ -175,47 +147,47 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .brand-mini-aegis {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(0, 240, 255, 0.4);
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+  border: 1px solid rgba(226, 59, 59, 0.5);
+  box-shadow: 0 0 14px rgba(226, 59, 59, 0.4);
   background: #000;
 }
 
 .brand-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 2px;
-  color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.1);
+  color: var(--accent-red);
+  background: rgba(226, 59, 59, 0.12);
   padding: 2px 7px;
   border-radius: 4px;
-  border: 1px solid rgba(0, 240, 255, 0.2);
+  border: 1px solid rgba(226, 59, 59, 0.3);
   display: inline-block;
   margin-bottom: 4px;
 }
 
 .brand-logo {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.5px;
 }
 
-.neon-text {
-  color: var(--neon-cyan);
-  text-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+.accent-red-text {
+  color: var(--accent-red);
+  text-shadow: 0 0 16px rgba(226, 59, 59, 0.6);
 }
 
-.glow-pulse {
-  animation: glowPulse 2.5s infinite alternate ease-in-out;
+.glow-crimson {
+  animation: glowCrimson 2.5s infinite alternate ease-in-out;
 }
 
-@keyframes glowPulse {
-  0% { text-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
-  100% { text-shadow: 0 0 30px rgba(0, 240, 255, 0.85), 0 0 50px rgba(168, 85, 247, 0.5); }
+@keyframes glowCrimson {
+  0% { text-shadow: 0 0 15px rgba(226, 59, 59, 0.4); }
+  100% { text-shadow: 0 0 30px rgba(226, 59, 59, 0.95), 0 0 50px rgba(245, 158, 11, 0.4); }
 }
 
 .sidebar-footer {
@@ -231,7 +203,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.04);
+  background: #11121C;
   padding: 6px 12px;
   border-radius: 20px;
   border: 1px solid var(--border-color);
@@ -240,14 +212,14 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .status-dot {
   width: 6px;
   height: 6px;
-  background: var(--neon-emerald);
+  background: var(--accent-emerald);
   border-radius: 50%;
-  box-shadow: 0 0 8px var(--neon-emerald);
+  box-shadow: 0 0 8px var(--accent-emerald);
 }
 
 .sidebar-repo-link {
   font-size: 0.8rem;
-  color: var(--neon-cyan);
+  color: var(--accent-red);
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -260,16 +232,18 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   text-decoration: underline;
 }
 
-/* Main Content Wrapper */
+/* ═══════════════════════════════════════════════════════════
+   MAIN CONTENT AREA (OFFSET FROM FIXED SIDEBAR)
+═══════════════════════════════════════════════════════════ */
 .main-content {
-  flex: 1;
+  margin-left: 280px;
+  width: calc(100% - 280px);
+  min-height: 100vh;
   padding: 64px 72px;
   display: flex;
   flex-direction: column;
   gap: 120px;
-  max-width: 1240px;
-  margin: 0 auto;
-  width: 100%;
+  max-width: 1280px;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -296,19 +270,18 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   align-items: center;
   gap: 10px;
   background: #0E0E18;
-  border: 1px solid rgba(0, 240, 255, 0.25);
+  border: 1px solid rgba(226, 59, 59, 0.35);
   padding: 8px 18px;
   border-radius: 40px;
   margin-bottom: 20px;
-  backdrop-filter: blur(10px);
 }
 
 .pulse-dot {
   width: 8px;
   height: 8px;
-  background-color: var(--neon-cyan);
+  background-color: var(--accent-red);
   border-radius: 50%;
-  box-shadow: 0 0 10px var(--neon-cyan);
+  box-shadow: 0 0 10px var(--accent-red);
   animation: pulseDot 1.5s infinite alternate;
 }
 
@@ -322,13 +295,13 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 2px;
-  color: var(--neon-cyan);
+  color: #F8FAFC;
 }
 
 .pill-tag {
   background: rgba(16, 185, 129, 0.15);
   border: 1px solid rgba(16, 185, 129, 0.4);
-  color: var(--neon-emerald);
+  color: var(--accent-emerald);
   font-size: 0.7rem;
   font-weight: 700;
   padding: 2px 8px;
@@ -368,8 +341,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: var(--neon-cyan);
-  color: #08080E;
+  background: var(--accent-red);
+  color: #FFFFFF;
   font-family: 'Outfit', sans-serif;
   font-size: 1.05rem;
   font-weight: 800;
@@ -377,14 +350,14 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   border-radius: 12px;
   border: none;
   letter-spacing: 0.5px;
-  box-shadow: 0 0 25px rgba(0, 240, 255, 0.4), inset 0 0 12px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 25px rgba(226, 59, 59, 0.45), inset 0 0 12px rgba(255, 255, 255, 0.2);
   transition: all 0.25s ease;
 }
 
 .btn-primary-action:hover {
-  background: #33F4FF;
+  background: var(--accent-red-hover);
   transform: translateY(-2px);
-  box-shadow: 0 0 35px rgba(0, 240, 255, 0.6), inset 0 0 16px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 35px rgba(226, 59, 59, 0.7);
 }
 
 .btn-secondary-action {
@@ -404,8 +377,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .btn-secondary-action:hover {
-  border-color: var(--neon-violet);
-  background: rgba(168, 85, 247, 0.12);
+  border-color: var(--accent-red);
+  background: rgba(226, 59, 59, 0.1);
   transform: translateY(-2px);
 }
 
@@ -419,12 +392,11 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .hero-aegis-card {
   position: relative;
   background: #0E0E18;
-  border: 1px solid rgba(0, 240, 255, 0.35);
+  border: 1px solid rgba(226, 59, 59, 0.4);
   border-radius: 28px;
   overflow: hidden;
   padding: 20px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 240, 255, 0.15);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(226, 59, 59, 0.18);
   text-align: left;
 }
 
@@ -456,7 +428,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .aegis-radial-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.15) 0%, rgba(168, 85, 247, 0.1) 50%, transparent 80%);
+  background: radial-gradient(circle at 50% 50%, rgba(226, 59, 59, 0.18) 0%, rgba(245, 158, 11, 0.1) 50%, transparent 80%);
   pointer-events: none;
 }
 
@@ -470,8 +442,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   gap: 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
-  color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.1);
+  color: var(--accent-red);
+  background: rgba(226, 59, 59, 0.12);
   padding: 3px 10px;
   border-radius: 20px;
   margin-bottom: 8px;
@@ -480,9 +452,9 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .live-ring {
   width: 7px;
   height: 7px;
-  background: var(--neon-emerald);
+  background: var(--accent-emerald);
   border-radius: 50%;
-  box-shadow: 0 0 8px var(--neon-emerald);
+  box-shadow: 0 0 8px var(--accent-emerald);
 }
 
 .overlay-title {
@@ -504,14 +476,14 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   gap: 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
-  color: var(--neon-violet);
+  color: var(--accent-gold);
 }
 
 /* Marquee Ticker */
 .marquee-wrapper {
   overflow: hidden;
   white-space: nowrap;
-  background: #0A0A12;
+  background: #0A0A10;
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
   padding: 14px 0;
@@ -529,7 +501,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .marquee-content span:nth-child(odd) {
-  color: var(--neon-cyan);
+  color: var(--accent-red);
 }
 
 @keyframes marquee {
@@ -548,7 +520,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 2px;
-  color: var(--neon-cyan);
+  color: var(--accent-red);
   display: inline-block;
   margin-bottom: 8px;
 }
@@ -596,24 +568,24 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .gallery-tab-btn:hover {
-  background: #141422;
+  background: #141424;
   color: var(--text-primary);
-  border-color: rgba(0, 240, 255, 0.3);
+  border-color: rgba(226, 59, 59, 0.4);
 }
 
 .gallery-tab-btn.active {
-  background: rgba(0, 240, 255, 0.12);
-  border-color: var(--neon-cyan);
-  color: var(--neon-cyan);
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+  background: rgba(226, 59, 59, 0.15);
+  border-color: var(--accent-red);
+  color: #FFFFFF;
+  box-shadow: 0 0 20px rgba(226, 59, 59, 0.25);
 }
 
 .gallery-preview-frame {
-  background: #0A0A12;
-  border: 1px solid rgba(0, 240, 255, 0.25);
+  background: #0A0A10;
+  border: 1px solid var(--border-color);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 240, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
 }
 
 .frame-header-bar {
@@ -650,8 +622,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.1);
+  color: var(--accent-red);
+  background: rgba(226, 59, 59, 0.12);
   padding: 3px 8px;
   border-radius: 4px;
 }
@@ -670,7 +642,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .frame-image-caption {
   padding: 18px 24px;
-  background: #0A0A12;
+  background: #0A0A10;
   font-size: 0.95rem;
   color: var(--text-secondary);
   line-height: 1.5;
@@ -710,11 +682,23 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   background: rgba(255, 255, 255, 0.04);
 }
 
+.glow-red {
+  color: var(--accent-red);
+}
+
+.glow-green {
+  color: var(--accent-emerald);
+}
+
+.glow-gold {
+  color: var(--accent-gold);
+}
+
 .feature-tag {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
   letter-spacing: 1.5px;
-  color: var(--neon-cyan);
+  color: var(--accent-red);
   margin-bottom: 6px;
   display: block;
 }
@@ -747,17 +731,16 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   border-radius: 14px;
   padding: 20px 24px;
   transition: all 0.25s ease;
-  backdrop-filter: blur(10px);
 }
 
 .faq-card:hover {
-  border-color: rgba(0, 240, 255, 0.3);
-  background: #121220;
+  border-color: rgba(226, 59, 59, 0.4);
+  background: #141424;
 }
 
 .faq-card.open {
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+  border-color: var(--accent-red);
+  box-shadow: 0 0 20px rgba(226, 59, 59, 0.15);
 }
 
 .faq-question-row {
@@ -771,7 +754,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .faq-toggle-icon {
   font-size: 1.3rem;
-  color: var(--neon-cyan);
+  color: var(--accent-red);
   font-weight: 400;
 }
 
@@ -788,20 +771,19 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
    5. CTA BANNER
 ═══════════════════════════════════════════════════════════ */
 .cta-banner {
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%), #0E0E18;
-  border: 1px solid rgba(0, 240, 255, 0.35);
+  background: linear-gradient(135deg, rgba(226, 59, 59, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%), #0E0E18;
+  border: 1px solid rgba(226, 59, 59, 0.4);
   border-radius: 24px;
   padding: 56px 48px;
   text-align: center;
-  backdrop-filter: blur(16px);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
 }
 
 .cta-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   letter-spacing: 2px;
-  color: var(--neon-cyan);
+  color: var(--accent-red);
   margin-bottom: 12px;
   display: inline-block;
 }
@@ -819,28 +801,6 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   color: var(--text-secondary);
   max-width: 620px;
   margin: 0 auto 32px;
-}
-
-.btn-glitch {
-  display: inline-flex;
-  align-items: center;
-  background: var(--neon-cyan);
-  color: #08080E;
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 800;
-  padding: 16px 36px;
-  border-radius: 12px;
-  border: none;
-  letter-spacing: 0.5px;
-  box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
-  transition: all 0.25s ease;
-}
-
-.btn-glitch:hover {
-  background: #33F4FF;
-  transform: translateY(-2px);
-  box-shadow: 0 0 45px rgba(0, 240, 255, 0.8);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -887,7 +847,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 }
 
 .footer-link:hover {
-  color: var(--neon-cyan);
+  color: var(--accent-red);
 }
 
 .footer-dot {
@@ -900,7 +860,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.92);
   backdrop-filter: blur(14px);
   z-index: 1000;
   display: flex;
@@ -912,12 +872,12 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .modal-cyber-card {
   position: relative;
   background: #0C0C16;
-  border: 1px solid rgba(0, 240, 255, 0.4);
+  border: 1px solid rgba(226, 59, 59, 0.5);
   border-radius: 24px;
   padding: 40px;
   max-width: 540px;
   width: 100%;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(0, 240, 255, 0.2);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 50px rgba(226, 59, 59, 0.25);
 }
 
 .modal-close-btn {
@@ -946,8 +906,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .modal-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
-  color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.1);
+  color: var(--accent-red);
+  background: rgba(226, 59, 59, 0.15);
   padding: 3px 10px;
   border-radius: 20px;
   display: inline-block;
@@ -979,17 +939,17 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   display: flex;
   align-items: center;
   gap: 14px;
-  background: var(--neon-cyan);
-  color: #08080E;
+  background: var(--accent-red);
+  color: #FFFFFF;
   padding: 14px 20px;
   border-radius: 12px;
   text-decoration: none;
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 20px rgba(226, 59, 59, 0.4);
   transition: all 0.2s;
 }
 
 .modal-btn-primary:hover {
-  background: #33F4FF;
+  background: var(--accent-red-hover);
   transform: translateY(-2px);
 }
 
@@ -1024,11 +984,11 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 
 .modal-btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: var(--neon-violet);
+  border-color: var(--accent-gold);
 }
 
 .modal-quickstart {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 16px 18px;
@@ -1038,7 +998,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .quickstart-heading {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: var(--neon-amber);
+  color: var(--accent-gold);
   margin-bottom: 10px;
 }
 
@@ -1060,8 +1020,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(0, 240, 255, 0.15);
-  color: var(--neon-cyan);
+  background: rgba(226, 59, 59, 0.2);
+  color: var(--accent-red);
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   font-size: 0.72rem;
@@ -1077,7 +1037,7 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
 .vac-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: var(--neon-emerald);
+  color: var(--accent-emerald);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1088,6 +1048,8 @@ button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-b
     display: none;
   }
   .main-content {
+    margin-left: 0;
+    width: 100%;
     padding: 40px 24px;
     gap: 80px;
   }
