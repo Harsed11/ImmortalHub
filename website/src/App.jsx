@@ -497,12 +497,14 @@ function App() {
 
             <div className="loadouts-builder-card">
               {/* Hero Selector Tabs */}
+              {/* Hero Selector Tabs with Dota 2 Roles & Pro Badges */}
               <div className="builder-heroes-row">
                 {[
-                  { name: 'Juggernaut', role: 'Carry', icon: '⚔️' },
-                  { name: 'Invoker', role: 'Mid', icon: '🔮' },
-                  { name: 'Phantom Assassin', role: 'Carry', icon: '🗡️' },
-                  { name: 'Shadow Fiend', role: 'Mid', icon: '💀' },
+                  { name: 'Yatoro Pack', role: 'Pos 1 Carry', hero: 'Phantom Assassin', icon: '🏆', tag: 'TI CHAMPION' },
+                  { name: 'Miracle- Mid', role: 'Pos 2 Mid', hero: 'Invoker', icon: '🔮', tag: 'MID GOD' },
+                  { name: 'Collapse Titan', role: 'Pos 3 Offlane', hero: 'Magnus', icon: '🛡️', tag: 'OFFLANE GOD' },
+                  { name: 'Juggernaut', role: 'Pos 1 Carry', hero: 'Juggernaut', icon: '⚔️', tag: 'ARCANA SET' },
+                  { name: 'Shadow Fiend', role: 'Pos 2 Mid', hero: 'Shadow Fiend', icon: '💀', tag: 'SOULS SET' },
                 ].map((hero) => (
                   <button
                     key={hero.name}
