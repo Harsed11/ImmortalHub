@@ -15,6 +15,8 @@ Rectangle {
 
     property bool isOpen: false
     property var presetsList: []
+    property string activeTagFilter: "all" // "all", "pro", "curated", "user"
+    property var filteredPresets: []
 
     signal closeRequested()
     signal applyPresetRequested(var preset)
@@ -29,6 +31,19 @@ Rectangle {
                 presetsList = []
             }
         }
+        filterPresets()
+    }
+
+    function filterPresets() {
+        if (activeTagFilter === "pro") {
+            filteredPresets = presetsList.filter(function(p) { return p.badge === "PRO LOADOUT" })
+        } else if (activeTagFilter === "curated") {
+            filteredPresets = presetsList.filter(function(p) { return p.badge === "CURATED" || p.badge === "EXCLUSIVE" || p.badge === "PERFORMANCE" })
+        } else if (activeTagFilter === "user") {
+            filteredPresets = presetsList.filter(function(p) { return !p.isBuiltin })
+        } else {
+            filteredPresets = presetsList
+        }
     }
 
     onIsOpenChanged: {
@@ -36,6 +51,8 @@ Rectangle {
             refreshPresets()
         }
     }
+
+    onActiveTagFilterChanged: filterPresets()
 
     // Background Click Dismiss
     MouseArea {
@@ -46,11 +63,11 @@ Rectangle {
     // Modal Card
     Rectangle {
         anchors.centerIn: parent
-        width: Math.min(840, parent.width - 60)
-        height: Math.min(620, parent.height - 60)
-        radius: SkinTheme.radiusLarge
+        width: Math.min(880, parent.width - 40)
+        height: Math.min(640, parent.height - 40)
+        radius: SkinTheme.radiusXLarge
         color: SkinTheme.bgModal
-        border.color: SkinTheme.borderMuted
+        border.color: SkinTheme.borderLight
         border.width: 1
         clip: true
 
@@ -77,9 +94,9 @@ Rectangle {
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 24
-            spacing: 16
+            spacing: 14
 
-            // Header
+            // ── Header ──
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
@@ -92,7 +109,7 @@ Rectangle {
                 ColumnLayout {
                     spacing: 2
                     Text {
-                        text: "SKIN PRESETS & COMBO SETS"
+                        text: "PRO LOADOUTS & PRESETS"
                         color: SkinTheme.textPrimary
                         font.family: SkinTheme.fontDisplay
                         font.pixelSize: 18
@@ -101,10 +118,10 @@ Rectangle {
                     }
 
                     Text {
-                        text: "One-click loadouts for full Arcana collections, competitive FPS tweaks, or custom setups."
+                        text: "1-Click equip professional tournament sets, meta combos, or share custom builds"
                         color: SkinTheme.textSecondary
                         font.family: SkinTheme.fontFamily
-                        font.pixelSize: 12
+                        font.pixelSize: SkinTheme.fontSizeSmall
                     }
                 }
 
@@ -115,20 +132,22 @@ Rectangle {
                     width: 32
                     height: 32
                     radius: SkinTheme.radiusSmall
-                    color: closeMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
-                    border.color: closeMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                    color: closePmMouse.containsMouse ? SkinTheme.accentCrimsonHover : "transparent"
+                    border.color: closePmMouse.containsMouse ? "transparent" : SkinTheme.borderMuted
                     border.width: 1
+
+                    Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
                     Text {
                         anchors.centerIn: parent
                         text: "✕"
-                        color: closeMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.textSecondary
-                        font.family: SkinTheme.fontMono
-                        font.pixelSize: 13
+                        color: closePmMouse.containsMouse ? "#FFFFFF" : SkinTheme.textMuted
+                        font.pixelSize: 12
+                        font.bold: true
                     }
 
                     MouseArea {
-                        id: closeMouse
+                        id: closePmMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -137,10 +156,132 @@ Rectangle {
                 }
             }
 
-            // Save Current Setup Bar
+            // ── Category Filter Tabs & Share Code Bar ──
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                // Filter Tabs
+                RowLayout {
+                    spacing: 4
+
+                    Repeater {
+                        model: [
+                            { id: "all", label: "ALL PRESETS", count: presetsList.length },
+                            { id: "pro", label: "🏆 PRO LOADOUTS", count: 3 },
+                            { id: "curated", label: "✨ CURATED", count: 3 },
+                            { id: "user", label: "💾 MY PRESETS", count: presetsList.filter(function(p){ return !p.isBuiltin }).length }
+                        ]
+
+                        delegate: Rectangle {
+                            height: 30
+                            radius: SkinTheme.radiusSmall
+                            implicitWidth: pFilterRow.implicitWidth + 16
+                            color: presetsModal.activeTagFilter === modelData.id
+                                   ? SkinTheme.accentCyan
+                                   : (pTabMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard)
+                            border.color: presetsModal.activeTagFilter === modelData.id ? "transparent" : SkinTheme.borderMuted
+                            border.width: 1
+
+                            Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                            RowLayout {
+                                id: pFilterRow
+                                anchors.centerIn: parent
+                                spacing: 6
+
+                                Text {
+                                    text: modelData.label
+                                    color: presetsModal.activeTagFilter === modelData.id ? "#050811" : SkinTheme.textPrimary
+                                    font.family: SkinTheme.fontFamily
+                                    font.pixelSize: SkinTheme.fontSizeSmall
+                                    font.bold: true
+                                }
+                            }
+
+                            MouseArea {
+                                id: pTabMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: presetsModal.activeTagFilter = modelData.id
+                            }
+                        }
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+
+                // Import Code Box
+                Rectangle {
+                    width: 220
+                    height: 30
+                    radius: SkinTheme.radiusSmall
+                    color: SkinTheme.bgInput
+                    border.color: importCodeInput.activeFocus ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                    border.width: 1
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 8
+                        anchors.rightMargin: 4
+                        spacing: 4
+
+                        TextInput {
+                            id: importCodeInput
+                            Layout.fillWidth: true
+                            color: SkinTheme.textPrimary
+                            font.family: SkinTheme.fontMono
+                            font.pixelSize: SkinTheme.fontSizeSmall
+                            clip: true
+                            selectByMouse: true
+
+                            Text {
+                                text: "Paste IHUB-... code"
+                                color: SkinTheme.textMuted
+                                font.family: SkinTheme.fontMono
+                                font.pixelSize: SkinTheme.fontSizeSmall
+                                visible: !importCodeInput.text && !importCodeInput.activeFocus
+                            }
+                        }
+
+                        Rectangle {
+                            height: 22
+                            radius: SkinTheme.radiusSmall
+                            implicitWidth: 54
+                            color: importCodeInput.text.trim() !== "" ? SkinTheme.accentCyan : SkinTheme.bgCard
+                            border.color: SkinTheme.borderMuted
+                            border.width: 1
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "IMPORT"
+                                color: importCodeInput.text.trim() !== "" ? "#050811" : SkinTheme.textMuted
+                                font.family: SkinTheme.fontMono
+                                font.pixelSize: 8
+                                font.bold: true
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (importCodeInput.text.trim() !== "" && typeof app !== "undefined" && app) {
+                                        app.importPresetCode(importCodeInput.text.trim())
+                                        importCodeInput.text = ""
+                                        presetsModal.refreshPresets()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Save Current Loadout Row ──
             Rectangle {
                 Layout.fillWidth: true
-                height: 48
+                height: 44
                 radius: SkinTheme.radiusMedium
                 color: SkinTheme.bgCard
                 border.color: SkinTheme.borderMuted
@@ -148,12 +289,13 @@ Rectangle {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 8
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 8
                     spacing: 10
 
                     Text {
                         text: "💾"
-                        font.pixelSize: 14
+                        font.pixelSize: 12
                     }
 
                     TextInput {
@@ -161,37 +303,33 @@ Rectangle {
                         Layout.fillWidth: true
                         color: SkinTheme.textPrimary
                         font.family: SkinTheme.fontFamily
-                        font.pixelSize: 13
-                        selectByMouse: true
+                        font.pixelSize: SkinTheme.fontSizeBody
                         clip: true
+                        selectByMouse: true
 
                         Text {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Enter custom preset name to save active skins..."
+                            text: "Save currently equipped loadout as custom preset..."
                             color: SkinTheme.textMuted
-                            font: parent.font
-                            visible: !parent.text && !parent.activeFocus
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeBody
+                            visible: !presetNameInput.text && !presetNameInput.activeFocus
                         }
                     }
 
                     Rectangle {
-                        height: 32
+                        height: 28
                         radius: SkinTheme.radiusSmall
-                        implicitWidth: saveBtnLabel.implicitWidth + 24
-                        color: savePresetMouse.containsMouse ? SkinTheme.accentVioletHover : SkinTheme.accentViolet
-                        border.color: SkinTheme.accentVioletHover
-                        border.width: 1
+                        implicitWidth: savePresetBtnText.implicitWidth + 18
+                        color: savePresetMouse.containsMouse ? SkinTheme.accentEmeraldHover : SkinTheme.accentEmerald
 
                         Text {
-                            id: saveBtnLabel
+                            id: savePresetBtnText
                             anchors.centerIn: parent
-                            text: "SAVE SETUP"
-                            color: "#ffffff"
-                            font.family: SkinTheme.fontMono
-                            font.pixelSize: 10
+                            text: "SAVE LOADOUT"
+                            color: "#FFFFFF"
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeSmall
                             font.bold: true
-                            font.letterSpacing: 1.0
                         }
 
                         MouseArea {
@@ -211,45 +349,43 @@ Rectangle {
                 }
             }
 
-            // Presets List
+            // ── Presets Grid / List View ──
             ListView {
                 id: presetsListView
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: 12
+                spacing: 8
                 clip: true
-                model: presetsModal.presetsList
+                model: presetsModal.filteredPresets
 
-                ScrollBar.vertical: ScrollBar {
-                    width: 4
-                    policy: ScrollBar.AsNeeded
-                    contentItem: Rectangle {
-                        radius: 2
-                        color: SkinTheme.accentCyan
-                        opacity: 0.4
-                    }
-                }
+                ScrollBar.vertical: NeonScrollBar {}
 
                 delegate: Rectangle {
-                    width: presetsListView.width - 10
-                    height: 100
-                    radius: SkinTheme.radiusMedium
-                    color: itemHoverMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard
-                    border.color: itemHoverMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                    width: presetsListView.width
+                    height: 72
+                    radius: SkinTheme.radiusLarge
+                    color: pRowMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard
+                    border.color: pRowMouse.containsMouse ? SkinTheme.borderLight : SkinTheme.borderMuted
                     border.width: 1
 
                     Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
-                    Behavior on border.color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                    MouseArea {
+                        id: pRowMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                    }
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: 16
-                        spacing: 16
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 14
+                        spacing: 12
 
-                        // Icon
+                        // Icon Pill
                         Rectangle {
-                            width: 52
-                            height: 52
+                            width: 44
+                            height: 44
                             radius: SkinTheme.radiusMedium
                             color: SkinTheme.bgDark
                             border.color: SkinTheme.borderMuted
@@ -258,140 +394,149 @@ Rectangle {
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.icon || "🎭"
-                                font.pixelSize: 24
+                                font.pixelSize: 20
                             }
                         }
 
-                        // Details
+                        // Info Column
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 4
+                            spacing: 3
 
                             RowLayout {
                                 spacing: 8
-
                                 Text {
                                     text: modelData.name
                                     color: SkinTheme.textPrimary
-                                    font.family: SkinTheme.fontDisplay
-                                    font.pixelSize: 14
+                                    font.family: SkinTheme.fontFamily
+                                    font.pixelSize: SkinTheme.fontSizeBody
                                     font.bold: true
                                 }
 
                                 Rectangle {
-                                    height: 18
-                                    radius: 3
-                                    implicitWidth: badgeLabel.implicitWidth + 10
-                                    color: modelData.badge === "PERFORMANCE" ? SkinTheme.accentEmeraldGlow :
-                                           (modelData.badge === "USER" ? SkinTheme.accentVioletGlow : SkinTheme.accentCyanGlow)
-                                    border.color: modelData.badge === "PERFORMANCE" ? SkinTheme.accentEmerald :
-                                                  (modelData.badge === "USER" ? SkinTheme.accentViolet : SkinTheme.accentCyan)
+                                    height: 16
+                                    radius: SkinTheme.radiusPill
+                                    implicitWidth: badgeLabel.implicitWidth + 8
+                                    color: modelData.badge === "PRO LOADOUT" ? SkinTheme.accentAmberGlow
+                                         : (modelData.badge === "CURATED" ? SkinTheme.accentCyanGlow : SkinTheme.bgSurface)
+                                    border.color: modelData.badge === "PRO LOADOUT" ? SkinTheme.accentAmber
+                                                : (modelData.badge === "CURATED" ? SkinTheme.accentCyan : SkinTheme.borderMuted)
                                     border.width: 1
 
                                     Text {
                                         id: badgeLabel
                                         anchors.centerIn: parent
-                                        text: modelData.badge
-                                        color: modelData.badge === "PERFORMANCE" ? SkinTheme.accentEmerald :
-                                               (modelData.badge === "USER" ? SkinTheme.accentViolet : SkinTheme.accentCyan)
+                                        text: modelData.badge || "PRESET"
+                                        color: modelData.badge === "PRO LOADOUT" ? SkinTheme.accentAmber
+                                             : (modelData.badge === "CURATED" ? SkinTheme.accentCyan : SkinTheme.textMuted)
                                         font.family: SkinTheme.fontMono
-                                        font.pixelSize: 8
+                                        font.pixelSize: 7
                                         font.bold: true
-                                        font.letterSpacing: 0.8
                                     }
-                                }
-
-                                Text {
-                                    text: "• " + modelData.itemCount + " skins"
-                                    color: SkinTheme.textMuted
-                                    font.family: SkinTheme.fontMono
-                                    font.pixelSize: 11
                                 }
                             }
 
                             Text {
-                                text: modelData.description
+                                text: modelData.description || ""
                                 color: SkinTheme.textSecondary
                                 font.family: SkinTheme.fontFamily
-                                font.pixelSize: 12
-                                Layout.fillWidth: true
+                                font.pixelSize: SkinTheme.fontSizeSmall
                                 elide: Text.ElideRight
-                                maximumLineCount: 2
-                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
                             }
                         }
 
-                        // Actions
-                        RowLayout {
-                            spacing: 8
+                        // Share / Export Code Button
+                        Rectangle {
+                            height: 30
+                            radius: SkinTheme.radiusSmall
+                            implicitWidth: 32
+                            color: exportMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
+                            border.color: SkinTheme.borderMuted
+                            border.width: 1
 
-                            // Delete (if user preset)
-                            Rectangle {
-                                visible: !modelData.isBuiltin
-                                width: 34
-                                height: 34
-                                radius: SkinTheme.radiusSmall
-                                color: delPresetMouse.containsMouse ? SkinTheme.accentCrimsonGlow : "transparent"
-                                border.color: SkinTheme.accentCrimson
-                                border.width: 1
+                            Text {
+                                anchors.centerIn: parent
+                                text: "🔗"
+                                font.pixelSize: 11
+                            }
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "✕"
-                                    color: SkinTheme.accentCrimson
-                                    font.family: SkinTheme.fontMono
-                                    font.pixelSize: 12
-                                }
-
-                                MouseArea {
-                                    id: delPresetMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        presetsModal.deletePresetRequested(modelData.id)
-                                        presetsModal.refreshPresets()
+                            MouseArea {
+                                id: exportMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (typeof app !== "undefined" && app) {
+                                        app.exportPresetCode(JSON.stringify(modelData))
                                     }
                                 }
                             }
+                        }
 
-                            // Apply Button
-                            Rectangle {
-                                height: 34
-                                radius: SkinTheme.radiusSmall
-                                implicitWidth: applyBtnText.implicitWidth + 24
-                                color: applyMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan
-                                border.color: "transparent"
+                        // Delete (if user preset)
+                        Rectangle {
+                            visible: !modelData.isBuiltin
+                            height: 30
+                            width: 30
+                            radius: SkinTheme.radiusSmall
+                            color: delPresetMouse.containsMouse ? SkinTheme.accentCrimsonHover : "transparent"
+                            border.color: SkinTheme.borderMuted
+                            border.width: 1
 
+                            Text {
+                                anchors.centerIn: parent
+                                text: "✕"
+                                color: delPresetMouse.containsMouse ? "#FFFFFF" : SkinTheme.textMuted
+                                font.pixelSize: 10
+                            }
+
+                            MouseArea {
+                                id: delPresetMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    presetsModal.deletePresetRequested(modelData.id)
+                                    presetsModal.refreshPresets()
+                                }
+                            }
+                        }
+
+                        // Apply Button
+                        Rectangle {
+                            height: 34
+                            radius: SkinTheme.radiusSmall
+                            implicitWidth: applyText.implicitWidth + 20
+                            color: applyMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan
+
+                            Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
+
+                            RowLayout {
+                                id: applyText
+                                anchors.centerIn: parent
+                                spacing: 5
+                                Text { text: "⚡"; font.pixelSize: 10; color: "#050811" }
                                 Text {
-                                    id: applyBtnText
-                                    anchors.centerIn: parent
-                                    text: "⚡ APPLY PRESET"
-                                    color: "#060810"
-                                    font.family: SkinTheme.fontMono
-                                    font.pixelSize: 10
+                                    text: "EQUIP (" + (modelData.itemCount || (modelData.items ? modelData.items.length : 0)) + ")"
+                                    color: "#050811"
+                                    font.family: SkinTheme.fontFamily
+                                    font.pixelSize: SkinTheme.fontSizeSmall
                                     font.bold: true
-                                    font.letterSpacing: 0.8
                                 }
+                            }
 
-                                MouseArea {
-                                    id: applyMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        presetsModal.applyPresetRequested(modelData)
-                                        presetsModal.closeRequested()
-                                    }
+                            MouseArea {
+                                id: applyMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    presetsModal.applyPresetRequested(modelData)
+                                    presetsModal.closeRequested()
                                 }
                             }
                         }
-                    }
-
-                    MouseArea {
-                        id: itemHoverMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
                     }
                 }
             }

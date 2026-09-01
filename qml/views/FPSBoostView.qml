@@ -322,6 +322,84 @@ Item {
         }
 
         // ═══════════════════════════════════════════
+        // COMPETITIVE LAUNCH OPTIONS QUICK BANNER
+        // ═══════════════════════════════════════════
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.leftMargin: SkinTheme.spacingLG
+            Layout.rightMargin: SkinTheme.spacingLG
+            Layout.topMargin: SkinTheme.spacingSM
+            Layout.preferredHeight: 48
+            radius: SkinTheme.radiusMedium
+            color: SkinTheme.bgCard
+            border.color: SkinTheme.borderMuted
+            border.width: 1
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 14
+                anchors.rightMargin: 12
+                spacing: 12
+
+                Text {
+                    text: "🚀"
+                    font.pixelSize: 14
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 1
+                    Text {
+                        text: "COMPETITIVE PRO LAUNCH OPTIONS (-novid -high -map dota -nohltv -nojoy +fps_max 0)"
+                        color: SkinTheme.textPrimary
+                        font.family: SkinTheme.fontMono
+                        font.pixelSize: 10
+                        font.bold: true
+                    }
+                    Text {
+                        text: "Removes intro, pre-caches maps, maximizes CPU priority, and unlocks maximum framerate."
+                        color: SkinTheme.textMuted
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: 9
+                    }
+                }
+
+                Rectangle {
+                    height: 28
+                    radius: SkinTheme.radiusSmall
+                    implicitWidth: copyOptsText.implicitWidth + 18
+                    color: copyOptsMouse.containsMouse ? SkinTheme.accentCyanHover : SkinTheme.accentCyan
+
+                    RowLayout {
+                        id: copyOptsText
+                        anchors.centerIn: parent
+                        spacing: 4
+                        Text { text: "📋"; font.pixelSize: 9 }
+                        Text {
+                            text: "COPY LAUNCH OPTIONS"
+                            color: "#050811"
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeTiny
+                            font.bold: true
+                        }
+                    }
+
+                    MouseArea {
+                        id: copyOptsMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (typeof app !== "undefined" && app) {
+                                app.getOptimizedLaunchOptions()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════
         // MOD CARDS GRID
         // ═══════════════════════════════════════════
         GridView {

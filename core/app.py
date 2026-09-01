@@ -1624,6 +1624,51 @@ class SkinChangerApp(QObject):
             self.successOccurred.emit("Preset deleted.")
         return ok
 
+    @Slot(str, result=str)
+    def exportPresetCode(self, preset_json: str) -> str:
+        try:
+            p_data = json.loads(preset_json)
+            code = self._presets_service.export_preset_code(p_data)
+            if code:
+                self.copyToClipboard(code)
+                self.successOccurred.emit("Preset code copied to clipboard!")
+            return code
+        except Exception as e:
+            logger.error(f"Failed to export preset code: {e}")
+            return ""
+
+    @Slot(str, result=bool)
+    def importPresetCode(self, code_str: str) -> bool:
+        try:
+            res = self._presets_service.import_preset_code(code_str)
+            if res:
+                self.successOccurred.emit(f"Imported preset '{res.get('name', '')}' successfully!")
+                return True
+            else:
+                self.errorOccurred.emit("Invalid preset code format.")
+                return False
+        except Exception as e:
+            logger.error(f"Failed to import preset code: {e}")
+            self.errorOccurred.emit("Failed to import preset.")
+            return False
+
+    @Slot(str)
+    def copyToClipboard(self, text: str):
+        try:
+            from PySide6.QtWidgets import QApplication
+            clipboard = QApplication.clipboard()
+            if clipboard:
+                clipboard.setText(text)
+        except Exception as e:
+            logger.error(f"Failed to copy to clipboard: {e}")
+
+    @Slot(result=str)
+    def getOptimizedLaunchOptions(self) -> str:
+        opts = "-novid -high -map dota -nohltv -nojoy +fps_max 0 +dota_embers 0"
+        self.copyToClipboard(opts)
+        self.successOccurred.emit("Pro launch options copied to clipboard!")
+        return opts
+
     @Slot(str)
     def loadPreset(self, preset_json: str):
         try:

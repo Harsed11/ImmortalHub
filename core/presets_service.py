@@ -1,6 +1,7 @@
 import os
 import json
 import uuid
+import base64
 from typing import List, Dict, Any, Optional
 
 try:
@@ -11,6 +12,46 @@ except ImportError:
 
 
 BUILTIN_PRESETS = [
+    {
+        "id": "preset_yatoro_carry",
+        "name": "🏆 YATORO TI CHAMPION PACK",
+        "badge": "PRO LOADOUT",
+        "description": "Team Spirit TI champion carry setup: Phantom Assassin Manifold Paradox, Faceless Void Clasz, Juggernaut Bladeform, and Morphling.",
+        "icon": "🏆",
+        "tags": ["Team Spirit", "Yatoro", "Pos 1 Carry", "TI Winner"],
+        "targetMods": [
+            {"hero": "Phantom Assassin", "query": "Manifold Paradox"},
+            {"hero": "Faceless Void", "query": "Claszian"},
+            {"hero": "Juggernaut", "query": "Bladeform Legacy"},
+            {"hero": "Morphling", "query": "Ancient"}
+        ]
+    },
+    {
+        "id": "preset_miracle_mid",
+        "name": "🔮 MIRACLE- MID GOD PACK",
+        "badge": "PRO LOADOUT",
+        "description": "Nigma / Liquid Miracle- signature mid loadout: Invoker Dark Artistry, Shadow Fiend Demon Eater, and Storm Spirit.",
+        "icon": "🔮",
+        "tags": ["Miracle-", "Invoker", "Pos 2 Mid", "Nigma Galaxy"],
+        "targetMods": [
+            {"hero": "Invoker", "query": "Dark Artistry"},
+            {"hero": "Shadow Fiend", "query": "Demon Eater"},
+            {"hero": "Storm Spirit", "query": "Immortal"}
+        ]
+    },
+    {
+        "id": "preset_collapse_offlane",
+        "name": "🛡️ COLLAPSE OFFLANE TITAN",
+        "badge": "PRO LOADOUT",
+        "description": "Magical Offlane playmaker loadout: Magnus Horn, Mars Sunbreeze, Tidehunter Kraken, and Spirit Breaker.",
+        "icon": "🛡️",
+        "tags": ["Collapse", "Magnus", "Pos 3 Offlane"],
+        "targetMods": [
+            {"hero": "Magnus", "query": "Shock"},
+            {"hero": "Mars", "query": "Wings"},
+            {"hero": "Tidehunter", "query": "Diver"}
+        ]
+    },
     {
         "id": "preset_all_arcana",
         "name": "🔥 ALL ARCANA & IMMORTAL",
@@ -31,7 +72,7 @@ BUILTIN_PRESETS = [
     },
     {
         "id": "preset_ultra_fps",
-        "name": "⚡ ULTRA FPS & VISION BOOST",
+        "name": "⚡ ULTRA FPS & COMPETITIVE VISION",
         "badge": "PERFORMANCE",
         "description": "Maximum competitive visibility and FPS boost: simplified trees, flat clean terrain, and particle optimization.",
         "icon": "⚡",
@@ -53,18 +94,6 @@ BUILTIN_PRESETS = [
             {"category": "emblems", "query": "Aegis"},
             {"category": "versus-screens", "query": "TI"},
             {"category": "terrains", "query": "Reef's Edge"}
-        ]
-    },
-    {
-        "id": "preset_anime_cyber",
-        "name": "🎌 ANIME & CYBER EDITION",
-        "badge": "COMMUNITY",
-        "description": "Unique community-made anime models, cyber HUDs, and custom neon particle effects.",
-        "icon": "🎌",
-        "tags": ["Anime", "Persona", "Cyber"],
-        "targetMods": [
-            {"category": "heroes", "query": "Anime"},
-            {"category": "huds", "query": "Cyber"}
         ]
     }
 ]
@@ -118,6 +147,7 @@ class PresetsService:
                         
                         matched_items.append({
                             "name": m_name,
+                            "hero": m_hero,
                             "categoryId": getattr(m, "category_id", cat_id),
                             "previewUrl": getattr(m, "preview_url", lambda: "")() if callable(getattr(m, "preview_url", None)) else "",
                             "file": getattr(m, "file", "")
@@ -175,3 +205,37 @@ class PresetsService:
             self._save_user_presets()
             return True
         return False
+
+    def export_preset_code(self, preset_data: dict) -> str:
+        """Encodes preset items into a shareable string."""
+        try:
+            payload = {
+                "name": preset_data.get("name", "Shared Preset"),
+                "description": preset_data.get("description", ""),
+                "items": preset_data.get("items", [])
+            }
+            raw_bytes = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            b64 = base64.b64encode(raw_bytes).decode("ascii")
+            return f"IHUB-{b64}"
+        except Exception as e:
+            logger.error(f"Failed to export preset code: {e}")
+            return ""
+
+    def import_preset_code(self, code: str) -> Optional[dict]:
+        """Decodes a shareable IHUB-... preset string."""
+        try:
+            clean = code.strip()
+            if clean.startswith("IHUB-"):
+                clean = clean[5:]
+            raw_bytes = base64.b64decode(clean.encode("ascii"))
+            data = json.loads(raw_bytes.decode("utf-8"))
+            if isinstance(data, dict) and "items" in data:
+                return self.save_user_preset(
+                    name=data.get("name", "Imported Preset"),
+                    description=data.get("description", "Imported via share code"),
+                    items=data.get("items", []),
+                    tags=["Imported"]
+                )
+        except Exception as e:
+            logger.error(f"Failed to import preset code: {e}")
+        return None

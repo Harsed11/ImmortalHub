@@ -359,6 +359,7 @@ ApplicationWindow {
                     visible: root.currentTab === "dashboard"
                     onNavigateToHeroes: root.currentTab = "heroes"
                     onNavigateToInstalled: root.currentTab = "installed"
+                    onNavigateToPresets: presetsModal.isOpen = true
                     onModClicked: function(m) { root.selectedDetailMod = m }
                 }
 

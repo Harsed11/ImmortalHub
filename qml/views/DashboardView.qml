@@ -17,6 +17,7 @@ Item {
 
     signal navigateToHeroes()
     signal navigateToInstalled()
+    signal navigateToPresets()
     signal modClicked(var mod)
 
     Component.onCompleted: loadDashboard()
@@ -242,6 +243,43 @@ Item {
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: dashboardView.navigateToInstalled()
+                                }
+                            }
+
+                            Rectangle {
+                                height: 36
+                                radius: SkinTheme.radiusMedium
+                                implicitWidth: proPresetsBtn.implicitWidth + 24
+                                color: proPresetsMouse.containsMouse ? SkinTheme.accentVioletGlow : "transparent"
+                                border.color: SkinTheme.accentViolet
+                                border.width: 1
+
+                                RowLayout {
+                                    id: proPresetsBtn
+                                    anchors.centerIn: parent
+                                    spacing: 6
+
+                                    Text {
+                                        text: "🎭"
+                                        font.pixelSize: 12
+                                    }
+
+                                    Text {
+                                        text: "PRO LOADOUTS"
+                                        color: SkinTheme.accentViolet
+                                        font.family: SkinTheme.fontFamily
+                                        font.pixelSize: SkinTheme.fontSizeBody
+                                        font.bold: true
+                                        font.letterSpacing: 0.5
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: proPresetsMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: dashboardView.navigateToPresets()
                                 }
                             }
                         }

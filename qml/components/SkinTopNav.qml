@@ -192,6 +192,44 @@ Rectangle {
                 }
             }
 
+            // Presets Button
+            Rectangle {
+                height: 32
+                radius: SkinTheme.radiusSmall
+                implicitWidth: presetsBtnRow.implicitWidth + 14
+                color: presetsBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
+                border.color: presetsBtnMouse.containsMouse ? SkinTheme.accentViolet : SkinTheme.borderMuted
+                border.width: 1
+
+                RowLayout {
+                    id: presetsBtnRow
+                    anchors.centerIn: parent
+                    spacing: 4
+
+                    Text {
+                        text: "🎭"
+                        font.pixelSize: 10
+                    }
+
+                    Text {
+                        text: "PRESETS"
+                        color: presetsBtnMouse.containsMouse ? "#FFFFFF" : SkinTheme.textSecondary
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
+                        font.bold: true
+                        font.letterSpacing: 0.5
+                    }
+                }
+
+                MouseArea {
+                    id: presetsBtnMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: topNav.presetsClicked()
+                }
+            }
+
             // Settings Button
             Rectangle {
                 height: 32

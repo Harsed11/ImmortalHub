@@ -320,6 +320,99 @@ Item {
         }
 
         // ═══════════════════════════════════════════
+        // HORIZONTAL SUB-CATEGORY TABS BAR
+        // ═══════════════════════════════════════════
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 40
+            color: SkinTheme.bgDark
+            visible: categoryIds.length > 1
+
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: SkinTheme.borderSubtle
+            }
+
+            Flickable {
+                anchors.fill: parent
+                anchors.leftMargin: SkinTheme.spacingLG
+                anchors.rightMargin: SkinTheme.spacingLG
+                contentWidth: catPillsRow.implicitWidth + 24
+                contentHeight: parent.height
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+
+                RowLayout {
+                    id: catPillsRow
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 6
+
+                    // "ALL CATEGORIES" chip
+                    Rectangle {
+                        height: 26
+                        radius: SkinTheme.radiusSmall
+                        implicitWidth: allCatsText.implicitWidth + 16
+                        color: categoryView.activeCategoryId === "" ? SkinTheme.accentCyan : (allCatsMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard)
+                        border.color: categoryView.activeCategoryId === "" ? "transparent" : SkinTheme.borderMuted
+                        border.width: 1
+
+                        Text {
+                            id: allCatsText
+                            anchors.centerIn: parent
+                            text: "✦ ALL CATEGORIES"
+                            color: categoryView.activeCategoryId === "" ? "#050811" : SkinTheme.textSecondary
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeSmall
+                            font.bold: true
+                        }
+
+                        MouseArea {
+                            id: allCatsMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: categoryView.activeCategoryId = ""
+                        }
+                    }
+
+                    // Category chips
+                    Repeater {
+                        model: categoryView.categoryIds
+
+                        delegate: Rectangle {
+                            height: 26
+                            radius: SkinTheme.radiusSmall
+                            implicitWidth: catChipText.implicitWidth + 16
+                            color: categoryView.activeCategoryId === modelData ? SkinTheme.accentCyan : (chipMouse.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard)
+                            border.color: categoryView.activeCategoryId === modelData ? "transparent" : SkinTheme.borderMuted
+                            border.width: 1
+
+                            Text {
+                                id: catChipText
+                                anchors.centerIn: parent
+                                text: categoryView.getCategoryName(modelData)
+                                color: categoryView.activeCategoryId === modelData ? "#050811" : SkinTheme.textSecondary
+                                font.family: SkinTheme.fontFamily
+                                font.pixelSize: SkinTheme.fontSizeSmall
+                                font.bold: true
+                            }
+
+                            MouseArea {
+                                id: chipMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: categoryView.activeCategoryId = modelData
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════
         // CATEGORY SELECTION GRID (Multiple Categories)
         // ═══════════════════════════════════════════
         GridView {
