@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --bg-color: #06070B;
-  --panel-bg: rgba(14, 15, 24, 0.7);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --text-primary: #FFFFFF;
+  --bg-color: #08080E;
+  --panel-bg: rgba(14, 14, 24, 0.85);
+  --border-color: #1E2032;
+  --text-primary: #F1F5F9;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
   --neon-cyan: #00F0FF;
@@ -14,15 +14,26 @@
   --neon-rose: #F43F5E;
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  cursor: auto;
 }
 
-html {
+html, body {
+  cursor: default;
   scroll-behavior: smooth;
   scroll-padding-top: 40px;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+button, a, input, select, textarea, .gallery-tab-btn, .faq-card, .sound-toggle-btn, .sidebar-brand {
+  cursor: pointer !important;
 }
 
 /* Custom Cyber Scrollbar */
@@ -31,7 +42,7 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #06070B;
+  background: #08080E;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -44,42 +55,36 @@ html {
   box-shadow: 0 0 10px var(--neon-cyan);
 }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-primary);
-  overflow-x: hidden;
-  line-height: 1.5;
-}
-
 /* App Wrapper */
 .app-wrapper {
   position: relative;
   width: 100%;
   min-height: 100vh;
+  background: #08080E;
 }
 
-/* Calm Minimalist Ambient Background */
+/* Calm Minimalist Ambient Background (Matching Desktop App) */
 .ambient-background {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 1;
   overflow: hidden;
+  background: #08080E;
 }
 
 .ambient-glow {
   position: absolute;
   border-radius: 50%;
   filter: blur(140px);
-  opacity: 0.12;
+  opacity: 0.14;
   transition: all 1s ease;
 }
 
 .ambient-glow.top-center {
-  width: 700px;
-  height: 500px;
-  top: -150px;
+  width: 750px;
+  height: 480px;
+  top: -140px;
   left: 50%;
   transform: translateX(-50%);
   background: radial-gradient(circle, #00F0FF 0%, #3B82F6 60%, transparent 80%);
@@ -104,8 +109,8 @@ body {
 .ambient-grid-overlay {
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(circle at 50% 30%, black 30%, transparent 85%);
 }
@@ -116,17 +121,16 @@ body {
   top: 24px;
   right: 28px;
   z-index: 100;
-  background: rgba(14, 15, 24, 0.85);
-  border: 1px solid rgba(0, 240, 255, 0.3);
+  background: rgba(14, 14, 24, 0.9);
+  border: 1px solid rgba(0, 240, 255, 0.35);
   color: var(--text-primary);
   padding: 10px 18px;
   border-radius: 30px;
   font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
-  cursor: pointer;
   backdrop-filter: blur(12px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   transition: all 0.25s ease;
 }
 
@@ -160,8 +164,8 @@ body {
   flex-direction: column;
   justify-content: space-between;
   border-right: 1px solid var(--border-color);
-  background: linear-gradient(90deg, rgba(7, 8, 14, 0.95) 0%, rgba(7, 8, 14, 0.6) 100%);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(90deg, #0A0A12 0%, rgba(10, 10, 18, 0.8) 100%);
+  backdrop-filter: blur(16px);
 }
 
 .brand-header-row {
@@ -177,6 +181,7 @@ body {
   object-fit: cover;
   border: 1px solid rgba(0, 240, 255, 0.4);
   box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+  background: #000;
 }
 
 .brand-badge {
@@ -290,7 +295,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: rgba(14, 15, 24, 0.8);
+  background: #0E0E18;
   border: 1px solid rgba(0, 240, 255, 0.25);
   padding: 8px 18px;
   border-radius: 40px;
@@ -364,14 +369,13 @@ body {
   align-items: center;
   gap: 10px;
   background: var(--neon-cyan);
-  color: #05060A;
+  color: #08080E;
   font-family: 'Outfit', sans-serif;
   font-size: 1.05rem;
   font-weight: 800;
   padding: 15px 32px;
   border-radius: 12px;
   border: none;
-  cursor: pointer;
   letter-spacing: 0.5px;
   box-shadow: 0 0 25px rgba(0, 240, 255, 0.4), inset 0 0 12px rgba(255, 255, 255, 0.4);
   transition: all 0.25s ease;
@@ -387,7 +391,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(14, 15, 24, 0.8);
+  background: #0E0E18;
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   font-family: 'Outfit', sans-serif;
@@ -395,7 +399,6 @@ body {
   font-weight: 700;
   padding: 15px 28px;
   border-radius: 12px;
-  cursor: pointer;
   text-decoration: none;
   transition: all 0.25s ease;
 }
@@ -415,13 +418,13 @@ body {
 
 .hero-aegis-card {
   position: relative;
-  background: rgba(14, 15, 24, 0.85);
+  background: #0E0E18;
   border: 1px solid rgba(0, 240, 255, 0.35);
   border-radius: 28px;
   overflow: hidden;
   padding: 20px;
   backdrop-filter: blur(20px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 240, 255, 0.15);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 240, 255, 0.15);
   text-align: left;
 }
 
@@ -434,15 +437,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #030408;
+  background: #000000;
 }
 
 .hero-aegis-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transform: scale(1.02);
   transition: transform 0.6s ease;
+  background: #000;
 }
 
 .hero-aegis-card:hover .hero-aegis-img {
@@ -507,7 +511,7 @@ body {
 .marquee-wrapper {
   overflow: hidden;
   white-space: nowrap;
-  background: rgba(14, 15, 24, 0.6);
+  background: #0A0A12;
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
   padding: 14px 0;
@@ -580,7 +584,7 @@ body {
 }
 
 .gallery-tab-btn {
-  background: rgba(14, 15, 24, 0.6);
+  background: #0E0E18;
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
   padding: 12px 24px;
@@ -588,12 +592,11 @@ body {
   font-family: 'Outfit', sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
-  cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .gallery-tab-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: #141422;
   color: var(--text-primary);
   border-color: rgba(0, 240, 255, 0.3);
 }
@@ -606,18 +609,18 @@ body {
 }
 
 .gallery-preview-frame {
-  background: #080911;
+  background: #0A0A12;
   border: 1px solid rgba(0, 240, 255, 0.25);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(0, 240, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 240, 255, 0.1);
 }
 
 .frame-header-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #0E101E;
+  background: #0E0E18;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border-color);
 }
@@ -667,7 +670,7 @@ body {
 
 .frame-image-caption {
   padding: 18px 24px;
-  background: #0A0C16;
+  background: #0A0A12;
   font-size: 0.95rem;
   color: var(--text-secondary);
   line-height: 1.5;
@@ -685,6 +688,7 @@ body {
 .glass-feature-card {
   height: 100%;
   border-radius: 20px;
+  background: #0E0E18;
 }
 
 .feature-card-body {
@@ -738,18 +742,17 @@ body {
 }
 
 .faq-card {
-  background: rgba(14, 15, 24, 0.7);
+  background: #0E0E18;
   border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 20px 24px;
-  cursor: pointer;
   transition: all 0.25s ease;
   backdrop-filter: blur(10px);
 }
 
 .faq-card:hover {
   border-color: rgba(0, 240, 255, 0.3);
-  background: rgba(14, 15, 24, 0.9);
+  background: #121220;
 }
 
 .faq-card.open {
@@ -785,13 +788,13 @@ body {
    5. CTA BANNER
 ═══════════════════════════════════════════════════════════ */
 .cta-banner {
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%), #0E0E18;
   border: 1px solid rgba(0, 240, 255, 0.35);
   border-radius: 24px;
   padding: 56px 48px;
   text-align: center;
   backdrop-filter: blur(16px);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
 
 .cta-badge {
@@ -822,14 +825,13 @@ body {
   display: inline-flex;
   align-items: center;
   background: var(--neon-cyan);
-  color: #05060A;
+  color: #08080E;
   font-family: 'Outfit', sans-serif;
   font-size: 1.1rem;
   font-weight: 800;
   padding: 16px 36px;
   border-radius: 12px;
   border: none;
-  cursor: pointer;
   letter-spacing: 0.5px;
   box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
   transition: all 0.25s ease;
@@ -898,8 +900,8 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(14px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -909,13 +911,13 @@ body {
 
 .modal-cyber-card {
   position: relative;
-  background: #0A0C16;
+  background: #0C0C16;
   border: 1px solid rgba(0, 240, 255, 0.4);
   border-radius: 24px;
   padding: 40px;
   max-width: 540px;
   width: 100%;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 240, 255, 0.2);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(0, 240, 255, 0.2);
 }
 
 .modal-close-btn {
@@ -928,7 +930,6 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -979,7 +980,7 @@ body {
   align-items: center;
   gap: 14px;
   background: var(--neon-cyan);
-  color: #05060A;
+  color: #08080E;
   padding: 14px 20px;
   border-radius: 12px;
   text-decoration: none;
@@ -1027,7 +1028,7 @@ body {
 }
 
 .modal-quickstart {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 16px 18px;
