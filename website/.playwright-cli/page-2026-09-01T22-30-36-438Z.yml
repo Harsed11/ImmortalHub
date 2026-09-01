@@ -1,0 +1,225 @@
+- generic [ref=e3]:
+  - 'button "🔊 Sound: ON" [ref=e4]'
+  - generic [ref=e5]:
+    - complementary [ref=e6]:
+      - generic "Scroll to top" [ref=e7] [cursor=pointer]:
+        - generic [ref=e8]:
+          - img "Aegis" [ref=e9]
+          - generic [ref=e10]:
+            - generic [ref=e11]: VPK ENGINE
+            - heading "ImmortalHub" [level=2] [ref=e12]
+      - navigation [ref=e13]:
+        - list [ref=e14]:
+          - listitem [ref=e15] [cursor=pointer]:
+            - generic [ref=e17]:
+              - generic [ref=e18]: "01"
+              - generic [ref=e19]: Overview
+          - listitem [ref=e20] [cursor=pointer]:
+            - generic [ref=e22]:
+              - generic [ref=e23]: "02"
+              - generic [ref=e24]: Showcase
+          - listitem [ref=e25] [cursor=pointer]:
+            - generic [ref=e27]:
+              - generic [ref=e28]: "03"
+              - generic [ref=e29]: Architecture
+          - listitem [ref=e30] [cursor=pointer]:
+            - generic [ref=e32]:
+              - generic [ref=e33]: "04"
+              - generic [ref=e34]: Terminal
+          - listitem [ref=e35] [cursor=pointer]:
+            - generic [ref=e37]:
+              - generic [ref=e38]: "05"
+              - generic [ref=e39]: FAQ
+          - listitem [ref=e40] [cursor=pointer]:
+            - generic [ref=e42]:
+              - generic [ref=e43]: "06"
+              - generic [ref=e44]: GitHub
+      - generic [ref=e45]:
+        - generic [ref=e46]: Dota 2 v7.38 Online
+        - link "★ Star on GitHub" [ref=e49]:
+          - /url: https://github.com/Harsed11/ImmortalHub
+    - main [ref=e50]:
+      - generic [ref=e53]:
+        - generic [ref=e54]:
+          - generic [ref=e56]: NEXT-GEN DOTA 2 VPK ENGINE
+          - generic [ref=e57]: 100% VAC-SAFE
+        - heading "IMMORTALHUB" [level=1] [ref=e58]
+        - paragraph [ref=e59]: All Arcanas, Immortals, custom sound packs, and high-FPS terrains unlocked locally with zero latency and zero risk.
+        - generic [ref=e60]:
+          - button "⚡ DOWNLOAD FOR WINDOWS" [ref=e61]:
+            - generic [ref=e62]: ⚡
+            - generic [ref=e63]: DOWNLOAD FOR WINDOWS
+          - link "★ GITHUB REPO" [ref=e64]:
+            - /url: https://github.com/Harsed11/ImmortalHub
+        - generic [ref=e68]:
+          - img "ImmortalHub Neon Aegis" [ref=e70]
+          - generic [ref=e71]:
+            - generic [ref=e72]: IMMORTALHUB RUNTIME
+            - heading "Aegis of Champions Edition" [level=3] [ref=e75]
+            - paragraph [ref=e76]: 142+ Arcanas, 850+ Immortals, Weather Effects & Audio Packs Unlocked
+            - generic [ref=e77]:
+              - generic [ref=e78]: "#Dota2"
+              - generic [ref=e79]: "#Source2VPK"
+              - generic [ref=e80]: "#ClientSideOnly"
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - generic [ref=e83]: "0"
+            - generic [ref=e84]: Active Users
+          - generic [ref=e85]:
+            - generic [ref=e86]: 0+
+            - generic [ref=e87]: Mods Injected
+          - generic [ref=e88]:
+            - generic [ref=e89]: "0"
+            - generic [ref=e90]: Bans Recorded
+      - generic [ref=e92]:
+        - generic [ref=e93]: ⚡ ALL ARCANAS UNLOCKED
+        - generic [ref=e94]: •
+        - generic [ref=e95]: 🎮 ZERO LATENCY VPK HOOK
+        - generic [ref=e96]: •
+        - generic [ref=e97]: 🛡️ AUTO MOD CONFLICT CLEANER
+        - generic [ref=e98]: •
+        - generic [ref=e99]: 🔊 CUSTOM ANNOUNCERS & KILL SOUNDS
+        - generic [ref=e100]: •
+        - generic [ref=e101]: 🌦️ WEATHER ASH, RAIN & AURORA
+        - generic [ref=e102]: •
+        - generic [ref=e103]: ⚡ ALL ARCANAS UNLOCKED
+        - generic [ref=e104]: •
+        - generic [ref=e105]: 🎮 ZERO LATENCY VPK HOOK
+        - generic [ref=e106]: •
+        - generic [ref=e107]: 🛡️ AUTO MOD CONFLICT CLEANER
+        - generic [ref=e108]: •
+        - generic [ref=e109]: 🔊 CUSTOM ANNOUNCERS & KILL SOUNDS
+        - generic [ref=e110]: •
+        - generic [ref=e111]: 🌦️ WEATHER ASH, RAIN & AURORA
+      - generic [ref=e113]:
+        - generic [ref=e114]:
+          - generic [ref=e115]: COSMETICS CATALOG
+          - heading "Battlefield Transformation" [level=2] [ref=e116]
+          - paragraph [ref=e117]: From Juggernaut's Bladeform Legacy to Phantom Assassin's Manifold Paradox and Invoker's Dark Artistry. High-fidelity custom models with full ambient spell particles.
+        - generic [ref=e118]:
+          - img "Dota 2 Arcana Heroes Showcase" [ref=e119]
+          - generic [ref=e120]:
+            - generic [ref=e123]:
+              - strong [ref=e124]: Juggernaut
+              - text: Bladeform Legacy Arcana
+            - generic [ref=e127]:
+              - strong [ref=e128]: Phantom Assassin
+              - text: Manifold Paradox Origins
+            - generic [ref=e131]:
+              - strong [ref=e132]: Invoker
+              - text: Dark Artistry & Sunburst FX
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - generic [ref=e135]:
+              - text: AUDIO ENGINE
+              - heading "Custom Announcer & Sound FX Tester" [level=3] [ref=e136]
+            - generic [ref=e137]: Click below to test in-game announcer triggers
+          - generic [ref=e138]:
+            - button "▶ Gabe Newell Announcer Mega-Kill streak alert" [ref=e139]:
+              - generic [ref=e140]: ▶
+              - generic [ref=e141]:
+                - generic [ref=e142]: Gabe Newell Announcer
+                - generic [ref=e143]: Mega-Kill streak alert
+            - button "▶ Deus Ex Kill Sound Ultra-Kill bass drop" [ref=e144]:
+              - generic [ref=e145]: ▶
+              - generic [ref=e146]:
+                - generic [ref=e147]: Deus Ex Kill Sound
+                - generic [ref=e148]: Ultra-Kill bass drop
+            - button "▶ Rick & Morty Pack First Blood trigger line" [ref=e149]:
+              - generic [ref=e150]: ▶
+              - generic [ref=e151]:
+                - generic [ref=e152]: Rick & Morty Pack
+                - generic [ref=e153]: First Blood trigger line
+            - button "▶ Immortal Level-Up Shimmering chord chime" [ref=e154]:
+              - generic [ref=e155]: ▶
+              - generic [ref=e156]:
+                - generic [ref=e157]: Immortal Level-Up
+                - generic [ref=e158]: Shimmering chord chime
+      - generic [ref=e160]:
+        - generic [ref=e161]:
+          - generic [ref=e162]: CORE CAPABILITIES
+          - heading "Engine Architecture" [level=2] [ref=e163]
+          - paragraph [ref=e164]: Engineered for competitive players who demand pure visual fidelity with zero lag and zero game bans.
+        - generic [ref=e165]:
+          - generic [ref=e169]:
+            - generic [ref=e170]: ⚡
+            - generic [ref=e171]: 0 FPS DROP
+            - heading "Zero Latency Hook" [level=3] [ref=e172]
+            - paragraph [ref=e173]: Direct VPK redirection in memory. Does not render overlays or hook DirectX draw calls, ensuring your frame times remain identical to pristine vanilla Dota 2.
+          - generic [ref=e177]:
+            - generic [ref=e178]: 🛡️
+            - generic [ref=e179]: 100% VAC-SAFE
+            - heading "Game State Sync" [level=3] [ref=e180]
+            - paragraph [ref=e181]: Uses official Valve Game State Integration (GSI) JSON payloads on port 39888 to detect chosen heroes and match transitions without touching anti-cheat protected game memory.
+          - generic [ref=e185]:
+            - generic [ref=e186]: 🧹
+            - generic [ref=e187]: SMART CLEANUP
+            - heading "Conflict Resolver" [level=3] [ref=e188]
+            - paragraph [ref=e189]:
+              - text: Automatically detects and purges broken outdated
+              - code [ref=e190]: .vmdl_c
+              - text: overrides before applying fresh mods, preventing blue-screen crashes and missing purple checkerboard textures.
+          - generic [ref=e194]:
+            - generic [ref=e195]: 🔊
+            - generic [ref=e196]: AUDIO PACKS
+            - heading "Custom Announcers" [level=3] [ref=e197]
+            - paragraph [ref=e198]: "Swap default announcer lines with legendary packs: Gabe Newell, Rick & Morty, Deus Ex, Dark Willow, and custom bass-boosted Mega-Kill sound triggers."
+      - generic [ref=e200]:
+        - generic [ref=e201]:
+          - generic [ref=e202]: INTERACTIVE CONSOLE
+          - heading "Live VPK Engine Terminal" [level=2] [ref=e203]
+          - paragraph [ref=e204]: Simulate how ImmortalHub seamlessly interfaces with Dota 2 game client processes in real time.
+        - generic [ref=e205]:
+          - generic [ref=e206]:
+            - generic [ref=e211]: immortalhub_engine_x64.exe - Live Debug Stream
+            - generic [ref=e212]: "PID: 39888"
+          - generic [ref=e213]:
+            - generic [ref=e214]:
+              - generic [ref=e215]: ❯
+              - generic [ref=e216]: "[SYSTEM] ImmortalHub Core VPK v1.3.1 initialized."
+            - generic [ref=e217]:
+              - generic [ref=e218]: ❯
+              - generic [ref=e219]: "[GSI] Listening for Dota 2 Game State Integration on port 39888..."
+            - generic [ref=e220]:
+              - generic [ref=e221]: ❯
+              - generic [ref=e222]: "[STATUS] Engine ready. Click \"Simulate VPK Injection\" below to test hook."
+          - generic [ref=e223]:
+            - button "⚡ SIMULATE VPK INJECTION" [ref=e224]:
+              - generic [ref=e225]: ⚡
+              - text: SIMULATE VPK INJECTION
+            - generic [ref=e226]: Click "Simulate VPK Injection" to test the real-time VFS hook and cosmetic overrides.
+      - generic [ref=e228]:
+        - generic [ref=e229]:
+          - generic [ref=e230]: KNOWLEDGE BASE
+          - heading "Frequently Asked Questions" [level=2] [ref=e231]
+          - paragraph [ref=e232]: Everything you need to know about safety, installation, and cosmetics.
+        - generic [ref=e233]:
+          - generic [ref=e234] [cursor=pointer]:
+            - generic [ref=e235]:
+              - generic [ref=e236]: Is ImmortalHub safe from VAC bans?
+              - generic [ref=e237]: −
+            - paragraph [ref=e239]: Yes. ImmortalHub does NOT inject malicious code into protected Dota 2 memory or alter server-side gameplay mechanics. It utilizes Valve’s official Game State Integration (GSI) and local client-side VPK texture redirection. Only you see your cosmetics.
+          - generic [ref=e241] [cursor=pointer]:
+            - generic [ref=e242]: Do other players see my custom skins?
+            - generic [ref=e243]: +
+          - generic [ref=e245] [cursor=pointer]:
+            - generic [ref=e246]: Will using custom Arcanas lower my game FPS?
+            - generic [ref=e247]: +
+          - generic [ref=e249] [cursor=pointer]:
+            - generic [ref=e250]: How do I install ImmortalHub?
+            - generic [ref=e251]: +
+      - generic [ref=e253]:
+        - generic [ref=e254]: FREE & OPEN SOURCE
+        - heading "Ready to Experience Dota 2 in Full Arcana?" [level=2] [ref=e255]
+        - paragraph [ref=e256]: No subscription. No registration. No hidden ads. Built by the community for the community.
+        - button "DOWNLOAD IMMORTALHUB (.EXE)" [ref=e258]
+      - generic [ref=e259]:
+        - generic [ref=e260]:
+          - generic [ref=e261]: ImmortalHub
+          - generic [ref=e262]: Dota 2 and Valve are trademarks of Valve Corporation. ImmortalHub is an open-source cosmetic tool not affiliated with Valve.
+        - generic [ref=e263]:
+          - link "GitHub Repository" [ref=e264]:
+            - /url: https://github.com/Harsed11/ImmortalHub
+          - generic [ref=e265]: •
+          - link "Report Issue" [ref=e266]:
+            - /url: https://github.com/Harsed11/ImmortalHub/issues
