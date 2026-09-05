@@ -29,6 +29,12 @@ def main():
     app.setOrganizationName("ImmortalHub")
     app.setQuitOnLastWindowClosed(False)
 
+    app_icon_path = resource_path(os.path.join("assets", "app_icon.png"))
+    if not os.path.exists(app_icon_path):
+        app_icon_path = resource_path(os.path.join("assets", "app_icon.jpg"))
+    app_icon = QIcon(app_icon_path)
+    app.setWindowIcon(app_icon)
+
     # Single-instance guard: a second launch focuses the running window instead
     # of starting a duplicate that would corrupt gameinfo.gi / manifest writes.
     guard = SingleInstanceGuard()
@@ -76,7 +82,7 @@ def main():
     guard.start_server(raise_window)
 
     # Setup System Tray
-    tray_icon = QSystemTrayIcon(QIcon(resource_path(os.path.join("assets", "app_icon.jpg"))), app)
+    tray_icon = QSystemTrayIcon(app_icon, app)
     tray_icon.setToolTip("ImmortalHub - Dota 2 Skin Changer")
 
     tray_menu = QMenu()

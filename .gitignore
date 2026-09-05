@@ -35,3 +35,7 @@ website/node_modules/
 website/dist/
 website/.vite/
 
+# Agent tools & configs
+.agents/
+skills-lock.json
+

@@ -243,6 +243,14 @@ QtObject {
             accentCyan = "#EF4444"; accentCyanHover = "#F87171"; accentCyanDark = "#B91C1C"
             accentCyanGlow = "#18EF4444"; accentCyanMuted = "#22DC2626"; accentCyanSoft = "#30EF4444"
             glowCyan = "#30EF4444"
+        } else if (hueId === "sakura") {
+            accentCyan = "#EC4899"; accentCyanHover = "#F472B6"; accentCyanDark = "#BE185D"
+            accentCyanGlow = "#18EC4899"; accentCyanMuted = "#22DB2777"; accentCyanSoft = "#30EC4899"
+            glowCyan = "#30EC4899"
+        } else if (hueId === "ice") {
+            accentCyan = "#38BDF8"; accentCyanHover = "#7DD3FC"; accentCyanDark = "#0369A1"
+            accentCyanGlow = "#1838BDF8"; accentCyanMuted = "#220284C7"; accentCyanSoft = "#3038BDF8"
+            glowCyan = "#3038BDF8"
         } else {
             // "immortal" — premium Dota 2 signature red (default)
             var base = _themeBaseAccent(currentThemeId)
@@ -252,6 +260,16 @@ QtObject {
             glowCyan = base.g.replace("#18", "#30")
         }
     }
+
+    readonly property var availableHues: [
+        { id: "immortal", label: "Immortal Crimson", color: "#E23B3B", desc: "Signature Dota 2 Red" },
+        { id: "cyan",     label: "Neon Cyan",        color: "#06B6D4", desc: "Cyberpunk Blue" },
+        { id: "violet",   label: "Void Violet",      color: "#9333EA", desc: "Faceless Void Purple" },
+        { id: "emerald",  label: "Rubick Emerald",   color: "#22C55E", desc: "The International Green" },
+        { id: "amber",    label: "Golden Aegis",     color: "#F59E0B", desc: "Champion Gold" },
+        { id: "sakura",   label: "Sakura Pink",      color: "#EC4899", desc: "Hot Cyber Pink" },
+        { id: "ice",      label: "Glacial Ice",      color: "#38BDF8", desc: "Crystal Blue" }
+    ]
 
     // ═══════════════════════════════════════════
     // TYPOGRAPHY — Premium, readable, hierarchical

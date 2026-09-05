@@ -230,6 +230,41 @@ Rectangle {
                 }
             }
 
+            // Theme Palette Switcher Button 🎨
+            Rectangle {
+                id: themeBtn
+                height: 32
+                width: 32
+                radius: SkinTheme.radiusSmall
+                color: themePickerPopup.visible || themeBtnMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
+                border.color: themePickerPopup.visible || themeBtnMouse.containsMouse ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                border.width: 1
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "🎨"
+                    font.pixelSize: 13
+                }
+
+                MouseArea {
+                    id: themeBtnMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (themePickerPopup.visible) {
+                            themePickerPopup.close()
+                        } else {
+                            themePickerPopup.open()
+                        }
+                    }
+                }
+
+                ToolTip.visible: themeBtnMouse.containsMouse && !themePickerPopup.visible
+                ToolTip.text: "Accent Theme (Смена темы)"
+                ToolTip.delay: 300
+            }
+
             // Settings Button
             Rectangle {
                 height: 32
@@ -468,6 +503,7 @@ Rectangle {
                 model: [
                     { id: "dashboard", label: "DASHBOARD", icon: "\uE80F" },
                     { id: "heroes",    label: "HEROES",    icon: "\uE716" },
+                    { id: "livematch", label: "LIVE MATCH", icon: "\uE731" },
                     { id: "effects",   label: "COLLECTIONS", icon: "\uE790" },
                     { id: "creators",  label: "CREATORS",  icon: "\uE77B" },
                     { id: "installed", label: "LOADOUT",   icon: "\uE8F1", badge: topNav.installedCount },
@@ -558,5 +594,105 @@ Rectangle {
         }
 
         Item { Layout.fillWidth: true }
+    }
+
+    // ═══════════════════════════════════════════
+    // QUICK THEME ACCENT PICKER POPUP
+    // ═══════════════════════════════════════════
+    Popup {
+        id: themePickerPopup
+        x: themeBtn.x - width + themeBtn.width
+        y: themeBtn.y + themeBtn.height + 6
+        width: 220
+        height: 124
+        padding: 0
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside | Popup.CloseOnPressOutsideParent
+        modal: false
+        dim: false
+
+        background: Rectangle {
+            radius: SkinTheme.radiusMedium
+            color: SkinTheme.bgModal
+            border.color: SkinTheme.borderLight
+            border.width: 1
+        }
+
+        contentItem: Item {
+            anchors.fill: parent
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: "🎨 ACCENT THEME / НЕОН"
+                        color: SkinTheme.textSecondary
+                        font.family: SkinTheme.fontMono
+                        font.pixelSize: 9
+                        font.bold: true
+                        font.letterSpacing: 0.5
+                    }
+                    Item { Layout.fillWidth: true }
+                    Text {
+                        text: "✕"
+                        color: SkinTheme.textMuted
+                        font.pixelSize: 10
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: themePickerPopup.close()
+                        }
+                    }
+                }
+
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Repeater {
+                        model: SkinTheme.availableHues
+                        delegate: Rectangle {
+                            width: 22
+                            height: 22
+                            radius: 11
+                            color: modelData.color
+                            border.color: SkinTheme.accentHue === modelData.id ? "#FFFFFF" : "transparent"
+                            border.width: 2
+                            scale: dotMouse.containsMouse ? 1.15 : (SkinTheme.accentHue === modelData.id ? 1.1 : 1.0)
+
+                            Behavior on scale { NumberAnimation { duration: SkinTheme.animFast } }
+
+                            MouseArea {
+                                id: dotMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    SkinTheme.applyAccentHue(modelData.id)
+                                    if (typeof app !== "undefined" && app) {
+                                        app.saveThemeConfig(SkinTheme.currentThemeId, modelData.id)
+                                    }
+                                }
+                            }
+
+                            ToolTip.visible: dotMouse.containsMouse
+                            ToolTip.text: modelData.label
+                            ToolTip.delay: 200
+                        }
+                    }
+                }
+
+                Text {
+                    text: "Theme: " + SkinTheme.accentHue.toUpperCase()
+                    color: SkinTheme.accentCyan
+                    font.family: SkinTheme.fontMono
+                    font.pixelSize: 9
+                    font.bold: true
+                }
+            }
+        }
     }
 }

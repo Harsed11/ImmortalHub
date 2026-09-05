@@ -73,15 +73,26 @@ class ModItem:
     category_id: str = ""
     hero: str = ""
     audio_preview: str = ""
+    video_preview: str = ""
     tags: dict = field(default_factory=dict)
     links: list = field(default_factory=list)
     styles: list = field(default_factory=list)
     meta: dict = field(default_factory=dict)
 
     def preview_url(self) -> str:
+        if not self.preview and self.styles:
+            first_st = self.styles[0]
+            st_prev = first_st.get("preview", "") if isinstance(first_st, dict) else getattr(first_st, "preview", "")
+            if st_prev:
+                return get_preview_url(self.category_id, st_prev)
         return get_preview_url(self.category_id, self.preview)
 
     def file_url(self) -> str:
+        if not self.file and self.styles:
+            first_st = self.styles[0]
+            st_file = first_st.get("file", "") if isinstance(first_st, dict) else getattr(first_st, "file", "")
+            if st_file:
+                return get_file_url(self.category_id, st_file)
         return get_file_url(self.category_id, self.file)
 
     def audio_url(self) -> str:
@@ -92,6 +103,16 @@ class ModItem:
                 return safe_url(f"{BASE_URL}/{self.audio_preview}")
             return get_preview_url(self.category_id, self.audio_preview)
         return ""
+
+    def video_url(self) -> str:
+        if self.video_preview:
+            if self.video_preview.startswith("http"):
+                return safe_url(self.video_preview)
+            if self.video_preview.startswith("assets/"):
+                return safe_url(f"{BASE_URL}/{self.video_preview}")
+            return get_preview_url(self.category_id, self.video_preview)
+        from core.animation_previews import get_animation_preview_url
+        return get_animation_preview_url(self.name, self.hero, self.category_id, self.links, self.preview)
 
 
 @dataclass
@@ -186,13 +207,32 @@ def parse_mod(data: dict, category_id: str, hero_name: str = "") -> ModItem:
             "color": style_data.get("color", ""),
         })
 
+    file_name = data.get("file", "")
+    if not file_name and styles:
+        file_name = styles[0].get("file", "")
+    if not preview_name and styles:
+        preview_name = styles[0].get("preview", "")
+
+    video_preview = ""
+    for link_data in data.get("links", []):
+        l_url = link_data.get("url", "")
+        if any(l_url.lower().endswith(ext) for ext in [".mp4", ".webm"]):
+            video_preview = l_url
+            break
+
+    raw_prev = data.get("preview", "")
+    if any(raw_prev.lower().endswith(ext) for ext in [".mp4", ".webm"]):
+        if not video_preview:
+            video_preview = raw_prev
+
     return ModItem(
         name=data.get("name", ""),
         preview=preview_name,
-        file=data.get("file", ""),
+        file=file_name,
         category_id=category_id,
         hero=hero_name,
         audio_preview=audio_preview,
+        video_preview=video_preview,
         tags=data.get("tags", {}),
         links=[l.__dict__ for l in links],
         styles=styles,

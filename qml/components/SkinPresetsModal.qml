@@ -23,6 +23,14 @@ Rectangle {
     signal saveCurrentRequested(string name, string desc)
     signal deletePresetRequested(string presetId)
 
+    onCloseRequested: isOpen = false
+
+    Shortcut {
+        enabled: isOpen
+        sequence: "Escape"
+        onActivated: presetsModal.closeRequested()
+    }
+
     function refreshPresets() {
         if (typeof app !== "undefined" && app && app.getPresetsJson) {
             try {
@@ -53,6 +61,16 @@ Rectangle {
     }
 
     onActiveTagFilterChanged: filterPresets()
+
+    Connections {
+        target: typeof app !== "undefined" ? app : null
+        function onPresetsChanged() { refreshPresets() }
+        function onCloudBackupFinished(success, message, code) {
+            if (success) {
+                refreshPresets()
+            }
+        }
+    }
 
     // Background Click Dismiss
     MouseArea {
@@ -127,23 +145,34 @@ Rectangle {
 
                 Item { Layout.fillWidth: true }
 
-                // Close Button
+                // Close / Back Button
                 Rectangle {
-                    width: 32
                     height: 32
+                    implicitWidth: closePmRow.implicitWidth + 20
                     radius: SkinTheme.radiusSmall
-                    color: closePmMouse.containsMouse ? SkinTheme.accentCrimsonHover : "transparent"
-                    border.color: closePmMouse.containsMouse ? "transparent" : SkinTheme.borderMuted
+                    color: closePmMouse.containsMouse ? SkinTheme.accentCrimson : SkinTheme.bgCard
+                    border.color: closePmMouse.containsMouse ? SkinTheme.accentCrimson : SkinTheme.borderMuted
                     border.width: 1
 
                     Behavior on color { ColorAnimation { duration: SkinTheme.animFast } }
 
-                    Text {
+                    RowLayout {
+                        id: closePmRow
                         anchors.centerIn: parent
-                        text: "✕"
-                        color: closePmMouse.containsMouse ? "#FFFFFF" : SkinTheme.textMuted
-                        font.pixelSize: 12
-                        font.bold: true
+                        spacing: 6
+                        Text {
+                            text: "✕"
+                            color: closePmMouse.containsMouse ? "#FFFFFF" : SkinTheme.accentCrimson
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+                        Text {
+                            text: "CLOSE (ESC)"
+                            color: closePmMouse.containsMouse ? "#FFFFFF" : SkinTheme.textSecondary
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeSmall
+                            font.bold: true
+                        }
                     }
 
                     MouseArea {
@@ -266,8 +295,13 @@ Rectangle {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    if (importCodeInput.text.trim() !== "" && typeof app !== "undefined" && app) {
-                                        app.importPresetCode(importCodeInput.text.trim())
+                                    var val = importCodeInput.text.trim()
+                                    if (val !== "" && typeof app !== "undefined" && app) {
+                                        if (val.indexOf("IHUB-CLOUD-") === 0) {
+                                            app.restoreCloudBackup(val)
+                                        } else {
+                                            app.importPresetCode(val)
+                                        }
                                         importCodeInput.text = ""
                                         presetsModal.refreshPresets()
                                     }

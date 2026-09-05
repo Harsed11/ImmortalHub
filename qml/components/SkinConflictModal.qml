@@ -21,6 +21,14 @@ Rectangle {
     signal keepBothRequested(var newMod)
     signal closeRequested()
 
+    onCloseRequested: isOpen = false
+
+    Shortcut {
+        enabled: isOpen
+        sequence: "Escape"
+        onActivated: conflictModal.closeRequested()
+    }
+
     MouseArea {
         anchors.fill: parent
         onClicked: conflictModal.closeRequested()

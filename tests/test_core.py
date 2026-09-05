@@ -265,3 +265,224 @@ def test_filter_mods_no_match_returns_empty():
     assert filter_mods(SEARCH_FIXTURE, "zzz") == []
     assert filter_mods(SEARCH_FIXTURE, "") in (SEARCH_FIXTURE, [])
 
+
+# --- Manifest Auto-Pruning & Disk Sync Tests ---
+
+def test_is_mod_present_on_disk_with_files(tmp_path):
+    from core.app import SkinChangerApp
+    app = SkinChangerApp.__new__(SkinChangerApp)
+    app._dota_path = str(tmp_path)
+    app._install_language = "both"
+
+    vpk_file = tmp_path / "dota" / "pak01_dir.vpk"
+    vpk_file.parent.mkdir(parents=True, exist_ok=True)
+    vpk_file.write_text("vpk data", encoding="utf-8")
+
+    mod_item = {
+        "name": "Invoker Dark Artistry",
+        "categoryId": "heroes",
+        "files": [str(vpk_file)]
+    }
+
+    # Present when file exists
+    assert app._is_mod_present_on_disk(mod_item) is True
+
+    # Absent when file is deleted from game folder
+    vpk_file.unlink()
+    assert app._is_mod_present_on_disk(mod_item) is False
+
+
+def test_is_mod_present_on_disk_folder_fallback(tmp_path):
+    from core.app import SkinChangerApp
+    app = SkinChangerApp.__new__(SkinChangerApp)
+    app._dota_path = str(tmp_path)
+    app._install_language = "both"
+
+    folder = tmp_path / "dota" / "!heroes_Invoker_Dark_Artistry"
+    folder.mkdir(parents=True, exist_ok=True)
+
+    mod_item = {
+        "name": "Invoker Dark Artistry",
+        "categoryId": "heroes",
+        "files": []
+    }
+
+    assert app._is_mod_present_on_disk(mod_item) is True
+
+    # After folder is deleted from game directory
+    import shutil
+    shutil.rmtree(folder)
+    assert app._is_mod_present_on_disk(mod_item) is False
+
+
+def test_get_installed_dict_auto_prunes_deleted_skins(tmp_path):
+    import json
+    from core.app import SkinChangerApp
+    app = SkinChangerApp.__new__(SkinChangerApp)
+    app._dota_path = str(tmp_path)
+    app._manifest_path = str(tmp_path / "installed_mods.json")
+    app._install_language = "both"
+
+    # Existing skin file
+    skin1_file = tmp_path / "dota" / "skin1.vpk"
+    skin1_file.parent.mkdir(parents=True, exist_ok=True)
+    skin1_file.write_text("skin1", encoding="utf-8")
+
+    # Deleted skin file (never created)
+    skin2_file = tmp_path / "dota" / "skin2.vpk"
+
+    initial_manifest = {
+        "heroes::Skin 1": {"name": "Skin 1", "categoryId": "heroes", "files": [str(skin1_file)]},
+        "heroes::Skin 2": {"name": "Skin 2", "categoryId": "heroes", "files": [str(skin2_file)]},
+    }
+
+    with open(app._manifest_path, "w", encoding="utf-8") as f:
+        json.dump(initial_manifest, f)
+
+    installed = app._get_installed_dict(validate=True)
+    assert "heroes::Skin 1" in installed
+    assert "heroes::Skin 2" not in installed
+
+    # Saved manifest on disk is also pruned
+    with open(app._manifest_path, "r", encoding="utf-8") as f:
+        saved = json.load(f)
+    assert "heroes::Skin 1" in saved
+    assert "heroes::Skin 2" not in saved
+
+
+def test_uninstall_all_mods(tmp_path):
+    import json
+    from PySide6.QtCore import Signal
+    from core.app import SkinChangerApp
+    app = SkinChangerApp.__new__(SkinChangerApp)
+    app._dota_path = str(tmp_path)
+    app._manifest_path = str(tmp_path / "installed_mods.json")
+    app._install_language = "both"
+
+    # Mock signals
+    class MockSignal:
+        def __init__(self):
+            self.emitted = False
+        def emit(self, *a):
+            self.emitted = True
+
+    app.installedModsChanged = MockSignal()
+    app.totalSavingsChanged = MockSignal()
+    app.successOccurred = MockSignal()
+    app.errorOccurred = MockSignal()
+
+    vpk_file = tmp_path / "dota" / "test_mod.vpk"
+    vpk_file.parent.mkdir(parents=True, exist_ok=True)
+    vpk_file.write_text("vpk", encoding="utf-8")
+
+    custom_dir = tmp_path / "dota" / "!heroes_custom_test"
+    custom_dir.mkdir(parents=True, exist_ok=True)
+
+    initial_manifest = {
+        "heroes::Test": {"name": "Test", "categoryId": "heroes", "files": [str(vpk_file)]}
+    }
+    with open(app._manifest_path, "w", encoding="utf-8") as f:
+        json.dump(initial_manifest, f)
+
+    app.uninstallAllMods()
+
+    assert not vpk_file.exists()
+    assert not custom_dir.exists()
+    with open(app._manifest_path, "r", encoding="utf-8") as f:
+        assert json.load(f) == {}
+    assert app.installedModsChanged.emitted is True
+
+
+def test_slots_availability():
+    from core.app import SkinChangerApp
+    # Check that all slot names called from QML or Python exist as methods
+    assert hasattr(SkinChangerApp, "syncAllMods")
+    assert hasattr(SkinChangerApp, "syncAllInstalled")
+    assert hasattr(SkinChangerApp, "uninstallAll")
+    assert hasattr(SkinChangerApp, "uninstallAllMods")
+    assert hasattr(SkinChangerApp, "uninstallHeroMods")
+    assert hasattr(SkinChangerApp, "validateInstalledMods")
+    assert hasattr(SkinChangerApp, "refreshInstalledMods")
+
+
+def test_uninstall_hero_mods(tmp_path):
+    import json
+    from core.app import SkinChangerApp
+    app = SkinChangerApp.__new__(SkinChangerApp)
+    app._dota_path = str(tmp_path)
+    app._manifest_path = str(tmp_path / "installed_mods.json")
+    app._install_language = "both"
+
+    class MockSignal:
+        def __init__(self):
+            self.emitted = False
+        def emit(self, *a):
+            self.emitted = True
+
+    app.installedModsChanged = MockSignal()
+    app.totalSavingsChanged = MockSignal()
+    app.successOccurred = MockSignal()
+
+    # Mod 1: Invoker Dark Artistry
+    invoker_file = tmp_path / "dota" / "invoker.vpk"
+    invoker_file.parent.mkdir(parents=True, exist_ok=True)
+    invoker_file.write_text("invoker", encoding="utf-8")
+
+    # Mod 2: Pudge Arcana
+    pudge_file = tmp_path / "dota" / "pudge.vpk"
+    pudge_file.write_text("pudge", encoding="utf-8")
+
+    initial_manifest = {
+        "heroes::Invoker Dark Artistry": {"name": "Invoker Dark Artistry", "hero": "Invoker", "categoryId": "heroes", "files": [str(invoker_file)]},
+        "heroes::Feast of Abscession": {"name": "Feast of Abscession", "hero": "Pudge", "categoryId": "heroes", "files": [str(pudge_file)]}
+    }
+    with open(app._manifest_path, "w", encoding="utf-8") as f:
+        json.dump(initial_manifest, f)
+
+    # Uninstall only Invoker mods
+    count = app.uninstallHeroMods("Invoker")
+    assert count == 1
+    assert not invoker_file.exists()
+    assert pudge_file.exists()
+
+    with open(app._manifest_path, "r", encoding="utf-8") as f:
+        remaining = json.load(f)
+    assert "heroes::Invoker Dark Artistry" not in remaining
+    assert "heroes::Feast of Abscession" in remaining
+    assert app.installedModsChanged.emitted is True
+
+
+def test_get_hero_cards_enriched_fields():
+    import json
+    from core.app import SkinChangerApp
+    from api import ModItem
+
+    app = SkinChangerApp.__new__(SkinChangerApp)
+    app._heroes_list = ["Pudge", "Anti-Mage"]
+    app._mods_data = {
+        "heroes": [
+            ModItem(name="Feast of Abscession Arcana", hero="Pudge", category_id="heroes"),
+            ModItem(name="The Toy Butcher Persona", hero="Pudge", category_id="heroes"),
+            ModItem(name="The Basher Blades Immortal", hero="Anti-Mage", category_id="heroes")
+        ]
+    }
+    app.isModInstalled = lambda name, cat: False
+    app.isFavorite = lambda name, cat: name == "The Basher Blades Immortal"
+
+    cards_json = app.getHeroCards()
+    cards = json.loads(cards_json)
+    card_map = {c["name"]: c for c in cards}
+
+    assert "Pudge" in card_map
+    assert card_map["Pudge"]["hasArcana"] is True
+    assert card_map["Pudge"]["hasPersona"] is True
+    assert card_map["Pudge"]["hasImmortal"] is False
+    assert card_map["Pudge"]["favCount"] == 0
+
+    assert "Anti-Mage" in card_map
+    assert card_map["Anti-Mage"]["hasImmortal"] is True
+    assert card_map["Anti-Mage"]["favCount"] == 1
+
+
+
+

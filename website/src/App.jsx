@@ -11,6 +11,8 @@ import screenHeroes from './assets/screen_heroes.png';
 import screenLoadout from './assets/screen_loadout.png';
 import screenCollections from './assets/screen_collections.png';
 import aegisNeonImg from './assets/aegis_neon.jpg';
+import logoImg from './assets/logo.png';
+import logoTransparentImg from './assets/logo_transparent.png';
 import './App.css';
 
 // 3D Tilt Card Wrapper
@@ -206,7 +208,7 @@ function App() {
             title="Scroll to top"
           >
             <div className="brand-header-row">
-              <img src={aegisNeonImg} alt="Aegis" className="brand-mini-aegis" />
+              <img src={logoTransparentImg} alt="ImmortalHub Logo" className="brand-mini-aegis" />
               <div>
                 <span className="brand-badge">VPK ENGINE</span>
                 <h2 className="brand-logo">
@@ -296,7 +298,7 @@ function App() {
                   <TiltCard>
                     <div className="hero-aegis-card">
                       <div className="aegis-image-container">
-                        <img src={aegisNeonImg} alt="ImmortalHub Aegis of Champions" className="hero-aegis-img" />
+                        <img src={logoImg} alt="ImmortalHub Official Crest" className="hero-aegis-img" />
                         <div className="aegis-radial-glow"></div>
                       </div>
                       <div className="aegis-card-overlay">

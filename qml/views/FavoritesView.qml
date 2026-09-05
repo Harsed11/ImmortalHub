@@ -258,4 +258,10 @@ Item {
             }
         }
     }
+
+    // Floating Quick Scroll Controls
+    FastScrollButtons {
+        id: favScrollButtons
+        target: favGrid
+    }
 }

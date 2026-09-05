@@ -78,6 +78,24 @@ def check_gameinfo_health(dota_path: str) -> Dict[str, Any]:
     }
 
 
+def detect_valve_update(dota_path: str, installed_mods_count: int) -> Dict[str, Any]:
+    """Detects if a Valve Dota 2 game update reset gameinfo.gi while mods are equipped."""
+    if installed_mods_count <= 0:
+        return {"detected": False, "is_patched": True, "reason": "no_installed_mods"}
+
+    health = check_gameinfo_health(dota_path)
+    is_patched = bool(health.get("isHealthy", False))
+    if not is_patched and health.get("status") == "needs_repair":
+        return {
+            "detected": True,
+            "is_patched": False,
+            "message": "Valve update reset gameinfo.gi. Mod hooks need re-injection.",
+            "details": health.get("details", []),
+            "timestamp": datetime.now().isoformat()
+        }
+    return {"detected": False, "is_patched": is_patched, "health": health}
+
+
 def repair_gameinfo(dota_path: str) -> Tuple[bool, str]:
     """Safely restore and inject mod search paths into gameinfo.gi with backup.
 

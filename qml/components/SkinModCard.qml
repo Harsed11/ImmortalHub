@@ -364,6 +364,44 @@ Item {
                 anchors.margins: 8
                 spacing: 4
 
+                // Quick Audio Play/Pause Button
+                Rectangle {
+                    width: 26
+                    height: 26
+                    radius: SkinTheme.radiusSmall
+                    color: isAudioPlaying ? SkinTheme.accentCyan : (audioBtnMouse.containsMouse ? SkinTheme.bgCardHover : "#A008080E")
+                    border.color: isAudioPlaying ? SkinTheme.accentCyan : SkinTheme.borderMuted
+                    border.width: 1
+                    visible: Boolean(modData && modData.audioUrl)
+                    opacity: (cardRoot.isHovered || isAudioPlaying) ? 1.0 : 0.6
+
+                    Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: isAudioPlaying ? "❚❚" : "▶"
+                        color: isAudioPlaying ? "#08080E" : SkinTheme.accentCyan
+                        font.pixelSize: 9
+                        font.bold: true
+                    }
+
+                    MouseArea {
+                        id: audioBtnMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (modData && modData.audioUrl && app) {
+                                app.toggleAudio(modData.audioUrl)
+                            }
+                        }
+                    }
+
+                    ToolTip.visible: audioBtnMouse.containsMouse
+                    ToolTip.text: isAudioPlaying ? "Pause Audio" : "Listen Audio Preview"
+                    ToolTip.delay: 200
+                }
+
                 // Favorite Star Button
                 Rectangle {
                     width: 26

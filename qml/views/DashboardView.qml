@@ -58,6 +58,7 @@ Item {
     }
 
     Flickable {
+        id: dashFlickable
         anchors.fill: parent
         contentWidth: width
         contentHeight: dashContent.implicitHeight + 40
@@ -794,5 +795,11 @@ Item {
                 }
             }
         }
+    }
+
+    // Floating Quick Scroll Controls
+    FastScrollButtons {
+        id: dashScrollButtons
+        target: dashFlickable
     }
 }

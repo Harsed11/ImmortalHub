@@ -12,6 +12,7 @@ STRINGS: dict = {
     "nav.dashboard": {"en": "Dashboard",         "ru": "Главная"},
     "nav.heroes":    {"en": "Hero Skins",        "ru": "Скины героев"},
     "nav.favorites": {"en": "Favorites",         "ru": "Избранное"},
+    "nav.livematch": {"en": "Live Match",        "ru": "Матч и драфты"},
     "nav.creators":  {"en": "Creators & TG",     "ru": "Авторы и TG"},
     "nav.effects":   {"en": "Effects & Shaders", "ru": "Эффекты и шейдеры"},
     "nav.map":       {"en": "Terrain & World",   "ru": "Мир и ландшафт"},
@@ -56,6 +57,16 @@ STRINGS: dict = {
     "search.navigate":     {"en": "navigate",                             "ru": "навигация"},
     "search.open":         {"en": "open",                                 "ru": "открыть"},
     "search.close":        {"en": "close",                                "ru": "закрыть"},
+    # --- Health Check & Integrity ---
+    "health.title":        {"en": "MOD INTEGRITY HEALTH",                 "ru": "ЦЕЛОСТНОСТЬ МОДОВ"},
+    "health.scan":         {"en": "CHECK INTEGRITY",                      "ru": "ПРОВЕРИТЬ ЦЕЛОСТНОСТЬ"},
+    "health.repair":       {"en": "REPAIR ALL",                           "ru": "ВОССТАНОВИТЬ ВСЁ"},
+    "health.ok":           {"en": "All mods verified on disk",            "ru": "Все моды проверены и целы"},
+    # --- Cloud Backup ---
+    "cloud.title":         {"en": "CLOUD BACKUP & SYNC",                  "ru": "ОБЛАЧНЫЙ БЭКАП И СИНХРОНИЗАЦИЯ"},
+    "cloud.create":        {"en": "CREATE CLOUD BACKUP",                  "ru": "СОЗДАТЬ CLOUD BACKUP"},
+    "cloud.restore":       {"en": "RESTORE FROM CLOUD",                   "ru": "ВОССТАНОВИТЬ ИЗ ОБЛАКА"},
+    "cloud.copy":          {"en": "COPY CODE",                            "ru": "СКОПИРОВАТЬ КОД"},
 }
 
 # Russian labels for category ids from the remote manifest. Categories not

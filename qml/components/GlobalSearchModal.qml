@@ -21,6 +21,14 @@ Rectangle {
     signal modPicked(var mod)
     signal closeRequested()
 
+    onCloseRequested: isOpen = false
+
+    Shortcut {
+        enabled: isOpen
+        sequence: "Escape"
+        onActivated: searchModal.close()
+    }
+
     function tr(key, defStr) {
         return (typeof app !== "undefined" && app && app.t) ? app.t(key) : (defStr || "")
     }
@@ -99,6 +107,11 @@ Rectangle {
 
         scale: searchModal.isOpen ? 1.0 : 0.96
         Behavior on scale { NumberAnimation { duration: SkinTheme.animNormal; easing.type: Easing.OutBack } }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {}
+        }
 
         ColumnLayout {
             anchors.fill: parent

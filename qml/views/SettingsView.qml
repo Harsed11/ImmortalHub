@@ -262,7 +262,9 @@ Item {
                                 { id: "violet", color: "#9333EA", name: "Violet" },
                                 { id: "emerald", color: "#22C55E", name: "Emerald" },
                                 { id: "amber", color: "#F59E0B", name: "Amber" },
-                                { id: "crimson", color: "#EF4444", name: "Crimson" }
+                                { id: "crimson", color: "#EF4444", name: "Crimson" },
+                                { id: "sakura", color: "#EC4899", name: "Sakura" },
+                                { id: "ice", color: "#38BDF8", name: "Glacial Ice" }
                             ]
 
                             ColumnLayout {
@@ -300,7 +302,12 @@ Item {
                                         anchors.fill: parent
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: if (typeof app !== "undefined" && app) app.accentHue = modelData.id
+                                        onClicked: {
+                                            SkinTheme.applyAccentHue(modelData.id)
+                                            if (typeof app !== "undefined" && app) {
+                                                app.accentHue = modelData.id
+                                            }
+                                        }
                                     }
                                 }
 
@@ -1141,6 +1148,163 @@ Item {
 
                         Item { Layout.fillWidth: true }
                     }
+
+                    // Divider
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 1
+                        color: SkinTheme.borderSubtle
+                    }
+
+                    // Valve Update Recovery Sub-card
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: valveRecCol.implicitHeight + 24
+                        radius: SkinTheme.radiusMedium
+                        color: SkinTheme.bgDark
+                        border.color: (typeof app !== "undefined" && app && app.isValveUpdateDetected) ? SkinTheme.accentCrimson : SkinTheme.borderSubtle
+                        border.width: 1
+
+                        ColumnLayout {
+                            id: valveRecCol
+                            anchors.fill: parent
+                            anchors.margins: 12
+                            spacing: 10
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 10
+
+                                Text { text: "🛡️"; font.pixelSize: 16 }
+
+                                ColumnLayout {
+                                    spacing: 2
+                                    Text {
+                                        text: "Valve Update Patch Detector & Auto-Recovery"
+                                        color: SkinTheme.textPrimary
+                                        font.family: SkinTheme.fontFamily
+                                        font.pixelSize: SkinTheme.fontSizeBody
+                                        font.bold: true
+                                    }
+                                    Text {
+                                        text: "Dota 2 updates overwrite gameinfo.gi with default vanilla files. Auto-restore re-applies mod hooks automatically."
+                                        color: SkinTheme.textMuted
+                                        font.family: SkinTheme.fontFamily
+                                        font.pixelSize: SkinTheme.fontSizeSmall
+                                    }
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                // Auto-Reapply Switch Toggle
+                                Rectangle {
+                                    width: 130
+                                    height: 32
+                                    radius: SkinTheme.radiusPill
+                                    color: (typeof app !== "undefined" && app && app.autoReapplyValveUpdate)
+                                           ? SkinTheme.accentEmeraldGlow
+                                           : SkinTheme.bgCard
+                                    border.color: (typeof app !== "undefined" && app && app.autoReapplyValveUpdate)
+                                                  ? SkinTheme.accentEmerald
+                                                  : SkinTheme.borderMuted
+                                    border.width: 1
+
+                                    RowLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 6
+                                        Text {
+                                            text: (typeof app !== "undefined" && app && app.autoReapplyValveUpdate) ? "✓ AUTO" : "✕ OFF"
+                                            color: (typeof app !== "undefined" && app && app.autoReapplyValveUpdate) ? SkinTheme.accentEmerald : SkinTheme.textMuted
+                                            font.family: SkinTheme.fontMono
+                                            font.pixelSize: SkinTheme.fontSizeSmall
+                                            font.bold: true
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            if (typeof app !== "undefined" && app) {
+                                                app.setAutoReapplyValveUpdate(!app.autoReapplyValveUpdate)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+
+                                Rectangle {
+                                    height: 30
+                                    radius: SkinTheme.radiusSmall
+                                    implicitWidth: checkUpdateBtnText.implicitWidth + 16
+                                    color: checkUpdateBtnM.containsMouse ? SkinTheme.bgCardHover : SkinTheme.bgCard
+                                    border.color: SkinTheme.borderMuted
+                                    border.width: 1
+
+                                    RowLayout {
+                                        id: checkUpdateBtnText
+                                        anchors.centerIn: parent
+                                        spacing: 6
+                                        Text { text: "🔍"; font.pixelSize: 10 }
+                                        Text {
+                                            text: "Check Patch Health"
+                                            color: SkinTheme.textPrimary
+                                            font.family: SkinTheme.fontFamily
+                                            font.pixelSize: SkinTheme.fontSizeSmall
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        id: checkUpdateBtnM
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            if (typeof app !== "undefined" && app) {
+                                                app.checkValvePatchStatus()
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    visible: typeof app !== "undefined" && app && app.isValveUpdateDetected
+                                    height: 30
+                                    radius: SkinTheme.radiusSmall
+                                    implicitWidth: restoreNowBtnText.implicitWidth + 16
+                                    color: SkinTheme.accentCrimson
+
+                                    RowLayout {
+                                        id: restoreNowBtnText
+                                        anchors.centerIn: parent
+                                        spacing: 6
+                                        Text { text: "⚡"; font.pixelSize: 10; color: "#FFFFFF" }
+                                        Text {
+                                            text: "Restore Gameinfo Now"
+                                            color: "#FFFFFF"
+                                            font.family: SkinTheme.fontFamily
+                                            font.pixelSize: SkinTheme.fontSizeSmall
+                                            font.bold: true
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            if (typeof app !== "undefined" && app) {
+                                                app.repairGameinfo()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -1372,7 +1536,7 @@ Item {
                             Text {
                                 id: vText
                                 anchors.centerIn: parent
-                                text: (typeof app !== "undefined" && app && app.appVersion) ? app.appVersion : "v1.3.0"
+                                text: (typeof app !== "undefined" && app && app.appVersion) ? app.appVersion : "v1.4.0"
                                 color: SkinTheme.accentCyan
                                 font.family: SkinTheme.fontMono
                                 font.pixelSize: 9
@@ -1461,6 +1625,12 @@ Item {
 
             Item { Layout.preferredHeight: 20 }
         }
+    }
+
+    // Floating Quick Scroll Controls
+    FastScrollButtons {
+        id: settingsScrollButtons
+        target: flick
     }
 }
 

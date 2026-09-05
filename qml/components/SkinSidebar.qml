@@ -70,6 +70,7 @@ Rectangle {
                     { id: "dashboard", label: app.uiLanguage.length && app.t("nav.dashboard"), icon: "\uE80F" },
                     { id: "heroes",    label: app.uiLanguage.length && app.t("nav.heroes"),    icon: "\uE716" },
                     { id: "favorites", label: app.uiLanguage.length && app.t("nav.favorites"), icon: "\uE734" },
+                    { id: "livematch", label: app.uiLanguage.length && app.t("nav.livematch"), icon: "\uE731" },
                     { id: "creators",  label: app.uiLanguage.length && app.t("nav.creators"),  icon: "\uE77B" },
                     { id: "effects",   label: app.uiLanguage.length && app.t("nav.effects"),   icon: "\uE790" },
                     { id: "map",       label: app.uiLanguage.length && app.t("nav.map"),       icon: "\uE774" },

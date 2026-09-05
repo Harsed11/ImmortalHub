@@ -19,12 +19,18 @@ except ImportError:
 
 
 # ImmortalHub Custom Application ID
-DEFAULT_CLIENT_ID = "1541931721216368653"
+DEFAULT_CLIENT_ID = "1545929332399280232"
+DEFAULT_LARGE_IMAGE = "logo"
+DEFAULT_LARGE_TEXT = "ImmortalHub • Dota 2 Skinchanger"
 
 
 class DiscordRPCClient:
-    def __init__(self, client_id: str = DEFAULT_CLIENT_ID):
+    def __init__(self, client_id: str = DEFAULT_CLIENT_ID, large_image: str = DEFAULT_LARGE_IMAGE):
         self.client_id = client_id
+        self._large_image = large_image
+        self._large_text = DEFAULT_LARGE_TEXT
+        self._small_image = "dota2"
+        self._small_text = "Dota 2"
         self._rpc = None
         self._connected = False
         self._running = True
@@ -56,7 +62,23 @@ class DiscordRPCClient:
                         pass
                     self._rpc = None
 
-    def update_presence(self, details: str = "Managing Dota 2 Custom Skins", state: str = "ImmortalHub Active", hero: str = "", active_mods_count: int = 0):
+    def set_large_image(self, key_or_url: str, text: str = ""):
+        with self._lock:
+            self._large_image = key_or_url or DEFAULT_LARGE_IMAGE
+            if text:
+                self._large_text = text
+
+    def update_presence(
+        self,
+        details: str = "Managing Dota 2 Custom Skins",
+        state: str = "ImmortalHub Active",
+        hero: str = "",
+        active_mods_count: int = 0,
+        large_image: Optional[str] = None,
+        large_text: Optional[str] = None,
+        small_image: Optional[str] = None,
+        small_text: Optional[str] = None,
+    ):
         self._ensure_started()
         with self._lock:
             self._current_details = details
@@ -66,6 +88,15 @@ class DiscordRPCClient:
                 self._current_state = f"{active_mods_count} Active Mods"
             else:
                 self._current_state = state
+
+            if large_image is not None:
+                self._large_image = large_image
+            if large_text is not None:
+                self._large_text = large_text
+            if small_image is not None:
+                self._small_image = small_image
+            if small_text is not None:
+                self._small_text = small_text
 
     def _connect(self) -> bool:
         if not HAS_PYPRESENCE:
@@ -90,12 +121,43 @@ class DiscordRPCClient:
             with self._lock:
                 details = self._current_details
                 state = self._current_state
+                large_image = self._large_image
+                large_text = self._large_text
+                small_image = self._small_image
+                small_text = self._small_text
 
-            self._rpc.update(
-                details=details[:128],
-                state=state[:128],
-                start=self._start_time
-            )
+            kwargs = {
+                "details": details[:128],
+                "state": state[:128],
+                "start": self._start_time,
+            }
+            if large_image:
+                kwargs["large_image"] = large_image
+                if large_text:
+                    kwargs["large_text"] = large_text[:128]
+            if small_image:
+                kwargs["small_image"] = small_image
+                if small_text:
+                    kwargs["small_text"] = small_text[:128]
+
+            try:
+                self._rpc.update(**kwargs)
+            except Exception:
+                # If small_image failed, try with just large_image
+                if "small_image" in kwargs:
+                    kwargs.pop("small_image", None)
+                    kwargs.pop("small_text", None)
+                    try:
+                        self._rpc.update(**kwargs)
+                        return
+                    except Exception:
+                        pass
+                # Final fallback: text only
+                self._rpc.update(
+                    details=details[:128],
+                    state=state[:128],
+                    start=self._start_time
+                )
         except Exception:
             self._connected = False
             if self._rpc:

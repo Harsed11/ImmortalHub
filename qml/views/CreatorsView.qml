@@ -1157,4 +1157,22 @@ Item {
             }
         }
     }
+
+    // Modal Dialogs
+    AddCreatorModal {
+        id: addCreatorModalInstance
+    }
+
+    AddCreatorModModal {
+        id: addModModalInstance
+    }
+
+    Shortcut {
+        enabled: (addCreatorModalInstance.isOpen || addModModalInstance.isOpen)
+        sequence: "Escape"
+        onActivated: {
+            addCreatorModalInstance.close()
+            addModModalInstance.close()
+        }
+    }
 }

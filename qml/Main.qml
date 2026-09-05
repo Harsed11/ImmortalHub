@@ -41,8 +41,18 @@ ApplicationWindow {
     }
 
     property string currentTab: "dashboard"
+    onCurrentTabChanged: {
+        if (typeof app !== "undefined" && app && app.isPlayingAudio) {
+            app.stopAudio()
+        }
+    }
     property var cart: []
     property var selectedDetailMod: null
+    onSelectedDetailModChanged: {
+        if (!selectedDetailMod && typeof app !== "undefined" && app && app.isPlayingAudio) {
+            app.stopAudio()
+        }
+    }
     property bool isInstallingQueue: false
     property int queueInstallPercent: 0
     property string queueInstallStatus: ""
@@ -348,6 +358,103 @@ ApplicationWindow {
             }
 
             // ═══════════════════════════════════════════
+            // VALVE UPDATE DETECTED ALERT BANNER
+            // ═══════════════════════════════════════════
+            Rectangle {
+                id: valveUpdateBanner
+                Layout.fillWidth: true
+                Layout.preferredHeight: visible ? 42 : 0
+                visible: typeof app !== "undefined" && app && app.isValveUpdateDetected
+                color: "#180D0D"
+                border.color: SkinTheme.accentCrimson
+                border.width: 1
+                clip: true
+
+                Behavior on Layout.preferredHeight { NumberAnimation { duration: SkinTheme.animFast } }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 16
+                    spacing: 12
+
+                    Text {
+                        text: "⚠️"
+                        font.pixelSize: 15
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: (typeof app !== "undefined" && app && app.valveUpdateMessage)
+                              ? app.valveUpdateMessage + " — моды временно неактивны."
+                              : "Обнаружено обновление Dota 2 от Valve! Файл gameinfo.gi был сброшен. Моды временно неактивны."
+                        color: "#FFD2D2"
+                        font.family: SkinTheme.fontFamily
+                        font.pixelSize: SkinTheme.fontSizeSmall
+                        font.bold: true
+                        elide: Text.ElideRight
+                    }
+
+                    // Repair in 1 Click Button
+                    Rectangle {
+                        height: 28
+                        radius: SkinTheme.radiusSmall
+                        implicitWidth: restoreBtnText.implicitWidth + 20
+                        color: restoreMouse.containsMouse ? SkinTheme.accentCrimsonHover : SkinTheme.accentCrimson
+
+                        Text {
+                            id: restoreBtnText
+                            anchors.centerIn: parent
+                            text: "⚡ ВОССТАНОВИТЬ В 1 КЛИК"
+                            color: "#FFFFFF"
+                            font.family: SkinTheme.fontFamily
+                            font.pixelSize: SkinTheme.fontSizeTiny
+                            font.bold: true
+                        }
+
+                        MouseArea {
+                            id: restoreMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (typeof app !== "undefined" && app) {
+                                    app.repairGameinfo()
+                                }
+                            }
+                        }
+                    }
+
+                    // Dismiss Button
+                    Rectangle {
+                        width: 24
+                        height: 24
+                        radius: 12
+                        color: dismissMouse.containsMouse ? SkinTheme.bgCardHover : "transparent"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "✕"
+                            color: SkinTheme.textSecondary
+                            font.pixelSize: 11
+                        }
+
+                        MouseArea {
+                            id: dismissMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (typeof app !== "undefined" && app) {
+                                    app.dismissValveUpdateAlert()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ═══════════════════════════════════════════
             // FULL-WIDTH VIEWS STACK (100% Canvas Width)
             // ═══════════════════════════════════════════
             Item {
@@ -382,10 +489,54 @@ ApplicationWindow {
                     onModAddToCart: function(m) { root.addToCart(m) }
                 }
 
+                FavoritesView {
+                    anchors.fill: parent
+                    visible: root.currentTab === "favorites"
+                    onModClicked: function(m) { root.selectedDetailMod = m }
+                    onModInstall: function(m) { root.safeInstallMod(m) }
+                    onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
+                    onModAddToCart: function(m) { root.addToCart(m) }
+                }
+
+                LiveMatchView {
+                    anchors.fill: parent
+                    visible: root.currentTab === "livematch"
+                }
+
                 CategoryView {
                     anchors.fill: parent
                     visible: root.currentTab === "effects"
-                    categoryIds: ["ti-bp-effects", "shaders", "emblems", "versus-screens", "terrains", "trees", "river", "roshan", "ancient", "towers", "announcers", "music", "sounds", "creeps", "couriers", "wards", "huds", "item-effects", "item-icons", "ranks", "cursors", "fonts", "packs", "backgrounds", "other"]
+                    categoryIds: ["shaders", "ti-bp-effects", "emblems", "item-effects", "ranged-attack", "pings", "herofx", "versus-screens"]
+                    onModClicked: function(m) { root.selectedDetailMod = m }
+                    onModInstall: function(m) { root.safeInstallMod(m) }
+                    onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
+                    onModAddToCart: function(m) { root.addToCart(m) }
+                }
+
+                CategoryView {
+                    anchors.fill: parent
+                    visible: root.currentTab === "map"
+                    categoryIds: ["terrains", "trees", "river", "roshan", "ancient", "tormentor", "towers", "creeps", "creep-deny", "wards", "couriers"]
+                    onModClicked: function(m) { root.selectedDetailMod = m }
+                    onModInstall: function(m) { root.safeInstallMod(m) }
+                    onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
+                    onModAddToCart: function(m) { root.addToCart(m) }
+                }
+
+                CategoryView {
+                    anchors.fill: parent
+                    visible: root.currentTab === "audio"
+                    categoryIds: ["announcers", "music", "sounds", "mega-kill", "hero-sounds"]
+                    onModClicked: function(m) { root.selectedDetailMod = m }
+                    onModInstall: function(m) { root.safeInstallMod(m) }
+                    onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
+                    onModAddToCart: function(m) { root.addToCart(m) }
+                }
+
+                CategoryView {
+                    anchors.fill: parent
+                    visible: root.currentTab === "misc"
+                    categoryIds: ["huds", "cursors", "fonts", "ranks", "pedestal", "high-five", "backgrounds", "item-icons", "packs", "other"]
                     onModClicked: function(m) { root.selectedDetailMod = m }
                     onModInstall: function(m) { root.safeInstallMod(m) }
                     onModUninstall: function(m) { app.uninstallMod(m.name, m.categoryId) }
@@ -439,6 +590,7 @@ ApplicationWindow {
     // Presets Modal
     SkinPresetsModal {
         id: presetsModal
+        onCloseRequested: presetsModal.isOpen = false
         onApplyPresetRequested: function(preset) {
             if (preset && preset.items) {
                 for (var i = 0; i < preset.items.length; i++) {

@@ -23,6 +23,14 @@ Rectangle {
     signal clearRequested()
     signal removeItemRequested(int index)
 
+    onCloseRequested: isOpen = false
+
+    Shortcut {
+        enabled: isOpen
+        sequence: "Escape"
+        onActivated: drawer.closeRequested()
+    }
+
     Behavior on opacity { NumberAnimation { duration: SkinTheme.animFast } }
 
     // Dismiss on backdrop click

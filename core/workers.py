@@ -67,7 +67,23 @@ class InstallWorker(QThread):
             name = mod.get("name", "Unknown Mod")
             cat_id = mod.get("categoryId", "heroes")
             file_name = mod.get("file", "")
-            raw_url = mod.get("fileUrl", get_file_url(cat_id, file_name))
+            raw_url = mod.get("fileUrl", "")
+            styles = mod.get("styles", [])
+            selected_style_idx = mod.get("selectedStyleIndex", 0)
+
+            if (not file_name or not raw_url) and styles:
+                if isinstance(selected_style_idx, int) and 0 <= selected_style_idx < len(styles):
+                    st = styles[selected_style_idx]
+                else:
+                    st = styles[0]
+                if not file_name:
+                    file_name = st.get("file", "")
+                if not raw_url:
+                    raw_url = st.get("fileUrl", "") or get_file_url(cat_id, file_name)
+
+            if not raw_url and file_name:
+                raw_url = get_file_url(cat_id, file_name)
+
             file_url = safe_url(raw_url)
             preview_url = safe_url(mod.get("previewUrl", ""))
             hero = mod.get("hero", "")
@@ -87,6 +103,8 @@ class InstallWorker(QThread):
                     with open(local_path, "rb") as f_in:
                         data = f_in.read()
                 else:
+                    if not file_url or not (file_url.startswith("http://") or file_url.startswith("https://") or file_url.startswith("file://")):
+                        raise ValueError(f"Mod '{name}' has no valid download URL.")
                     req = urllib.request.Request(
                         file_url,
                         headers={"User-Agent": "Dota2SkinChangerPro/2.0"}

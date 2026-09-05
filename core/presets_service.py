@@ -198,6 +198,10 @@ class PresetsService:
         self._save_user_presets()
         return new_preset
 
+    def get_user_presets(self) -> List[Dict[str, Any]]:
+        """Returns all custom presets created or imported by the user."""
+        return list(self._user_presets)
+
     def delete_user_preset(self, preset_id: str) -> bool:
         initial_len = len(self._user_presets)
         self._user_presets = [p for p in self._user_presets if p.get("id") != preset_id]
@@ -210,6 +214,7 @@ class PresetsService:
         """Encodes preset items into a shareable string."""
         try:
             payload = {
+                "type": "preset",
                 "name": preset_data.get("name", "Shared Preset"),
                 "description": preset_data.get("description", ""),
                 "items": preset_data.get("items", [])
@@ -221,8 +226,34 @@ class PresetsService:
             logger.error(f"Failed to export preset code: {e}")
             return ""
 
-    def import_preset_code(self, code: str) -> Optional[dict]:
-        """Decodes a shareable IHUB-... preset string."""
+    def export_loadout_code(self, items: list, title: str = "My Dota 2 Loadout") -> str:
+        """Encodes currently equipped mods into a shareable loadout string."""
+        try:
+            payload = {
+                "type": "loadout",
+                "name": title,
+                "description": f"Custom ImmortalHub loadout with {len(items)} items",
+                "items": [
+                    {
+                        "name": it.get("name", ""),
+                        "categoryId": it.get("categoryId", "heroes"),
+                        "hero": it.get("hero", ""),
+                        "previewUrl": it.get("previewUrl", ""),
+                        "file": it.get("file", ""),
+                        "fileUrl": it.get("fileUrl", "")
+                    }
+                    for it in items
+                ]
+            }
+            raw_bytes = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            b64 = base64.b64encode(raw_bytes).decode("ascii")
+            return f"IHUB-{b64}"
+        except Exception as e:
+            logger.error(f"Failed to export loadout code: {e}")
+            return ""
+
+    def parse_share_code(self, code: str) -> Optional[dict]:
+        """Decodes and validates a shareable IHUB-... string without saving it."""
         try:
             clean = code.strip()
             if clean.startswith("IHUB-"):
@@ -230,12 +261,20 @@ class PresetsService:
             raw_bytes = base64.b64decode(clean.encode("ascii"))
             data = json.loads(raw_bytes.decode("utf-8"))
             if isinstance(data, dict) and "items" in data:
-                return self.save_user_preset(
-                    name=data.get("name", "Imported Preset"),
-                    description=data.get("description", "Imported via share code"),
-                    items=data.get("items", []),
-                    tags=["Imported"]
-                )
+                return data
         except Exception as e:
-            logger.error(f"Failed to import preset code: {e}")
+            logger.error(f"Failed to parse share code: {e}")
         return None
+
+    def import_preset_code(self, code: str) -> Optional[dict]:
+        """Decodes a shareable IHUB-... preset string and saves as user preset."""
+        data = self.parse_share_code(code)
+        if data:
+            return self.save_user_preset(
+                name=data.get("name", "Imported Preset"),
+                description=data.get("description", "Imported via share code"),
+                items=data.get("items", []),
+                tags=["Imported", "Shared"]
+            )
+        return None
+

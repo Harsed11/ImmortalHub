@@ -562,4 +562,10 @@ Item {
             }
         }
     }
+
+    // Floating Quick Scroll Controls
+    FastScrollButtons {
+        id: catScrollButtons
+        target: (categoryView.activeCategoryId === "") ? catsGrid : grid
+    }
 }

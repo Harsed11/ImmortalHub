@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 
 from PySide6.QtWidgets import QFileDialog
-from PySide6.QtCore import QObject, Signal, Slot, Property, QUrl, QTimer
+from PySide6.QtCore import QObject, Signal, Slot, Property, QUrl, QTimer, QFileSystemWatcher
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
@@ -30,7 +30,10 @@ from core.log_watcher import DotaLogWatcher
 from core.image_cache import image_cache
 from core.presets_service import PresetsService
 from core.creators_service import CreatorsService
-from core.dota_launcher import launch_dota_game, check_gameinfo_health, repair_gameinfo
+from core.hero_roles import hero_roles_service
+from core.health_service import ModHealthService
+from core.cloud_backup import CloudBackupService
+from core.dota_launcher import launch_dota_game, check_gameinfo_health, repair_gameinfo, detect_valve_update
 from core.discord_rpc import DEFAULT_CLIENT_ID, discord_rpc
 
 class SkinChangerApp(QObject):
@@ -44,7 +47,10 @@ class SkinChangerApp(QObject):
     dotaPathChanged = Signal()
     installLanguageChanged = Signal()
     gameinfoStatusChanged = Signal()
+    valveUpdateDetected = Signal(str)
+    themeChanged = Signal()
     audioStateChanged = Signal()
+    audioProgressChanged = Signal()
     loadingChanged = Signal()
     progressChanged = Signal(int, str, str)  # percent, status, item_name
     batchFinished = Signal(bool, str)
@@ -53,6 +59,10 @@ class SkinChangerApp(QObject):
     updateAvailable = Signal(str, str, str)  # version, notes, download_url
     remoteDataReady = Signal(object, object)  # (constants, mods) fetched off-GUI; (None, None) on failure
     uiLanguageChanged = Signal()
+    heroRolesUpdated = Signal()
+    integrityStatusChanged = Signal(str)
+    cloudBackupFinished = Signal(bool, str, str)
+    presetsChanged = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -79,13 +89,22 @@ class SkinChangerApp(QObject):
         self._live_match_data = None
         self._launch_options = ""
 
-        # Media Player for Audio Previews
+        # Media Player for Audio Previews & Scrubber
         self._media_player = QMediaPlayer()
         self._audio_output = QAudioOutput()
         self._media_player.setAudioOutput(self._audio_output)
         self._audio_output.setVolume(0.85)
         self._current_audio_url = ""
+        self._audio_position = 0
+        self._audio_duration = 0
         self._media_player.playbackStateChanged.connect(lambda _: self.audioStateChanged.emit())
+        self._media_player.positionChanged.connect(self._on_audio_position_changed)
+        self._media_player.durationChanged.connect(self._on_audio_duration_changed)
+
+        # Valve Patch Update Detector
+        self._valve_update_detected = False
+        self._valve_update_message = ""
+        self._auto_reapply_valve_update = True
 
         self._app_dir = os.path.join(os.path.expanduser("~"), ".dota2skinchanger")
         self._settings_path = os.path.join(self._app_dir, "settings.json")
@@ -98,8 +117,19 @@ class SkinChangerApp(QObject):
 
         self._load_settings()
 
+        # Mod Health & Cloud Backup Services
+        self._health_service = ModHealthService(self._dota_path, self._manifest_path, self._app_dir)
+        self._cloud_backup = CloudBackupService(self._app_dir)
+
         # Instant local cache loading (0ms startup)
         self._load_from_local_cache()
+
+        # Hero Roles & Positions Meta Service
+        self._hero_roles_service = hero_roles_service
+        self._hero_roles_service.start_background_refresh(
+            delay_seconds=4,
+            on_complete=lambda ok: self.heroRolesUpdated.emit() if ok else None
+        )
 
         # Start GSI server listener & Log Watcher
         self._gsi_server.start(self._on_gsi_event)
@@ -118,6 +148,18 @@ class SkinChangerApp(QObject):
 
         # Deferred single check: restore mod hooks if a Dota update wiped them
         QTimer.singleShot(3000, self._auto_restore_hooks)
+
+        # Real-time File System Watcher for Dota game folders
+        self._fs_watcher = QFileSystemWatcher(self)
+        self._fs_debounce_timer = QTimer(self)
+        self._fs_debounce_timer.setSingleShot(True)
+        self._fs_debounce_timer.setInterval(350)
+        self._fs_debounce_timer.timeout.connect(self.validateInstalledMods)
+        self._fs_watcher.directoryChanged.connect(self._on_game_dir_changed)
+        self._setup_fs_watcher()
+
+        # Initial auto-validation of installed mods against game folder
+        self.validateInstalledMods()
 
         # Initialize Presets & Creators Service & Discord RPC
         self._presets_service = PresetsService(self._app_dir)
@@ -179,9 +221,13 @@ class SkinChangerApp(QObject):
     def dotaPath(self, value: str):
         if self._dota_path != value:
             self._dota_path = value
+            if hasattr(self, "_health_service"):
+                self._health_service.dota_path = value
             self._save_settings()
+            self._setup_fs_watcher()
             self.dotaPathChanged.emit()
             self.gameinfoStatusChanged.emit()
+            self.validateInstalledMods()
 
     @Property(str, notify=installLanguageChanged)
     def installLanguage(self):
@@ -241,7 +287,7 @@ class SkinChangerApp(QObject):
 
     @accentHue.setter
     def accentHue(self, value: str):
-        allowed = {"immortal", "cyan", "violet", "emerald", "amber", "crimson"}
+        allowed = {"immortal", "cyan", "violet", "emerald", "amber", "crimson", "sakura", "ice"}
         value = value if value in allowed else "immortal"
         if self._accent_hue != value:
             self._accent_hue = value
@@ -328,6 +374,67 @@ class SkinChangerApp(QObject):
             logger.debug(f"Failed to check gameinfo.gi status: {e}")
             return False
 
+    # --- Valve Update Detection Properties & Slots ---
+    @Property(bool, notify=gameinfoStatusChanged)
+    def isValveUpdateDetected(self):
+        return self._valve_update_detected
+
+    @Property(str, notify=gameinfoStatusChanged)
+    def valveUpdateMessage(self):
+        return self._valve_update_message
+
+    @Property(bool, notify=gameinfoStatusChanged)
+    def autoReapplyValveUpdate(self):
+        return self._auto_reapply_valve_update
+
+    @Slot(bool)
+    def setAutoReapplyValveUpdate(self, enabled: bool):
+        self._auto_reapply_valve_update = bool(enabled)
+        self._save_settings()
+        self.gameinfoStatusChanged.emit()
+
+    @Slot(result=str)
+    def checkValvePatchStatus(self) -> str:
+        """Explicit check for Valve update status."""
+        manifest = self._get_installed_dict(validate=False)
+        res = detect_valve_update(self._dota_path, len(manifest))
+        if res.get("detected"):
+            self._valve_update_detected = True
+            self._valve_update_message = res.get("message", "Valve update reset gameinfo.gi")
+        else:
+            self._valve_update_detected = False
+            self._valve_update_message = ""
+        self.gameinfoStatusChanged.emit()
+        return json.dumps(res, ensure_ascii=False)
+
+    @Slot(result=bool)
+    def repairGameinfo(self) -> bool:
+        """Restores gameinfo.gi mod search paths immediately."""
+        ok, msg = repair_gameinfo(self._dota_path)
+        if ok:
+            self._valve_update_detected = False
+            self._valve_update_message = ""
+            self.successOccurred.emit(msg)
+            self.gameinfoStatusChanged.emit()
+            return True
+        else:
+            self.errorOccurred.emit(msg)
+            return False
+
+    @Slot()
+    def dismissValveUpdateAlert(self):
+        self._valve_update_detected = False
+        self.gameinfoStatusChanged.emit()
+
+    # --- Audio Player Properties & Slots ---
+    def _on_audio_position_changed(self, pos: int):
+        self._audio_position = pos
+        self.audioProgressChanged.emit()
+
+    def _on_audio_duration_changed(self, dur: int):
+        self._audio_duration = dur
+        self.audioProgressChanged.emit()
+
     @Property(bool, notify=audioStateChanged)
     def isPlayingAudio(self):
         return self._media_player.playbackState() == QMediaPlayer.PlayingState
@@ -336,11 +443,61 @@ class SkinChangerApp(QObject):
     def currentAudioUrl(self):
         return self._current_audio_url
 
+    @Property(int, notify=audioProgressChanged)
+    def audioPosition(self):
+        return self._audio_position
+
+    @Property(int, notify=audioProgressChanged)
+    def audioDuration(self):
+        return self._audio_duration
+
     @Property(str)
     def baseUrl(self):
         return BASE_URL
 
-    # --- Audio Player Slots ---
+    @Slot(int)
+    def seekAudio(self, pos_ms: int):
+        self._media_player.setPosition(pos_ms)
+
+    @Slot(float)
+    def setAudioVolume(self, volume: float):
+        vol = max(0.0, min(1.0, float(volume)))
+        self._audio_output.setVolume(vol)
+
+    # --- Theme Customizer Properties & Slots ---
+    @Property(str, notify=themeChanged)
+    def currentTheme(self):
+        return self._theme_mode
+
+    @Property(str, notify=themeChanged)
+    def currentAccentHue(self):
+        return self._accent_hue
+
+    @Slot(result=str)
+    def getThemeConfig(self) -> str:
+        return json.dumps({
+            "themeMode": self._theme_mode,
+            "accentHue": self._accent_hue
+        }, ensure_ascii=False)
+
+    @Slot(str, str)
+    def saveThemeConfig(self, theme_id: str, hue_id: str):
+        self._theme_mode = theme_id or "cyberpunk"
+        self._accent_hue = hue_id or "immortal"
+        self._save_settings()
+        self.themeChanged.emit()
+
+    # --- Custom Spell Icons & Hero Aliases Slots ---
+    @Slot(str, str, result=str)
+    def getModSpellIcons(self, mod_name: str, hero_name: str) -> str:
+        from core.spell_icons import get_custom_spells_for_mod
+        spells = get_custom_spells_for_mod(mod_name, hero_name)
+        return json.dumps(spells, ensure_ascii=False)
+
+    @Slot(result=str)
+    def getHeroAliasesJson(self) -> str:
+        from core.hero_aliases import HERO_ALIASES
+        return json.dumps(HERO_ALIASES, ensure_ascii=False)
 
     @Slot(str)
     def playAudio(self, url: str):
@@ -878,11 +1035,17 @@ class SkinChangerApp(QObject):
                     "color": s.color
                 })
         name_l = (m.name or "").lower()
-        if "arcana" in name_l:
+        cat = str(m.category_id or "").lower()
+        tags_str = str(m.tags or "").lower()
+
+        if "arcana" in name_l or "arcana" in tags_str:
             rarity = "arcana"
-        elif "persona" in name_l:
+        elif "persona" in name_l or "persona" in tags_str or any(p in name_l for p in [
+            "toy butcher", "lost arts", "disciple's path", "dragon hold",
+            "nightsilver", "blueheart", "exile unveiled", "wei"
+        ]):
             rarity = "persona"
-        elif "immortal" in name_l:
+        elif "immortal" in name_l or "immortal" in tags_str:
             rarity = "immortal"
         elif "collector" in name_l or "cache" in name_l or "mythical" in name_l:
             rarity = "mythical"
@@ -891,7 +1054,6 @@ class SkinChangerApp(QObject):
         else:
             rarity = "standard"
 
-        cat = str(m.category_id or "").lower()
         if "sound" in cat or "voice" in cat or "music" in cat or "audio" in cat:
             slot = "audio"
         elif "fx" in cat or "effect" in cat or "shader" in cat:
@@ -903,13 +1065,29 @@ class SkinChangerApp(QObject):
         else:
             slot = "item"
 
+        p_url = safe_url(m.preview_url())
+        f_url = safe_url(m.file_url())
+        f_name = m.file
+        p_name = m.preview
+
+        if styles_data:
+            if not f_name:
+                f_name = styles_data[0].get("file", "")
+            if not f_url:
+                f_url = styles_data[0].get("fileUrl", "") or safe_url(get_file_url(m.category_id, f_name))
+            if not p_name:
+                p_name = styles_data[0].get("preview", "")
+            if not p_url:
+                p_url = styles_data[0].get("previewUrl", "") or safe_url(get_preview_url(m.category_id, p_name))
+
         return {
             "name": m.name,
-            "preview": m.preview,
+            "preview": p_name,
             "previewUrl": image_cache.get_url_or_cached(p_url),
-            "file": m.file,
-            "fileUrl": safe_url(m.file_url()),
+            "file": f_name,
+            "fileUrl": f_url,
             "audioUrl": safe_url(m.audio_url()),
+            "videoUrl": safe_url(m.video_url()),
             "categoryId": m.category_id,
             "hero": m.hero,
             "tags": m.tags,
@@ -992,76 +1170,133 @@ class SkinChangerApp(QObject):
             'beastmaster': 'uni', 'brewmaster': 'uni'
         }
 
-        # Dota 2 Positions / Roles Map
-        role_map = {
-            # Pos 1 Carry
-            'antimage': 'carry', 'drow_ranger': 'carry', 'juggernaut': 'carry', 'morphling': 'carry',
-            'phantom_lancer': 'carry', 'razor': 'carry', 'riki': 'carry', 'sniper': 'carry',
-            'luna': 'carry', 'clinkz': 'carry', 'weaver': 'carry', 'spectre': 'carry', 'ursa': 'carry',
-            'gyrocopter': 'carry', 'lone_druid': 'carry', 'slark': 'carry', 'troll_warlord': 'carry',
-            'terrorblade': 'carry', 'arc_warden': 'carry', 'monkey_king': 'carry', 'kez': 'carry',
-            'skeleton_king': 'carry', 'life_stealer': 'carry', 'chaos_knight': 'carry', 'alchemist': 'carry',
-            'lycan': 'carry', 'medusa': 'carry', 'muerta': 'carry', 'faceless_void': 'carry', 'bloodseeker': 'carry',
-            'phantom_assassin': 'carry', 'sven': 'carry',
-            # Pos 2 Mid
-            'storm_spirit': 'mid', 'ember_spirit': 'mid', 'earth_spirit': 'mid', 'void_spirit': 'mid',
-            'invoker': 'mid', 'puck': 'mid', 'queenofpain': 'mid', 'nevermore': 'mid', 'tinker': 'mid',
-            'necrolyte': 'mid', 'leshrac': 'mid', 'obsidian_destroyer': 'mid', 'lina': 'mid', 'zuus': 'mid',
-            'meepo': 'mid', 'kunkka': 'mid', 'dragon_knight': 'mid', 'pangolier': 'mid', 'windrunner': 'mid',
-            'viper': 'mid', 'batrider': 'mid', 'visage': 'mid', 'death_prophet': 'mid', 'huskar': 'mid',
-            'templar_assassin': 'mid',
-            # Pos 3 Offlane
-            'axe': 'offlane', 'centaur': 'offlane', 'magnataur': 'offlane', 'shredder': 'offlane',
-            'bristleback': 'offlane', 'tusk': 'offlane', 'abaddon': 'offlane', 'elder_titan': 'offlane',
-            'legion_commander': 'offlane', 'abyssal_underlord': 'offlane', 'mars': 'offlane',
-            'dawnbreaker': 'offlane', 'primal_beast': 'offlane', 'slardar': 'offlane', 'tidehunter': 'offlane',
-            'doom_bringer': 'offlane', 'spirit_breaker': 'offlane', 'sand_king': 'offlane',
-            'brewmaster': 'offlane', 'dark_seer': 'offlane', 'night_stalker': 'offlane',
-            'beastmaster': 'offlane', 'enigma': 'offlane', 'tiny': 'offlane',
-            # Pos 4 / 5 Support
-            'crystal_maiden': 'support', 'lion': 'support', 'shadow_shaman': 'support',
-            'witch_doctor': 'support', 'lich': 'support', 'warlock': 'support', 'dazzle': 'support',
-            'ancient_apparition': 'support', 'silencer': 'support', 'shadow_demon': 'support',
-            'rubick': 'support', 'disruptor': 'support', 'keeper_of_the_light': 'support',
-            'skywrath_mage': 'support', 'oracle': 'support', 'winter_wyvern': 'support',
-            'grimstroke': 'support', 'ringmaster': 'support', 'bane': 'support', 'pugna': 'support',
-            'enchantress': 'support', 'jakiro': 'support', 'chen': 'support', 'dark_willow': 'support',
-            'snapfire': 'support', 'marci': 'support', 'techies': 'support', 'wisp': 'support',
-            'nyx_assassin': 'support', 'naga_siren': 'support', 'hoodwink': 'support',
-            'bounty_hunter': 'support', 'treant': 'support', 'ogre_magi': 'support',
-            'undying': 'support', 'vengefulspirit': 'support', 'pudge': 'support', 'venomancer': 'support'
-        }
-
         cards = []
         for h in sorted_heroes:
             ln = h.lower().replace("'", "")
             valve_name = exceptions.get(ln, ln.replace(' ', '_').replace('-', '_'))
             img_url = f"https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/{valve_name}.png"
             attr = attr_map.get(valve_name, 'uni')
-            role = role_map.get(valve_name, 'carry')
+            roles_svc = getattr(self, "_hero_roles_service", None) or hero_roles_service
+            meta = roles_svc.get_hero_meta(valve_name)
+            role = meta.get("primary_role", "carry")
+            roles = meta.get("roles", [role])
+            role_display = meta.get("role_display", role.upper())
+            lane_stats = meta.get("lanes", {})
+            role_source = meta.get("source", "Dotabuff Meta")
             
-            # Count available and installed skins for this hero
+            # Count available, installed and special skins for this hero
             h_lower = h.lower()
             skin_count = 0
             inst_count = 0
+            fav_count = 0
+            has_arcana = False
+            has_persona = False
+            has_immortal = False
+
+            # Select high-definition featured skin preview (Installed > Arcana > Persona > Immortal > Best Set)
+            installed_candidate = None
+            arcana_candidate = None
+            persona_candidate = None
+            immortal_candidate = None
+            set_candidate = None
+
             for cat_id in ["heroes", "hero-items", "herofx", "hero-sounds"]:
                 for m in self._mods_data.get(cat_id, []):
                     if (m.hero and h_lower in m.hero.lower()) or h_lower in m.name.lower():
                         skin_count += 1
-                        if self.isModInstalled(m.name, m.category_id):
+                        m_name_l = (m.name or "").lower()
+                        tags_str = str(m.tags or "").lower()
+                        p_url = m.preview_url() if hasattr(m, 'preview_url') else ""
+
+                        is_arc = "arcana" in m_name_l or "arcana" in tags_str
+                        is_per = "persona" in m_name_l or "persona" in tags_str or any(p in m_name_l for p in [
+                            "toy butcher", "lost arts", "disciple's path", "dragon hold",
+                            "nightsilver", "blueheart", "exile unveiled", "wei"
+                        ])
+                        is_immo = "immortal" in m_name_l or "immortal" in tags_str
+
+                        if is_arc:
+                            has_arcana = True
+                        if is_per:
+                            has_persona = True
+                        if is_immo:
+                            has_immortal = True
+
+                        is_inst = self.isModInstalled(m.name, m.category_id)
+                        if is_inst:
                             inst_count += 1
+                            if p_url and not installed_candidate:
+                                installed_candidate = m
+                        if self.isFavorite(m.name, m.category_id):
+                            fav_count += 1
+
+                        if p_url:
+                            if is_arc and not arcana_candidate:
+                                arcana_candidate = m
+                            elif is_per and not persona_candidate:
+                                persona_candidate = m
+                            elif is_immo and not immortal_candidate:
+                                immortal_candidate = m
+                            elif not set_candidate and cat_id in ["heroes", "hero-items"]:
+                                set_candidate = m
+
+            best_mod = installed_candidate or arcana_candidate or persona_candidate or immortal_candidate or set_candidate
+            featured_skin_url = ""
+            featured_skin_name = ""
+            featured_rarity = "standard"
+            if best_mod:
+                raw_p_url = safe_url(best_mod.preview_url())
+                featured_skin_url = image_cache.get_url_or_cached(raw_p_url)
+                featured_skin_name = best_mod.name
+                b_name_l = best_mod.name.lower()
+                if "arcana" in b_name_l:
+                    featured_rarity = "arcana"
+                elif "persona" in b_name_l:
+                    featured_rarity = "persona"
+                elif "immortal" in b_name_l:
+                    featured_rarity = "immortal"
+                else:
+                    featured_rarity = "mythical"
 
             cards.append({
                 "name": h,
-                "imageUrl": img_url,
+                "imageUrl": featured_skin_url or img_url,
+                "defaultImageUrl": img_url,
+                "skinPreviewUrl": featured_skin_url,
+                "skinPreviewName": featured_skin_name,
+                "featuredRarity": featured_rarity,
                 "valveName": valve_name,
                 "attr": attr,
                 "role": role,
+                "roles": roles,
+                "roleDisplay": role_display,
+                "laneStats": lane_stats,
+                "roleSource": role_source,
                 "skinCount": skin_count,
-                "installedCount": inst_count
+                "installedCount": inst_count,
+                "hasArcana": has_arcana,
+                "hasPersona": has_persona,
+                "hasImmortal": has_immortal,
+                "favCount": fav_count
             })
             
         return json.dumps(cards, ensure_ascii=False)
+
+    @Slot(result=bool)
+    def refreshHeroRoles(self) -> bool:
+        """Fetches latest hero lane positions from online Dotabuff / OpenDota meta."""
+        success = self._hero_roles_service.refresh_online(force=True)
+        if success:
+            self.heroRolesUpdated.emit()
+        return success
+
+    @Slot()
+    def refreshHeroRolesAsync(self):
+        """Triggers background fetch for latest hero roles without blocking UI."""
+        self._hero_roles_service.start_background_refresh(
+            delay_seconds=0,
+            on_complete=lambda ok: self.heroRolesUpdated.emit() if ok else None
+        )
 
     @Slot(str, result=str)
     def getCategoryPreviewImage(self, category_id: str) -> str:
@@ -1225,31 +1460,258 @@ class SkinChangerApp(QObject):
         self.totalSavingsChanged.emit()
         self.batchFinished.emit(success, summary)
 
+    @Slot(result=str)
+    def validateInstalledMods(self) -> str:
+        """Checks game folder for all installed mods and automatically prunes any that were removed from disk."""
+        manifest = self._get_installed_dict(validate=True)
+
+        # Check Valve update status if mods are equipped
+        if len(manifest) > 0 and self.dotaDetected:
+            try:
+                from core.dota_launcher import detect_valve_update, repair_gameinfo
+                update_status = detect_valve_update(self._dota_path, len(manifest))
+                if update_status.get("detected"):
+                    if self._auto_reapply_valve_update:
+                        ok, msg = repair_gameinfo(self._dota_path)
+                        if ok:
+                            logger.info("Auto-reapplied gameinfo.gi mod hooks after detected Valve update.")
+                            self.successOccurred.emit("Dota 2 была обновлена Valve. Gameinfo.gi автоматически восстановлен!")
+                            self._valve_update_detected = False
+                            self.gameinfoStatusChanged.emit()
+                        else:
+                            self._valve_update_detected = True
+                            self._valve_update_message = update_status.get("message", "Valve update reset gameinfo.gi")
+                            self.gameinfoStatusChanged.emit()
+                            self.valveUpdateDetected.emit(json.dumps(update_status))
+                    else:
+                        self._valve_update_detected = True
+                        self._valve_update_message = update_status.get("message", "Valve update reset gameinfo.gi")
+                        self.gameinfoStatusChanged.emit()
+                        self.valveUpdateDetected.emit(json.dumps(update_status))
+            except Exception as e:
+                logger.debug(f"Valve update check exception: {e}")
+
+        return json.dumps(list(manifest.values()), ensure_ascii=False)
+
+    @Slot()
+    def refreshInstalledMods(self):
+        """Triggers a re-scan of the game folder and updates installed status."""
+        self.validateInstalledMods()
+
+    @Slot()
+    def syncAllInstalled(self):
+        """Alias for syncAllMods."""
+        self.syncAllMods()
+
     @Slot()
     def syncAllMods(self):
-        """Re-installs all currently installed mods to sync with the latest versions from the API."""
-        manifest = self._get_installed_dict()
+        """Validates current loadout and re-installs all currently installed mods to sync with the latest versions."""
+        manifest = self._get_installed_dict(validate=True)
         if not manifest:
-            self.errorOccurred.emit("No installed mods to sync.")
+            self.successOccurred.emit("No installed mods to sync. Loadout is clean.")
             return
 
         to_install = []
-        for key in manifest.keys():
+        for key, item in manifest.items():
+            if not isinstance(item, dict):
+                continue
             try:
                 cat, name = key.split("::", 1)
             except ValueError:
-                continue
-            
+                cat = item.get("categoryId", "heroes")
+                name = item.get("name", "")
+
+            found = False
             category_mods = self._mods_data.get(cat, [])
             for m in category_mods:
                 if m.name == name:
                     to_install.append(self._serialize_mod(m))
+                    found = True
                     break
+
+            if not found:
+                # Creator or custom mod fallback
+                file_name = item.get("file", "")
+                to_install.append({
+                    "name": item.get("name", name),
+                    "categoryId": item.get("categoryId", cat),
+                    "hero": item.get("hero", ""),
+                    "previewUrl": item.get("previewUrl", ""),
+                    "file": file_name,
+                    "fileUrl": item.get("fileUrl", ""),
+                    "filePath": item.get("filePath", ""),
+                })
 
         if to_install:
             self.installBatch(json.dumps(to_install))
         else:
-            self.successOccurred.emit("All mods are already in sync.")
+            self.successOccurred.emit("All mods are in sync with your game folder.")
+
+    # --- Mod Health & Integrity Check ---
+
+    @Slot(result=str)
+    def checkModsIntegrity(self) -> str:
+        """Performs a deep integrity scan of all tracked mods and gameinfo.gi."""
+        if not self.dotaDetected:
+            res = {
+                "healthy": False,
+                "totalMods": 0,
+                "intactCount": 0,
+                "corruptedCount": 0,
+                "gameinfoIntact": False,
+                "corruptedMods": [],
+                "statusMessage": "Dota 2 path is not detected."
+            }
+            return json.dumps(res, ensure_ascii=False)
+
+        res = self._health_service.check_integrity()
+        json_str = json.dumps(res, ensure_ascii=False)
+        self.integrityStatusChanged.emit(json_str)
+        return json_str
+
+    @Slot()
+    def repairModsIntegrity(self):
+        """Repairs gameinfo.gi and automatically re-downloads/installs any corrupted or wiped mods."""
+        if not self.dotaDetected:
+            self.errorOccurred.emit("Please configure a valid Dota 2 game path in Settings first!")
+            return
+
+        report = self._health_service.check_integrity()
+        # 1. Repair gameinfo.gi
+        gi_ok, gi_msg = self._health_service.repair_gameinfo_if_needed()
+        if gi_ok:
+            self._valve_update_detected = False
+            self.gameinfoStatusChanged.emit()
+
+        # 2. Re-install corrupted / missing mods
+        corrupted = report.get("corruptedMods", [])
+        if corrupted:
+            reinstall_items = []
+            for item in corrupted:
+                cat_id = item.get("categoryId", "heroes")
+                name = item.get("name", "")
+                mod_def = None
+                for m in self._mods_data.get(cat_id, []):
+                    if m.name.lower() == name.lower():
+                        mod_def = self._serialize_mod(m)
+                        break
+                if not mod_def:
+                    mod_def = dict(item)
+                reinstall_items.append(mod_def)
+
+            logger.info(f"Integrity auto-repair: launching batch reinstallation of {len(reinstall_items)} items.")
+            self.installBatch(json.dumps(reinstall_items))
+        else:
+            if gi_ok:
+                self.successOccurred.emit("Целостность проверена: все файлы на месте, gameinfo.gi активен!")
+            else:
+                self.successOccurred.emit("Целостность проверена: все установленные моды в порядке.")
+            self.checkModsIntegrity()
+
+    # --- Cloud Backup & Synchronization ---
+
+    @Slot(result=str)
+    def createCloudBackup(self) -> str:
+        """Uploads a complete snapshot of presets, favorites, loadout and settings to the cloud."""
+        presets = self._presets_service.get_user_presets()
+        manifest = self._health_service.get_tracked_manifest()
+        favorites = self._get_favorites_dict()
+        settings = {
+            "accentHue": self._accent_hue,
+            "uiLanguage": self._ui_language,
+            "installLanguage": self._install_language
+        }
+        payload = self._cloud_backup.create_payload(presets, manifest, favorites, settings)
+        ok, code, msg = self._cloud_backup.upload_to_cloud(payload)
+        self.cloudBackupFinished.emit(ok, code, msg)
+        if ok:
+            self.successOccurred.emit(f"Cloud Backup создан! Код: {code}")
+        else:
+            self.errorOccurred.emit(f"Ошибка создания Cloud Backup: {msg}")
+        return json.dumps({"success": ok, "code": code, "message": msg}, ensure_ascii=False)
+
+    @Slot(str, result=str)
+    def restoreCloudBackup(self, code_or_key: str) -> str:
+        """Restores presets, favorites, loadout and settings from a cloud backup code."""
+        ok, msg, data = self._cloud_backup.download_from_cloud(code_or_key)
+        if not ok or not data:
+            self.errorOccurred.emit(f"Не удалось восстановить Cloud Backup: {msg}")
+            return json.dumps({"success": False, "message": msg}, ensure_ascii=False)
+
+        # 1. Restore Presets
+        restored_presets = 0
+        for p in data.get("presets", []):
+            if isinstance(p, dict) and p.get("name"):
+                self._presets_service.import_preset(p)
+                restored_presets += 1
+
+        # 2. Restore Favorites
+        favs = data.get("favorites", {})
+        if favs and isinstance(favs, dict):
+            self._save_favorites(favs)
+            self.favoritesChanged.emit()
+
+        # 3. Restore Settings
+        st = data.get("settings", {})
+        if st and isinstance(st, dict):
+            hue = st.get("accentHue")
+            if hue:
+                self.accentHue = hue
+
+        # 4. Restore Installed Manifest
+        inst = data.get("installedMods", {})
+        if inst and isinstance(inst, dict):
+            self._save_manifest(inst)
+            self.installedModsChanged.emit()
+
+        summary_msg = f"Cloud Backup успешно восстановлен! Загружено пресетов: {restored_presets}, скинов в инвентаре: {len(inst)}"
+        self.successOccurred.emit(summary_msg)
+        return json.dumps({
+            "success": True,
+            "message": summary_msg,
+            "presetsCount": restored_presets,
+            "installedCount": len(inst)
+        }, ensure_ascii=False)
+
+    @Slot(str, result=str)
+    def exportBackupToFile(self, file_path: str) -> str:
+        """Exports profile backup to an offline .ihub_backup file."""
+        clean_path = file_path.replace("file:///", "").replace("file://", "")
+        presets = self._presets_service.get_user_presets()
+        manifest = self._health_service.get_tracked_manifest()
+        favorites = self._get_favorites_dict()
+        settings = {"accentHue": self._accent_hue, "uiLanguage": self._ui_language, "installLanguage": self._install_language}
+        payload = self._cloud_backup.create_payload(presets, manifest, favorites, settings)
+        ok, msg = self._cloud_backup.export_to_file(clean_path, payload)
+        if ok:
+            self.successOccurred.emit(f"Бэкап экспортирован: {os.path.basename(clean_path)}")
+        else:
+            self.errorOccurred.emit(f"Ошибка экспорта: {msg}")
+        return json.dumps({"success": ok, "message": msg}, ensure_ascii=False)
+
+    @Slot(str, result=str)
+    def importBackupFromFile(self, file_path: str) -> str:
+        """Imports profile backup from an offline .ihub_backup file."""
+        clean_path = file_path.replace("file:///", "").replace("file://", "")
+        ok, msg, data = self._cloud_backup.import_from_file(clean_path)
+        if not ok or not data:
+            self.errorOccurred.emit(f"Ошибка загрузки файла бэкапа: {msg}")
+            return json.dumps({"success": False, "message": msg}, ensure_ascii=False)
+
+        for p in data.get("presets", []):
+            if isinstance(p, dict) and p.get("name"):
+                self._presets_service.import_preset(p)
+        favs = data.get("favorites", {})
+        if favs and isinstance(favs, dict):
+            self._save_favorites(favs)
+            self.favoritesChanged.emit()
+        inst = data.get("installedMods", {})
+        if inst and isinstance(inst, dict):
+            self._save_manifest(inst)
+            self.installedModsChanged.emit()
+
+        self.successOccurred.emit(f"Бэкап успешно загружен из {os.path.basename(clean_path)}")
+        return json.dumps({"success": True, "message": msg}, ensure_ascii=False)
 
     @Slot()
     def randomizeLoadout(self):
@@ -1276,26 +1738,33 @@ class SkinChangerApp(QObject):
 
     @Slot(str, str, result=bool)
     def isModInstalled(self, name: str, category_id: str) -> bool:
-        manifest = self._get_installed_dict()
+        manifest = self._get_installed_dict(validate=True)
         key = f"{category_id}::{name}"
-        return key in manifest
+        if key in manifest:
+            return True
+        for k, v in manifest.items():
+            if isinstance(v, dict) and v.get("name") == name:
+                return True
+        return False
 
     @Slot(result=str)
     def getInstalledMods(self) -> str:
-        manifest = self._get_installed_dict()
+        manifest = self._get_installed_dict(validate=True)
         items = list(manifest.values())
         return json.dumps(items, ensure_ascii=False)
 
     @Slot(str, str)
     def uninstallMod(self, name: str, category_id: str):
-        manifest = self._get_installed_dict()
+        manifest = self._get_installed_dict(validate=False)
         key = f"{category_id}::{name}"
 
         if key not in manifest:
-            self.errorOccurred.emit(f"Mod '{name}' is not recorded as installed.")
-            return
+            for k, v in list(manifest.items()):
+                if isinstance(v, dict) and v.get("name") == name:
+                    key = k
+                    break
 
-        item = manifest[key]
+        item = manifest.get(key, {})
         deleted_count = 0
 
         for file_path in item.get("files", []):
@@ -1309,23 +1778,43 @@ class SkinChangerApp(QObject):
             except Exception as e:
                 logger.error(f"Error removing {file_path}: {e}")
 
-        del manifest[key]
-        self._save_manifest(manifest)
+        # Additional disk cleanup for custom folders
+        self._cleanup_mod_from_disk(name, category_id)
+
+        if key in manifest:
+            del manifest[key]
+            self._save_manifest(manifest)
+
         self.installedModsChanged.emit()
         self.totalSavingsChanged.emit()
         self.successOccurred.emit(f"Uninstalled '{name}'. Removed {deleted_count} files/folders.")
         logger.info(f"Uninstalled '{name}'")
 
-    @Slot()
-    def uninstallAllMods(self):
-        manifest = self._get_installed_dict()
-        if not manifest:
-            self.errorOccurred.emit("No installed mods found.")
-            return
+    @Slot(str, result=int)
+    def uninstallHeroMods(self, hero_name: str) -> int:
+        """Uninstalls all active mods belonging to the specified hero."""
+        if not hero_name:
+            return 0
 
-        count = len(manifest)
+        manifest = self._get_installed_dict(validate=False)
+        hero_lower = hero_name.lower().strip()
+        keys_to_delete = []
 
-        for item in manifest.values():
+        for key, item in manifest.items():
+            if not isinstance(item, dict):
+                continue
+            item_hero = (item.get("hero") or "").lower()
+            item_name = (item.get("name") or "").lower()
+            if (item_hero and hero_lower in item_hero) or (hero_lower in item_name):
+                keys_to_delete.append((key, item))
+
+        if not keys_to_delete:
+            return 0
+
+        uninstalled_count = 0
+        for key, item in keys_to_delete:
+            name = item.get("name", "")
+            cat_id = item.get("categoryId", "")
             for file_path in item.get("files", []):
                 try:
                     if os.path.isdir(file_path):
@@ -1333,10 +1822,69 @@ class SkinChangerApp(QObject):
                     elif os.path.isfile(file_path):
                         os.remove(file_path)
                 except Exception as e:
-                    logger.debug(f"Failed to remove file/dir {file_path} during full uninstall: {e}")
+                    logger.error(f"Error removing {file_path}: {e}")
+
+            self._cleanup_mod_from_disk(name, cat_id)
+            if key in manifest:
+                del manifest[key]
+            uninstalled_count += 1
+
+        self._save_manifest(manifest)
+        self.installedModsChanged.emit()
+        self.totalSavingsChanged.emit()
+        self.successOccurred.emit(f"Uninstalled {uninstalled_count} mods for {hero_name}")
+        logger.info(f"Uninstalled {uninstalled_count} mods for hero '{hero_name}'")
+        return uninstalled_count
+
+    @Slot()
+    def uninstallAll(self):
+        """Alias for uninstallAllMods."""
+        self.uninstallAllMods()
+
+    @Slot()
+    def uninstallAllMods(self):
+        """Uninstalls all mods, removes mod files/folders from Dota directories, and clears the manifest."""
+        manifest = self._get_installed_dict(validate=False)
+        count = len(manifest)
+
+        for item in manifest.values():
+            if isinstance(item, dict):
+                for file_path in item.get("files", []):
+                    try:
+                        if os.path.isdir(file_path):
+                            shutil.rmtree(file_path, ignore_errors=True)
+                        elif os.path.isfile(file_path):
+                            os.remove(file_path)
+                    except Exception as e:
+                        logger.debug(f"Failed to remove file/dir {file_path} during full uninstall: {e}")
+
+        # Clean up any custom mod folders starting with ! in all Dota directories
+        if self.dotaDetected and self._dota_path:
+            candidate_dirs = [
+                os.path.join(self._dota_path, "dota"),
+                os.path.join(self._dota_path, "dota_russian"),
+                os.path.join(self._dota_path, "dota_schinese"),
+                os.path.join(self._dota_path, "dota_koreana"),
+            ]
+            for d in candidate_dirs:
+                if os.path.exists(d) and os.path.isdir(d):
+                    try:
+                        for entry in os.listdir(d):
+                            if entry.startswith("!"):
+                                full_p = os.path.join(d, entry)
+                                try:
+                                    if os.path.isdir(full_p):
+                                        shutil.rmtree(full_p, ignore_errors=True)
+                                    elif os.path.isfile(full_p):
+                                        os.remove(full_p)
+                                except Exception as e:
+                                    logger.debug(f"Failed removing mod directory {full_p}: {e}")
+                    except Exception as e:
+                        logger.debug(f"Failed scanning directory {d} during uninstall: {e}")
 
         self._save_manifest({})
         self.installedModsChanged.emit()
+        self.totalSavingsChanged.emit()
         self.successOccurred.emit(f"All {count} mods have been cleanly uninstalled.")
         logger.info("All mods uninstalled cleanly.")
 
@@ -1418,21 +1966,152 @@ class SkinChangerApp(QObject):
 
     # --- Internal Settings & Manifest Helpers ---
 
-    def _get_installed_dict(self) -> Dict[str, Any]:
-        if os.path.exists(self._manifest_path):
+    def _is_mod_present_on_disk(self, item: Dict[str, Any]) -> bool:
+        """Checks if at least one file or folder for the installed mod actually exists on disk."""
+        if not self.dotaDetected or not self._dota_path:
+            return True
+
+        files = item.get("files", [])
+        if files and isinstance(files, list):
+            for file_path in files:
+                if file_path and os.path.exists(file_path):
+                    return True
+            return False
+
+        # Fallback check for legacy manifest entries without a "files" list
+        cat_id = item.get("categoryId", "heroes")
+        name = item.get("name", "")
+        file_name = item.get("file", "")
+        clean_name = os.path.basename(file_name) if file_name else ""
+        safe_name = re.sub(r'[^a-zA-Z0-9_]', '_', name)
+        safe_folder_name = f"!{cat_id}_{safe_name}"
+
+        candidate_dirs = [
+            os.path.join(self._dota_path, "dota"),
+            os.path.join(self._dota_path, "dota_russian"),
+            os.path.join(self._dota_path, "dota_schinese"),
+            os.path.join(self._dota_path, "dota_koreana"),
+        ]
+
+        for d in candidate_dirs:
+            if not os.path.exists(d):
+                continue
+            if clean_name and os.path.exists(os.path.join(d, clean_name)):
+                return True
+            if safe_folder_name and os.path.exists(os.path.join(d, safe_folder_name)):
+                return True
+            if safe_name and os.path.exists(os.path.join(d, safe_name)):
+                return True
+
+        return False
+
+    def _cleanup_mod_from_disk(self, name: str, category_id: str = ""):
+        """Removes any extracted or generated folders matching the mod name in Dota directories."""
+        if not self.dotaDetected or not self._dota_path or not name:
+            return
+        safe_name = re.sub(r'[^a-zA-Z0-9_]', '_', name)
+        candidate_dirs = [
+            os.path.join(self._dota_path, "dota"),
+            os.path.join(self._dota_path, "dota_russian"),
+            os.path.join(self._dota_path, "dota_schinese"),
+            os.path.join(self._dota_path, "dota_koreana"),
+        ]
+        for d in candidate_dirs:
+            if not os.path.exists(d) or not os.path.isdir(d):
+                continue
             try:
-                with open(self._manifest_path, "r", encoding="utf-8") as f:
-                    return json.load(f)
+                for entry in os.listdir(d):
+                    full_p = os.path.join(d, entry)
+                    if entry.startswith("!") and safe_name.lower() in entry.lower():
+                        if os.path.isdir(full_p):
+                            shutil.rmtree(full_p, ignore_errors=True)
+                            logger.info(f"Cleaned custom mod folder: {full_p}")
+                        elif os.path.isfile(full_p):
+                            os.remove(full_p)
+                            logger.info(f"Cleaned custom mod file: {full_p}")
             except Exception as e:
-                logger.error(f"Failed to read installed manifest: {e}")
-                return {}
-        return {}
+                logger.debug(f"Error during disk cleanup for mod '{name}': {e}")
+
+    def _setup_fs_watcher(self):
+        """Configures QFileSystemWatcher on Dota game folders to detect external skin deletions."""
+        if not hasattr(self, "_fs_watcher") or self._fs_watcher is None:
+            return
+        try:
+            existing = self._fs_watcher.directories()
+            if existing:
+                self._fs_watcher.removePaths(existing)
+
+            if self.dotaDetected and self._dota_path:
+                dirs_to_watch = []
+                for sub in ["dota", "dota_russian", "dota_schinese", "dota_koreana"]:
+                    p = os.path.join(self._dota_path, sub)
+                    if os.path.exists(p) and os.path.isdir(p):
+                        dirs_to_watch.append(p)
+                if dirs_to_watch:
+                    self._fs_watcher.addPaths(dirs_to_watch)
+                    logger.info(f"File watcher active on Dota dirs: {dirs_to_watch}")
+        except Exception as e:
+            logger.debug(f"Failed to setup fs watcher: {e}")
+
+    def _on_game_dir_changed(self, path: str):
+        logger.debug(f"Dota game folder changed: {path}. Triggering auto-validation...")
+        if hasattr(self, "_fs_debounce_timer") and self._fs_debounce_timer:
+            self._fs_debounce_timer.start()
+
+    def _emit_installed_changed(self):
+        try:
+            self.installedModsChanged.emit()
+            self.totalSavingsChanged.emit()
+        except Exception:
+            pass
+
+    def _get_installed_dict(self, validate: bool = True) -> Dict[str, Any]:
+        if not os.path.exists(self._manifest_path):
+            return {}
+
+        try:
+            with open(self._manifest_path, "r", encoding="utf-8") as f:
+                manifest = json.load(f)
+        except Exception as e:
+            logger.error(f"Failed to read installed manifest: {e}")
+            return {}
+
+        if not isinstance(manifest, dict):
+            return {}
+
+        if validate and self.dotaDetected:
+            valid_manifest = {}
+            changed = False
+            for key, item in manifest.items():
+                if not isinstance(item, dict):
+                    changed = True
+                    continue
+                if self._is_mod_present_on_disk(item):
+                    item["isCorrupted"] = False
+                    if "files" in item and isinstance(item["files"], list):
+                        existing_files = [f for f in item["files"] if os.path.exists(f)]
+                        if len(existing_files) != len(item["files"]):
+                            item["files"] = existing_files
+                            changed = True
+                    valid_manifest[key] = item
+                else:
+                    changed = True
+
+            if changed:
+                logger.info(f"Auto-pruned {len(manifest) - len(valid_manifest)} missing mods from manifest")
+                self._save_manifest(valid_manifest)
+                self._emit_installed_changed()
+            manifest = valid_manifest
+
+        return manifest
 
     def _save_manifest(self, manifest: Dict[str, Any]):
         try:
             os.makedirs(os.path.dirname(self._manifest_path), exist_ok=True)
             with open(self._manifest_path, "w", encoding="utf-8") as f:
                 json.dump(manifest, f, indent=2, ensure_ascii=False)
+            if hasattr(self, "_health_service"):
+                self._health_service.sync_backup(manifest)
         except Exception as e:
             logger.error(f"Failed to save manifest: {e}")
 
@@ -1465,8 +2144,11 @@ class SkinChangerApp(QObject):
                     self._theme_mode = s.get("themeMode", "cyberpunk")
                     self._accent_hue = s.get("accentHue", "cyan")
                     self._bg_image_path = s.get("bgImagePath", "")
-                    self._launch_options = s.get("launchOptions", "")
-                    self._discord_client_id = s.get("discordClientId", DEFAULT_CLIENT_ID)
+                    loaded_discord_id = s.get("discordClientId", DEFAULT_CLIENT_ID)
+                    if loaded_discord_id in ["1541931721216368653", ""]:
+                        loaded_discord_id = DEFAULT_CLIENT_ID
+                    self._discord_client_id = loaded_discord_id
+                    self._auto_reapply_valve_update = s.get("autoReapplyValveUpdate", True)
                     
                     # Update discord client ID upon loading
                     from core.discord_rpc import discord_rpc
@@ -1486,7 +2168,8 @@ class SkinChangerApp(QObject):
                     "accentHue": self._accent_hue,
                     "bgImagePath": self._bg_image_path,
                     "launchOptions": self._launch_options,
-                    "uiLanguage": self._ui_language
+                    "uiLanguage": self._ui_language,
+                    "autoReapplyValveUpdate": self._auto_reapply_valve_update
                 }, f, indent=2)
         except Exception as e:
             logger.error(f"Failed to save settings: {e}")
@@ -1651,6 +2334,41 @@ class SkinChangerApp(QObject):
             logger.error(f"Failed to import preset code: {e}")
             self.errorOccurred.emit("Failed to import preset.")
             return False
+
+    @Slot(result=str)
+    def exportCurrentLoadoutCode(self) -> str:
+        """Encodes all currently equipped mods into a shareable IHUB-... code and copies it."""
+        manifest = self._get_installed_dict(validate=False)
+        items = list(manifest.values())
+        if not items:
+            self.errorOccurred.emit("No active mods equipped to export.")
+            return ""
+        code = self._presets_service.export_loadout_code(items, "My Active Loadout")
+        if code:
+            self.copyToClipboard(code)
+            self.successOccurred.emit(f"Loadout code for {len(items)} mods copied to clipboard!")
+        return code
+
+    @Slot(str, result=str)
+    def previewShareCode(self, code_str: str) -> str:
+        """Parses a share code and returns JSON data for UI inspection without installing."""
+        data = self._presets_service.parse_share_code(code_str)
+        if data:
+            return json.dumps(data, ensure_ascii=False)
+        return ""
+
+    @Slot(str, result=bool)
+    def applyShareCode(self, code_str: str) -> bool:
+        """Directly queues and installs all mods specified inside a share code."""
+        data = self._presets_service.parse_share_code(code_str)
+        if not data or "items" not in data or not data["items"]:
+            self.errorOccurred.emit("Invalid or empty share code.")
+            return False
+        
+        items = data["items"]
+        self.installBatch(json.dumps(items))
+        self.successOccurred.emit(f"Applying {len(items)} mods from shared code...")
+        return True
 
     @Slot(str)
     def copyToClipboard(self, text: str):
