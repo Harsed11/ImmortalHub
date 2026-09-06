@@ -8,6 +8,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -40,6 +43,7 @@ jobs:
 
       - name: Build Standalone Executable
         run: |
+          python build_exe.py --onefile
           python build_exe.py
 
       - name: Archive Portable Bundle
@@ -50,13 +54,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ImmortalHub-Windows-x64
-          path: dist/ImmortalHub_Portable_x64.zip
+          path: |
+            dist/ImmortalHub.exe
+            dist/ImmortalHub_Portable_x64.zip
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/ImmortalHub_Portable_x64.zip
+          files: |
+            dist/ImmortalHub.exe
+            dist/ImmortalHub_Portable_x64.zip
           draft: false
           prerelease: false
           generate_release_notes: true
